@@ -18,13 +18,13 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpHtr;
-import eu.transkribus.core.util.HtrCITlabUtils;
+import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.HtrPyLaiaUtils;
 
 public class PyLaiaTrainingConfComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(PyLaiaTrainingConfComposite.class);
 	
-	private Text numEpochsTxt;
-//	private Text earlyStoppingTxt;
+	private Text numEpochsTxt, earlyStoppingTxt, learningRateTxt, trainSizeTxt;
 	private HtrModelChooserButton baseModelBtn;
 	
 	public PyLaiaTrainingConfComposite(Composite parent, boolean enableBaseModelSelection, int style) {
@@ -32,28 +32,28 @@ public class PyLaiaTrainingConfComposite extends Composite {
 		setLayout(new GridLayout(2, false));
 
 		Label numEpochsLbl = new Label(this, SWT.NONE);
-		numEpochsLbl.setText("Nr. of Epochs:");
+		numEpochsLbl.setText("Max-nr. of Epochs:");
 		numEpochsTxt = new Text(this, SWT.BORDER);
 		numEpochsTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		numEpochsTxt.setToolTipText("The maximum number of epochs, if early stopping does not apply");
 		
-//		if (false) {
-//		Label earlyStoppingLbl = new Label(this, SWT.NONE);
-//		earlyStoppingLbl.setText("Early Stopping: ");
-//		earlyStoppingTxt = new Text(this, SWT.BORDER);
-//		earlyStoppingTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-//		earlyStoppingTxt.setToolTipText("Stop training early, if model does not improve for this number of epochs. (Optional)");
-//		}
+		Label earlyStoppingLbl = new Label(this, SWT.NONE);
+		earlyStoppingLbl.setText("Early Stopping: ");
+		earlyStoppingTxt = new Text(this, SWT.BORDER);
+		earlyStoppingTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		earlyStoppingTxt.setToolTipText("Stop training early, if model does not improve for this number of epochs");
 
-//		Label learningRateLbl = new Label(this, SWT.NONE);
-//		learningRateLbl.setText("Learning Rate:");
-//		learningRateTxt = new Text(this, SWT.BORDER);
-//		learningRateTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-//		Label trainSizeLbl = new Label(this, SWT.NONE);
-//		trainSizeLbl.setText("Train Size per Epoch:");
-//		trainSizeTxt = new Text(this, SWT.BORDER);
-//		trainSizeTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		Label learningRateLbl = new Label(this, SWT.NONE);
+		learningRateLbl.setText("Learning Rate:");
+		learningRateTxt = new Text(this, SWT.BORDER);
+		learningRateTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		Label trainSizeLbl = new Label(this, SWT.NONE);
+		trainSizeLbl.setText("Train Size per Epoch:");
+		trainSizeTxt = new Text(this, SWT.BORDER);
+		trainSizeTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
-		//Base models are not supported for CITlabPlus yet
+		//Base models are not supported for PyLaia yet
 		if(enableBaseModelSelection) {
 			Label baseModelLbl = new Label(this, SWT.NONE);
 			baseModelLbl.setText("Base Model:");		
@@ -66,10 +66,10 @@ public class PyLaiaTrainingConfComposite extends Composite {
 		setDefaults();
 
 		new Label(this, SWT.NONE);
-		Button resetUroDefaultsBtn = new Button(this, SWT.PUSH);
-		resetUroDefaultsBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		resetUroDefaultsBtn.setText("Reset to defaults");
-		resetUroDefaultsBtn.addSelectionListener(new SelectionAdapter() {
+		Button resetBtn = new Button(this, SWT.PUSH);
+		resetBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		resetBtn.setText("Reset to defaults");
+		resetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
@@ -78,7 +78,6 @@ public class PyLaiaTrainingConfComposite extends Composite {
 		});
 		
 		//TODO advanced parameters
-		
 //		Group customGrp = new Group(this, SWT.BORDER);
 //		customGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL,true, true, 4, 2));
 //		customGrp.setLayout(new GridLayout(2, true));
@@ -102,9 +101,9 @@ public class PyLaiaTrainingConfComposite extends Composite {
 	
 	public void setDefaults() {
 		numEpochsTxt.setText("" + PyLaiaHtrTrainConfig.DEFAULT_NUM_EPOCHS);
-//		if (earlyStoppingTxt!=null) {
-//			earlyStoppingTxt.setText(""+ CitLabHtrTrainConfig.DEFAULT_EARLY_STOPPING);
-//		}
+		earlyStoppingTxt.setText(""+ PyLaiaHtrTrainConfig.DEFAULT_EARLY_STOPPING);
+		learningRateTxt.setText(""+PyLaiaHtrTrainConfig.DEFAULT_LEARNING_RATE);
+		trainSizeTxt.setText(""+PyLaiaHtrTrainConfig.DEFAULT_BATCH_SIZE);
 		if(baseModelBtn != null) {
 			baseModelBtn.setModel(null);
 		}
@@ -115,23 +114,27 @@ public class PyLaiaTrainingConfComposite extends Composite {
 			errorList = new ArrayList<>();
 		}
 		if (!StringUtils.isNumeric(numEpochsTxt.getText())) {
-			errorList.add("Number of Epochs must contain a number!");
+			errorList.add("Number of Epochs must be a number!");
 		}
-//		if (earlyStoppingTxt!=null) {
-//			if (!StringUtils.isEmpty(earlyStoppingTxt.getText()) && !StringUtils.isNumeric(earlyStoppingTxt.getText())) {
-//				errorList.add("Early stopping must be empty or a number!");
-//			}			
-//		}
-
+		if (!StringUtils.isNumeric(earlyStoppingTxt.getText())) {
+			errorList.add("Early stopping must be a number!");
+		}
+		if (!StringUtils.isNumeric(trainSizeTxt.getText())) {
+			errorList.add("Train size must be a number!");
+		}
+		if (!CoreUtils.isDouble(learningRateTxt.getText())) {
+			errorList.add("Learning rate must be a floating point number!");
+		}
+		
 		return errorList;
 	}
 
 	public PyLaiaHtrTrainConfig addParameters(PyLaiaHtrTrainConfig conf) {
 		conf.setProvider(this.getProvider());
 		conf.setNumEpochs(Integer.parseInt(numEpochsTxt.getText()));
-//		if (earlyStoppingTxt != null) {
-//			citlabTrainConf.setEarlyStopping(CoreUtils.parseInteger(earlyStoppingTxt.getText(), null));	
-//		}
+		conf.setEarlyStopping(Integer.parseInt(earlyStoppingTxt.getText()));
+		conf.setBatchSize(Integer.parseInt(trainSizeTxt.getText()));
+		conf.setLearningRate(Double.parseDouble(learningRateTxt.getText()));
 		
 		if(baseModelBtn != null) {
 			TrpHtr htr = baseModelBtn.getModel();
@@ -145,6 +148,6 @@ public class PyLaiaTrainingConfComposite extends Composite {
 	}
 
 	public String getProvider() {
-		return HtrCITlabUtils.PROVIDER_PYLAIA;
+		return HtrPyLaiaUtils.PROVIDER_PYLAIA;
 	}
 }

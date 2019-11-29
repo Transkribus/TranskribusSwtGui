@@ -42,6 +42,9 @@ public class RecognitionPreferences {
 			config.setHtrName(pref.get(buildKey(HTR, colId, serverUri, HTR_NAME), null));
 			break;
 		case UPVLC:
+			config.setDictionary(pref.get(buildKey(HTR, colId, serverUri, DICTIONARY), null));
+			config.setHtrId(pref.getInt(buildKey(HTR, colId, serverUri, HTR_ID), 0));
+			config.setHtrName(pref.get(buildKey(HTR, colId, serverUri, HTR_NAME), null));			
 			break;
 		default:
 			return null;
@@ -56,11 +59,13 @@ public class RecognitionPreferences {
 		Mode mode = config.getMode();
 		pref.put(buildKey(HTR, colId, serverUri, MODE), mode.toString());
 		pref.put(buildKey(HTR, colId, serverUri, LANGUAGE), config.getLanguage());
+		
+		final String dictKey;
 		switch(mode) {
 		case CITlab:
 			pref.putInt(buildKey(HTR, colId, serverUri, HTR_ID), config.getHtrId());
 			pref.put(buildKey(HTR, colId, serverUri, HTR_NAME), config.getHtrName());
-			final String dictKey = buildKey(HTR, colId, serverUri, DICTIONARY);
+			dictKey = buildKey(HTR, colId, serverUri, DICTIONARY);
 			if(config.getDictionary() != null) {
 				pref.put(dictKey, config.getDictionary());
 			} else {
@@ -68,7 +73,15 @@ public class RecognitionPreferences {
 			}
 			break;
 		case UPVLC:
-			break;
+			pref.putInt(buildKey(HTR, colId, serverUri, HTR_ID), config.getHtrId());
+			pref.put(buildKey(HTR, colId, serverUri, HTR_NAME), config.getHtrName());
+			dictKey = buildKey(HTR, colId, serverUri, DICTIONARY);
+			if(config.getDictionary() != null) {
+				pref.put(dictKey, config.getDictionary());
+			} else {
+				pref.remove(dictKey);
+			}
+			break;			
 		default:
 			break;	
 		}		

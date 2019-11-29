@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
+import eu.transkribus.core.util.HtrPyLaiaUtils;
 import eu.transkribus.swt.util.Images;
 
 public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontProvider {
@@ -107,7 +108,7 @@ public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontPro
 			return "CITlab HTR";
 		case HtrCITlabUtils.PROVIDER_CITLAB_PLUS:
 			return "CITlab HTR+";
-		case HtrCITlabUtils.PROVIDER_PYLAIA:
+		case HtrPyLaiaUtils.PROVIDER_PYLAIA:
 			return "PyLaia";
 		default:
 			return NOT_AVAILABLE_LABEL;

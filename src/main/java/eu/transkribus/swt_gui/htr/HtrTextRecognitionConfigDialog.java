@@ -12,13 +12,18 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.util.HtrCITlabUtils;
+import eu.transkribus.core.util.HtrPyLaiaUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.util.TextRecognitionConfig;
 import eu.transkribus.util.TextRecognitionConfig.Mode;
 
 public class HtrTextRecognitionConfigDialog extends Dialog {
+	private static final Logger logger = LoggerFactory.getLogger(HtrTextRecognitionConfigDialog.class);
 
 	private HtrDictionaryComposite htrDictComp;
 	private HtrModelsComposite htrModelsComp;
@@ -80,6 +85,8 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 			htrDictComp.selectDictionary(config.getDictionary());
 			break;
 		case UPVLC:
+			htrModelsComp.setSelection(config.getHtrId());
+			htrDictComp.selectDictionary(config.getDictionary());			
 			break;
 		default:
 			break;
@@ -89,13 +96,33 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 	public TextRecognitionConfig getConfig() {
 		return config;
 	}
+	
+	private Mode getModeForProvider(String provider) {
+		logger.debug("provider = "+provider);
+				
+		if (HtrCITlabUtils.PROVIDER_CITLAB.equals(provider) || HtrCITlabUtils.PROVIDER_CITLAB_PLUS.equals(provider)) {
+			return Mode.CITlab;
+		}
+		if (HtrPyLaiaUtils.PROVIDER_PYLAIA.equals(provider)) {
+			return Mode.UPVLC;
+		}
+		
+		return null;
+	}
 
 	@Override
 	protected void okPressed() {
 		htrModelsComp.hdw.checkForUnsavedChanges();
-		config = new TextRecognitionConfig(Mode.CITlab);
-		config.setDictionary(htrDictComp.getSelectedDictionary());
 		TrpHtr htr = htrModelsComp.getSelectedHtr();
+		
+		Mode mode = getModeForProvider(htr.getProvider());
+		if (mode == null) {
+			DialogUtil.showErrorMessageBox(getShell(), "Error parsing mode from provider", "Unknown model provider: "+htr.getProvider());
+			return;
+		}
+		config = new TextRecognitionConfig(mode);
+		config.setDictionary(htrDictComp.getSelectedDictionary());
+		
 		if (htr == null) {
 			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please select a HTR.");
 			return;

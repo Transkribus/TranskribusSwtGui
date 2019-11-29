@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
+import eu.transkribus.core.util.HtrPyLaiaUtils;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
@@ -32,7 +33,7 @@ import eu.transkribus.swt.util.Images;
 public class HtrTableWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(HtrTableWidget.class);
 	
-	public final static String[] providerValues = { HtrCITlabUtils.PROVIDER_CITLAB, HtrCITlabUtils.PROVIDER_CITLAB_PLUS, HtrCITlabUtils.PROVIDER_PYLAIA };	
+	public final static String[] providerValues = { HtrCITlabUtils.PROVIDER_CITLAB, HtrCITlabUtils.PROVIDER_CITLAB_PLUS, HtrPyLaiaUtils.PROVIDER_PYLAIA };	
 	
 	public class HtrLazyContentProvider implements ILazyContentProvider {
 		private MyTableViewer viewer;

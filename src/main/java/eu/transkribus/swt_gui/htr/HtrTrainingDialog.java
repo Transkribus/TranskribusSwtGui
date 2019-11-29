@@ -178,6 +178,7 @@ public class HtrTrainingDialog extends Dialog {
 		paramTabFolder.setSelection(selection);		
 		paramCont.pack();
 		SWTUtil.onSelectionEvent(paramTabFolder, (e) -> { updateUI(); } );
+		SWTUtil.setTabFolderBoldOnItemSelection(paramTabFolder);
 		
 		treeViewerSelector = new DataSetSelectionSashForm(sash, SWT.HORIZONTAL, colId, htrList, docList);
 		treeViewerSelector.enableDebugDialog(this.enableDebugDialog);
