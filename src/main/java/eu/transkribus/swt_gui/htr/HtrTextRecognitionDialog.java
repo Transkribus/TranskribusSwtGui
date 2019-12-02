@@ -37,6 +37,7 @@ import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrDocPagesOrCollectionSelector;
 import eu.transkribus.util.TextRecognitionConfig;
+import eu.transkribus.util.TextRecognitionConfig.Mode;
 
 public class HtrTextRecognitionDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(HtrTextRecognitionDialog.class);
@@ -182,6 +183,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 						config = trcd.getConfig();
 						configTxt.setText(config.toString());
 						store.saveTextRecognitionConfig(config);
+						updateUi();
 					}
 					trcd = null;
 				} else {
@@ -195,6 +197,8 @@ public class HtrTextRecognitionDialog extends Dialog {
 		if(config != null) {
 			configTxt.setText(config.toString());
 		}
+		
+		updateUi();
 		return cont;
 	}
 	
@@ -244,6 +248,12 @@ public class HtrTextRecognitionDialog extends Dialog {
 		config.setDoStoreConfMats(doStoreConfMatsBtn.getSelection());
 		
 		super.okPressed();
+	}
+	
+	private void updateUi() {
+		keepOriginalLinePolygonsBtn.setVisible(config!=null && config.getMode()==Mode.CITlab);
+		doLinePolygonSimplificationBtn.setVisible(config!=null && config.getMode()==Mode.CITlab);
+		doStoreConfMatsBtn.setVisible(config!=null && config.getMode()==Mode.CITlab);
 	}
 
 	@Override

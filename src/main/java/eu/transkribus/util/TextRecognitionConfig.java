@@ -122,8 +122,9 @@ public class TextRecognitionConfig {
 					+ (dictionary == null ? HtrDictionaryComposite.NO_DICTIONARY : dictionary);
 			break;
 		case UPVLC:
-			s = "PyLaia HTR\nNet Name: " + htrName + "\nLanguage: " + language+ "\nDictionary: " 
-					+ (dictionary == null ? HtrDictionaryComposite.NO_DICTIONARY : dictionary);
+//			s = "PyLaia HTR\nNet Name: " + htrName + "\nLanguage: " + language+ "\nDictionary: " 
+//					+ (dictionary == null ? HtrDictionaryComposite.NO_DICTIONARY : dictionary);
+			s = "PyLaia HTR\nNet Name: " + htrName + "\nLanguage: " + language; // note: dictionaries currently not supported in PyLaia decoding!			
 			break;
 		default:
 			s = "Could not load configuration!";

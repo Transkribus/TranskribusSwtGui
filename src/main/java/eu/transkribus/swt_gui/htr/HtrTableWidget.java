@@ -83,8 +83,8 @@ public class HtrTableWidget extends Composite {
 	public static final String HTR_DATE_COL = "Created";
 	public static final String HTR_ID_COL = "ID";
 	
-	private MyTableViewer htrTv;	
-	private HtrTableLabelProvider labelProvider;
+	MyTableViewer htrTv;	
+	HtrTableLabelProvider labelProvider;
 	
 	// filter:
 	Composite filterAndReloadComp;
