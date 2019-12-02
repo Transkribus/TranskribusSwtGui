@@ -146,6 +146,7 @@ public class HtrTrainingDialog extends Dialog {
 		
 		int i = 0;
 		CTabItem selection = null;
+		
 		if(trainJobImpls.contains(JobImpl.CITlabHtrTrainingJob)) {
 			TrainMethodUITab tab = createCitlabTrainingTab(i++);
 			selection = tab.getTabItem();
@@ -160,8 +161,8 @@ public class HtrTrainingDialog extends Dialog {
 		
 		if(trainJobImpls.contains(JobImpl.PyLaiaTrainingJob)) { // for testing purposes: always true...
 			TrainMethodUITab tab = createPylaiaTrainTabItem(i++);
-			if (true) { // select for testing purposes
-				selection = tab.getTabItem();	
+			if (false) { // select PyLaia by default
+				selection = tab.getTabItem();
 			}
 			tabList.add(tab);
 		}
