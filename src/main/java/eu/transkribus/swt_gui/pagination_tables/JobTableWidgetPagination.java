@@ -83,7 +83,7 @@ public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<
 			new ColumnConfig(ID_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 			new ColumnConfig(RESULT_COL, 100, false, DefaultTableColumnViewerSorter.ASC),};
 
-	protected Button showAllJobsBtn, cancelBtn;
+	protected Button showAllJobsBtn, cancelBtn, allowUsersForJobBtn;
 	protected Combo stateCombo;
 	protected Text docIdText;
 	protected Text typeFilterTxt;
@@ -98,25 +98,34 @@ public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<
 		super(parent, style, initialPageSize); //, Images.EXCLAMATION, "Show job error details");
 
 		pageableTable.getController().setSort("createTime", SWT.UP);
-
-		Composite btns = new Composite(this, 0);
-		RowLayout rl = new RowLayout(SWT.HORIZONTAL);
-		rl.fill = true;
-		// btns.setLayout(rl);
-		btns.setLayout(new GridLayout(2, false));
-
-		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		btns.moveAbove(pageableTable);
-
-		showAllJobsBtn = new Button(btns, SWT.CHECK);
+		
+		Composite topBtns = new Composite(this, 0);
+		topBtns.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
+		topBtns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		topBtns.moveAbove(pageableTable);
+		
+		cancelBtn = new Button(topBtns, SWT.NONE);
+		cancelBtn.setText("Cancel job");		
+		
+		showAllJobsBtn = new Button(topBtns, SWT.CHECK);
 		// showAllJobsBtn.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true,
 		// false, 1, 1));
 		showAllJobsBtn.setText("Show all jobs");
+		
+		allowUsersForJobBtn = new Button(topBtns, 0);
+		allowUsersForJobBtn.setText("Allow users for job...");
+		
+		boolean visible = Storage.getInstance().isLoggedIn() && Storage.getInstance().getUser().isAdmin();
+		showAllJobsBtn.setVisible(visible);
+		allowUsersForJobBtn.setVisible(visible);		
 
-		cancelBtn = new Button(btns, SWT.NONE);
-		// cancelBtn.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false,
-		// 1, 1));
-		cancelBtn.setText("Cancel job");
+		Composite btns = new Composite(this, 0);
+		btns.setLayout(new GridLayout(2, false));
+		topBtns.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
+
+		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		btns.moveAbove(pageableTable);
+		btns.moveBelow(topBtns);
 
 		Label l = new Label(btns, 0);
 		l.setText("State: ");
@@ -179,6 +188,7 @@ public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<
 
 		typeFilterTxt = new Text(btns, SWT.BORDER);
 		typeFilterTxt.addTraverseListener(refreshPageOnReturnListener);
+		typeFilterTxt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		// pageableTable.sortChanged("", "createTimeFormatted", 0, SWT.UP,
 		// pageableTable.getController());
@@ -217,6 +227,10 @@ public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<
 
 	public Button getCancelBtn() {
 		return cancelBtn;
+	}
+	
+	public Button getAllowUsersForJobBtn() {
+		return allowUsersForJobBtn;
 	}
 
 	@Override

@@ -18,20 +18,19 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpHtr;
-import eu.transkribus.core.rest.JobConst;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
+import eu.transkribus.swt.util.LabeledText;
 
 public class CITlabHtrPlusTrainingConfComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(CITlabHtrPlusTrainingConfComposite.class);
-	
-	private Text numEpochsTxt, earlyStoppingTxt;
-	private Button earlyStoppingChk;
+		
+	private Text numEpochsTxt;
+	private Text earlyStoppingTxt;
 //	private Text langTxt;
 //	private MultiCheckSelectionCombo langSelection;
 //	private Combo scriptType;
 	private HtrModelChooserButton baseModelBtn;
-	
-	private final boolean allowEarlyStopping;
 	
 	// FIXME as soon as update to CITlabModule 2.0.2 is done, this can be removed. 2.0.1 sets "-1" which would use the whole set in each epoch.
 	public final static int DEFAULT_TRAIN_SIZE_PER_EPOCH = 8192;
@@ -44,18 +43,18 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 		super(parent, style);
 		setLayout(new GridLayout(2, false));
 
-		/*
-		 * Set to true to allow early stopping configuration for all users (or remove the field and checks)
-		 * FIXME the early stopping parameter is eventually NOT passed to trainer.py in CITlabModule!
-		 * Clarify if tf_htsr even supports this and disable the UI element for now.
-		 */
-		allowEarlyStopping = false;//Storage.getInstance().isAdminLoggedIn();
-		//alter message in tooltip as long as this is an admin feature
-		
 		Label numEpochsLbl = new Label(this, SWT.NONE);
 		numEpochsLbl.setText("Nr. of Epochs:");
 		numEpochsTxt = new Text(this, SWT.BORDER);
 		numEpochsTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		if (false) {
+		Label earlyStoppingLbl = new Label(this, SWT.NONE);
+		earlyStoppingLbl.setText("Early Stopping: ");
+		earlyStoppingTxt = new Text(this, SWT.BORDER);
+		earlyStoppingTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		earlyStoppingTxt.setToolTipText("Stop training early, if model does not improve for this number of epochs. (Optional)");
+		}
 
 //		Label learningRateLbl = new Label(this, SWT.NONE);
 //		learningRateLbl.setText("Learning Rate:");
@@ -76,27 +75,6 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 			baseModelBtn = null;
 		}
 		
-		if(allowEarlyStopping) {
-			final String earlyStoppingToolTip = "The training will stop automatically when no improvement is detected "
-					+ "on the validation set for this number of epochs. Prevents overfitting.";
-			earlyStoppingChk = new Button(this, SWT.CHECK);
-			earlyStoppingChk.setText("Early Stopping:");
-			earlyStoppingChk.setToolTipText(earlyStoppingToolTip);
-			earlyStoppingTxt = new Text(this, SWT.BORDER);
-			earlyStoppingTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-			earlyStoppingTxt.setToolTipText(earlyStoppingToolTip);
-			earlyStoppingTxt.setEnabled(false);
-			
-			earlyStoppingChk.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					earlyStoppingTxt.setEnabled(earlyStoppingChk.getSelection());
-					if(!earlyStoppingChk.getSelection()) {
-						earlyStoppingTxt.setText("");
-					}
-				}
-			});
-		}
 //		Label scriptLbl = new Label(this, SWT.NONE);
 //		scriptLbl.setText("Script Type");
 //		scriptType = new Combo(this, SWT.FLAT | SWT.READ_ONLY);
@@ -152,14 +130,14 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 	
 	public void setCitlabTrainingDefaults() {
 		numEpochsTxt.setText("" + DEFAULT_NUM_EPOCHS);
+		if (earlyStoppingTxt!=null) {
+			earlyStoppingTxt.setText(""+ CitLabHtrTrainConfig.DEFAULT_EARLY_STOPPING);
+		}
 //		learningRateTxt.setText(CitLabHtrTrainConfig.DEFAULT_LEARNING_RATE);
 //		noiseCmb.setDefault();
 //		trainSizeTxt.setText("" + CitLabHtrTrainConfig.DEFAULT_TRAIN_SIZE_PER_EPOCH);
 		if(baseModelBtn != null) {
 			baseModelBtn.setModel(null);
-		}
-		if(earlyStoppingChk != null) {
-			earlyStoppingChk.setSelection(false);
 		}
 	}
 	
@@ -168,11 +146,14 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 			errorList = new ArrayList<>();
 		}
 		if (!StringUtils.isNumeric(numEpochsTxt.getText())) {
-			errorList.add("Number of Epochs must contain a positive number!");
+			errorList.add("Number of Epochs must contain a number!");
 		}
-		if(earlyStoppingChk != null && earlyStoppingChk.getSelection() && !StringUtils.isNumeric(earlyStoppingTxt.getText())) {
-			errorList.add("Early Stopping value must be a number!");
+		if (earlyStoppingTxt!=null) {
+			if (!StringUtils.isEmpty(earlyStoppingTxt.getText()) && !StringUtils.isNumeric(earlyStoppingTxt.getText())) {
+				errorList.add("Early stopping must be empty or a number!");
+			}			
 		}
+
 //		if (StringUtils.isEmpty(learningRateTxt.getText())) {
 //			errorList.add("Learning rate must not be empty!");
 //		}
@@ -185,10 +166,8 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 	public CitLabHtrTrainConfig addParameters(CitLabHtrTrainConfig citlabTrainConf) {
 		citlabTrainConf.setProvider(this.getProvider());
 		citlabTrainConf.setNumEpochs(Integer.parseInt(numEpochsTxt.getText()));
-		
-		if(earlyStoppingChk != null && earlyStoppingChk.getSelection()) {
-			final String estValue = earlyStoppingTxt.getText();
-			citlabTrainConf.setCustomParam(JobConst.PROP_EARLY_STOPPING, estValue);
+		if (earlyStoppingTxt != null) {
+			citlabTrainConf.setEarlyStopping(CoreUtils.parseInteger(earlyStoppingTxt.getText(), null));	
 		}
 //		citlabTrainConf.setNoise(noiseCmb.getNoise());
 //		citlabTrainConf.setLearningRate(learningRateTxt.getText());

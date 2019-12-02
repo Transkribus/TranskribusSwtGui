@@ -23,6 +23,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
@@ -31,6 +32,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEven
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.TextStyleTypeUtils;
 import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
@@ -39,6 +41,7 @@ import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener.SceneEventTyp
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeReadingOrderComparator;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeUtil;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.ChangeReadingOrderDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -313,9 +316,14 @@ public class CanvasScene {
 				}
 			}
 		}
-		// sort shapes by reading order
-		Collections.sort(selectedShapes, new CanvasShapeReadingOrderComparator());
-	
+		
+		// sort shapes if possible
+//		CanvasShapeUtil.sortCanvasShapesByReadingOrder(selectedShapes);
+		CanvasShapeUtil.sortCanvasShapesByXY(selectedShapes);
+		for (ICanvasShape s : selectedShapes) {
+			logger.debug(CanvasShapeUtil.getTrpShapeType(s).getId());
+		}
+		
 		if (sendSignal) {
 			if (notifyOnBeforeShapesMerged(selectedShapes)) { // calls the method CanvasSceneListener::onBeforeMerge which checks if all shapes are of same type etc.
 				return null;

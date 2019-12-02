@@ -218,6 +218,7 @@ public class P2PaLATrainDialog extends Dialog {
 		outModeCombo.getCombo().add(outModes[1][0]);
 		outModeCombo.getCombo().add(outModes[2][0]);
 		outModeCombo.getCombo().select(0);
+		SWTUtil.onSelectionEvent(outModeCombo.getCombo(), e -> updateUi());
 		
 		Composite statusComp = new Composite(cont, 0);
 		statusComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -341,6 +342,7 @@ public class P2PaLATrainDialog extends Dialog {
 		
 		try {
 			StructTypesAnal anal = new StructTypesAnal();
+			anal.setWithBaselines(true);
 			EditStatus editStatus = parseEditStatus();
 			boolean skipPagesWithMissingStatus = skipPagesWithMissingStatusCheck.getSelection();
 			
@@ -401,6 +403,9 @@ public class P2PaLATrainDialog extends Dialog {
 		
 		valSel.setEnabled(!autoSplitTrainSetCheck.getSelection());
 		testSel.setEnabled(!autoSplitTrainSetCheck.getSelection());
+		
+		structureTypesText.setEnabled(outModeCombo.getCombo().getSelectionIndex()!=1);
+		mergedStructureTypesText.setEnabled(outModeCombo.getCombo().getSelectionIndex()!=1);
 	}
 	
 	private double parseFraction(String percText) throws NumberFormatException {

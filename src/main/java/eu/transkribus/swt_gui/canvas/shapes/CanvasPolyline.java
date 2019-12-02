@@ -349,7 +349,8 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 			
 			return contains;
 		} else { // the new version using the default poly rectangle around the polyline
-			return getDefaultPolyRectangle4Baseline().contains(x, y);
+			CanvasPolygon bp = getDefaultPolyRectangle4Baseline();
+			return bp == null ? false : bp.contains(x, y);
 		}
 //		return awtShape.contains(arg0);
 	}

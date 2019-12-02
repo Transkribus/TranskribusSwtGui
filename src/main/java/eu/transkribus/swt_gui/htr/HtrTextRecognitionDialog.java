@@ -259,7 +259,8 @@ public class HtrTextRecognitionDialog extends Dialog {
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(300, 400);
+//		return new Point(300, 400);
+		return SWTUtil.getPreferredOrMinSize(getShell(), 300, 400);
 	}
 
 	@Override

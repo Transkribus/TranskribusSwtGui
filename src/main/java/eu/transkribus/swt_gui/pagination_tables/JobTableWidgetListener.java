@@ -20,6 +20,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.dialogs.AllowUsersForJobDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -51,6 +52,7 @@ public class JobTableWidgetListener extends SelectionAdapter implements IStorage
 	void attach() {
 		jw.getShowAllJobsBtn().addSelectionListener(this);
 		jw.getCancelBtn().addSelectionListener(this);
+		SWTUtil.addSelectionListener(jw.getAllowUsersForJobBtn(), this);
 		tv.addDoubleClickListener(this);
 		Storage.getInstance().addListener(this);
 	}
@@ -58,6 +60,7 @@ public class JobTableWidgetListener extends SelectionAdapter implements IStorage
 	void detach() {
 		jw.getShowAllJobsBtn().removeSelectionListener(this);
 		jw.getCancelBtn().removeSelectionListener(this);
+		SWTUtil.removeSelectionListener(jw.getAllowUsersForJobBtn(), this);
 		tv.removeDoubleClickListener(this);
 		Storage.getInstance().removeListener(this);		
 	}
@@ -69,6 +72,11 @@ public class JobTableWidgetListener extends SelectionAdapter implements IStorage
 		logger.debug("double click on transcript: "+jobStatus);
 		
 		if (jobStatus!=null) {
+			Integer docId = jobStatus.getDocId();
+			if (docId == null || docId<=0) {
+				return;
+			}
+			
 			logger.debug("Loading doc: " + jobStatus.getDocId());
 			int col = 0;
 			TrpDocMetadata el = null;
@@ -97,7 +105,8 @@ public class JobTableWidgetListener extends SelectionAdapter implements IStorage
 		Object s = e.getSource();
 		if (s.equals(jw.getShowAllJobsBtn())) {
 			jw.reloadJobList();
-		} else if(s.equals(jw.getCancelBtn())) {
+		}
+		else if(s.equals(jw.getCancelBtn())) {
 			TrpJobStatus job = jw.getFirstSelected();
 			if(job != null && !job.getState().equals(TrpJobStatus.FINISHED) &&
 					!job.getState().equals(TrpJobStatus.CANCELED) &&
@@ -106,14 +115,20 @@ public class JobTableWidgetListener extends SelectionAdapter implements IStorage
 				mw.cancelJob(job.getJobId());
 			}
 		}
+		else if (s.equals(jw.getAllowUsersForJobBtn())) {
+			AllowUsersForJobDialog d = new AllowUsersForJobDialog(jw.getShell());
+			d.open();
+		}
 	}
 
 	@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
-		if (SWTUtil.isDisposed(jw))
+		if (SWTUtil.isDisposed(jw)) {
 			return;
+		}
 		
 		boolean visible = Storage.getInstance().isLoggedIn() && Storage.getInstance().getUser().isAdmin();
 		jw.getShowAllJobsBtn().setVisible(visible);
+		jw.getAllowUsersForJobBtn().setVisible(visible);
 		jw.refreshPage(true);
 	}
 	

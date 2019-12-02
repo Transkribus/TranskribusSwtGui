@@ -34,14 +34,14 @@ public class CollectionUsersDialog extends Dialog {
 	      shell.setText("Users in Collection");
 	      SWTUtil.centerShell(shell);
 	}
-	
 
 	@Override protected boolean isResizable() {
 	    return true;
 	}
 	
 	@Override protected Point getInitialSize() {
-		return new Point(600, 800);
+//		return SWTUtil.getPreferredOrMinSize(getShell(), 300, 800);
+		return SWTUtil.getPreferredSizeBound(getShell(), new Point(600, 1000), new Point(800, 1000));
 	}
 	
 	@Override protected void createButtonsForButtonBar(Composite parent) {
