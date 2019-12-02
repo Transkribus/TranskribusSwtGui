@@ -68,6 +68,7 @@ import eu.transkribus.core.model.beans.EdFeature;
 import eu.transkribus.core.model.beans.EdOption;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.PageLock;
+import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpCrowdProject;
@@ -2875,7 +2876,9 @@ public class Storage {
 					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), 
 					config.isDoStoreConfMats(), config.getStructures());
 		case UPVLC:
-			return null;
+			return conn.runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), getDocId(), pages, 
+					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), 
+					config.isDoStoreConfMats(), config.getStructures());			
 		default:
 			return null;
 		}
@@ -2890,7 +2893,10 @@ public class Storage {
 					config.isDoStoreConfMats(), config.getStructures()
 					);
 		case UPVLC:
-			return null;
+			return conn.runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), descriptor, config.getHtrId(), 
+					config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), 
+					config.isDoStoreConfMats(), config.getStructures()
+					);		
 		default:
 			return null;
 		}
@@ -2903,7 +2909,8 @@ public class Storage {
 			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), docId, pages, 
 					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), config.isDoStoreConfMats(), config.getStructures());
 		case UPVLC:
-			return null;
+			return conn.runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), docId, pages, 
+					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), config.isDoStoreConfMats(), config.getStructures());
 		default:
 			return null;
 		}
@@ -2915,6 +2922,13 @@ public class Storage {
 		}
 		return conn.runCitLabHtrTraining(config);
 	}
+	
+	public String runPyLaiaTraining(PyLaiaHtrTrainConfig config) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+		if(config == null) {
+			throw new IllegalArgumentException("Config is null!");
+		}
+		return conn.runPyLaiaTraining(config);
+	}	
 	
 	public String runCitLabText2Image(CitLabSemiSupervisedHtrTrainConfig config) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
 		if(config == null) {

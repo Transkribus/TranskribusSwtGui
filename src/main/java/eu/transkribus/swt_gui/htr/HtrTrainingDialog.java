@@ -28,11 +28,13 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.HtrTrainConfig;
+import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
+import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionController.DataSetSelection;
@@ -54,10 +56,12 @@ public class HtrTrainingDialog extends Dialog {
 	private CTabItem citlabHtrTrainingTabItem;
 	private CTabItem citlabHtrPlusTrainingTabItem;
 	private CTabItem citlabT2ITabItem;
+	private CTabItem pylaiaTrainTabItem;
 	
 	private Text2ImageConfComposite2 t2iConfComp;
 	private CITlabHtrTrainingConfComposite citlabHtrParamCont;
 	private CITlabHtrPlusTrainingConfComposite citlabHtrPlusParamCont;
+	private PyLaiaTrainingConfComposite pyLaiaTrainingConfComp;
 	
 	private DataSetSelectionSashForm treeViewerSelector;
 
@@ -66,6 +70,7 @@ public class HtrTrainingDialog extends Dialog {
 
 	private CitLabHtrTrainConfig citlabTrainConfig;
 	private CitLabSemiSupervisedHtrTrainConfig citlabT2IConf;
+	private PyLaiaHtrTrainConfig pyLaiaConf;
 
 	private Storage store = Storage.getInstance();
 
@@ -152,6 +157,14 @@ public class HtrTrainingDialog extends Dialog {
 			selection = tab.getTabItem();
 			tabList.add(tab);
 		}
+		
+		if(trainJobImpls.contains(JobImpl.PyLaiaTrainingJob)) { // for testing purposes: always true...
+			TrainMethodUITab tab = createPylaiaTrainTabItem(i++);
+			if (true) { // select for testing purposes
+				selection = tab.getTabItem();	
+			}
+			tabList.add(tab);
+		}
 
 		if(ENABLE_T2I && trainJobImpls.contains(JobImpl.CITlabSemiSupervisedHtrTrainingJob)) {
 			TrainMethodUITab tab = createCitlabT2ITab(i++);
@@ -165,6 +178,7 @@ public class HtrTrainingDialog extends Dialog {
 		paramTabFolder.setSelection(selection);		
 		paramCont.pack();
 		SWTUtil.onSelectionEvent(paramTabFolder, (e) -> { updateUI(); } );
+		SWTUtil.setTabFolderBoldOnItemSelection(paramTabFolder);
 		
 		treeViewerSelector = new DataSetSelectionSashForm(sash, SWT.HORIZONTAL, colId, htrList, docList);
 		treeViewerSelector.enableDebugDialog(this.enableDebugDialog);
@@ -212,6 +226,16 @@ public class HtrTrainingDialog extends Dialog {
 		
 		citlabHtrPlusTrainingTabItem.setControl(citlabHtrPlusParamCont);
 		return new TrainMethodUITab(tabIndex, citlabHtrPlusTrainingTabItem, citlabHtrPlusParamCont);
+	}
+	
+	private TrainMethodUITab createPylaiaTrainTabItem(int tabIndex) {
+		pylaiaTrainTabItem = new CTabItem(paramTabFolder, SWT.NONE);
+		
+//		pyLaiaTrainingConfComp = new PyLaiaTrainingConfComposite(paramTabFolder, true, SWT.NONE);
+		pyLaiaTrainingConfComp = new PyLaiaTrainingConfComposite(paramTabFolder, false, SWT.NONE);
+		pylaiaTrainTabItem.setText(HtrTableLabelProvider.getLabelForHtrProvider(pyLaiaTrainingConfComp.getProvider()));
+		pylaiaTrainTabItem.setControl(pyLaiaTrainingConfComp);
+		return new TrainMethodUITab(tabIndex, pylaiaTrainTabItem, pyLaiaTrainingConfComp);		
 	}
 	
 	private void setTrainAndValDocsInHtrConfig(HtrTrainConfig config, EditStatus status) throws IOException {
@@ -277,6 +301,16 @@ public class HtrTrainingDialog extends Dialog {
 		return citlabTrainConf;
 	}
 	
+	private PyLaiaHtrTrainConfig createPyLaiaTrainConfig() throws IOException {
+		checkPyLaiaTrainingConfig();
+		
+		PyLaiaHtrTrainConfig conf = new PyLaiaHtrTrainConfig();
+		conf = createBaseConfig(conf);
+		conf = pyLaiaTrainingConfComp.addParameters(conf);
+		
+		return conf;
+	}
+	
 	private CitLabSemiSupervisedHtrTrainConfig createCitlabT2IConfig() throws IOException {
 		CitLabSemiSupervisedHtrTrainConfig config = t2iConfComp.getConfig();
 		//TODO this part is not tested as t2i is not included here anymore but the checkboxes were changed to a combo in the meantime
@@ -295,13 +329,19 @@ public class HtrTrainingDialog extends Dialog {
 		return paramTabFolder.getSelection().equals(citlabHtrPlusTrainingTabItem);
 	}
 	
+	boolean isPyLaiaTrainingSelected() {
+		return paramTabFolder.getSelection().equals(pylaiaTrainTabItem);
+	}
+	
 	boolean isCitlabT2ISelected() {
 		return paramTabFolder.getSelection().equals(citlabT2ITabItem);
 	}
 
 	@Override
 	protected void okPressed() {
-		citlabTrainConfig = citlabT2IConf = null;
+		citlabTrainConfig = null;
+		citlabT2IConf = null;
+		pyLaiaConf = null;
 		String msg = "";
 		try {
 			if (isCitlabTrainingSelected()) {
@@ -314,7 +354,11 @@ public class HtrTrainingDialog extends Dialog {
 			} else if (isCitlabHtrPlusTrainingSelected()){
 				msg = "You are about to start an HTR Training using CITlab HTR+\n\n";
 				citlabTrainConfig = createCitlabHtrPlusTrainConfig();
-			} else {
+			}  else if (isPyLaiaTrainingSelected()) {
+				msg = "You are about to start an HTR Training using PyLaia\n\n";
+				pyLaiaConf = createPyLaiaTrainConfig();
+			} 
+			else {
 				throw new IOException("Invalid method selected - should not happen anyway...");
 			}
 		}
@@ -373,6 +417,14 @@ public class HtrTrainingDialog extends Dialog {
 					.collect(Collectors.joining("\n")));
 		}
 	}
+	
+	private void checkPyLaiaTrainingConfig() throws IOException {
+		List<String> errorList = pyLaiaTrainingConfComp.validateParameters(new ArrayList<>());
+		if (!errorList.isEmpty()) {
+			throw new IOException(errorList.stream()
+					.collect(Collectors.joining("\n")));
+		}
+	}
 
 	private void checkBasicConfig() throws IOException {
 		List<String> errorList = new ArrayList<>();
@@ -397,6 +449,10 @@ public class HtrTrainingDialog extends Dialog {
 	
 	public CitLabSemiSupervisedHtrTrainConfig getCitlabT2IConfig() {
 		return citlabT2IConf;
+	}
+	
+	public PyLaiaHtrTrainConfig getPyLaiaConfig() {
+		return pyLaiaConf;
 	}
 	
 	private class TrainMethodUITab {

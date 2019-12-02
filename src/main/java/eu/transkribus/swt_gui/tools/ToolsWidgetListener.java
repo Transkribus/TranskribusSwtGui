@@ -18,6 +18,7 @@ import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
+import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpP2PaLA;
@@ -157,6 +158,10 @@ public class ToolsWidgetListener implements SelectionListener {
 					} else if (htd.getCitlabT2IConfig() != null) {
 						CitLabSemiSupervisedHtrTrainConfig config = htd.getCitlabT2IConfig();
 						jobId = store.runCitLabText2Image(config);
+						showSuccessMessage(jobId);
+					} else if (htd.getPyLaiaConfig() != null) {
+						PyLaiaHtrTrainConfig conf = htd.getPyLaiaConfig();
+						jobId = store.runPyLaiaTraining(conf);
 						showSuccessMessage(jobId);
 					}
 				}
