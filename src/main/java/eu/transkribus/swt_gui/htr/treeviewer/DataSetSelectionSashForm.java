@@ -35,6 +35,7 @@ import eu.transkribus.core.util.DescriptorUtils.AGtDataSet;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.ImgLoader;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TrpViewerFilterWidget;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
@@ -230,6 +231,8 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 			}
 		});
 		new DataSetSelectionSashFormListener(this, dataSetSelectionController);
+		
+		SWTUtil.setTabFolderBoldOnItemSelection(this.dataTabFolder);
 	}
 
 	public void setGroundTruthSelectionEnabled(boolean enabled) {
