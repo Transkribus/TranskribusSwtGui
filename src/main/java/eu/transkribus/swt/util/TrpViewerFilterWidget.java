@@ -27,6 +27,20 @@ public class TrpViewerFilterWidget extends Composite {
 		this.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		this.setLayout(createLayout());
 		
+		createCompositeArea();
+		
+		//FIXME the filter should be replaced by a server API endpoint
+		
+		Class<?> targetClass = null;
+		if(viewer instanceof TreeViewer) {
+			//we only want to filter for objects in the top-level of the tree, i.e. HTR models
+			targetClass = filterTargetClass;
+		}
+		this.viewerFilter = newTrpViewerFilter(filterTxt, targetClass, fieldNames);
+		attachFilter();
+	}
+	
+	protected void createCompositeArea() {
 		Label filterLabel = new Label(this, SWT.NONE);
 		filterLabel.setText("Search:");
 		filterLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
@@ -42,18 +56,8 @@ public class TrpViewerFilterWidget extends Composite {
 				}
 			}
 		});
-		
-		//FIXME the filter should be replaced by a server API endpoint
-		
-		Class<?> targetClass = null;
-		if(viewer instanceof TreeViewer) {
-			//we only want to filter for objects in the top-level of the tree, i.e. HTR models
-			targetClass = filterTargetClass;
-		}
-		this.viewerFilter = newTrpViewerFilter(filterTxt, targetClass, fieldNames);
-		attachFilter();
 	}
-	
+
 	protected TrpViewerFilter newTrpViewerFilter(Text filterTxt, Class<?> targetClass, String[] fieldNames) {
 		return new TrpViewerFilter(filterTxt, targetClass, fieldNames) {
 			@Override

@@ -26,15 +26,19 @@ public class HtrFilterWidget extends TrpViewerFilterWidget {
 	public HtrFilterWidget(Composite parent, StructuredViewer viewer, int style) {
 		super(parent, viewer, style, TrpHtr.class, "htrId", "name", "language");
 		
+		ModifyListener comboModListener = viewerFilter.new FilterModifyListener(linkageFilterCombo);
+		linkageFilterCombo.addModifyListener(comboModListener);
+	}
+	
+	@Override
+	protected void createCompositeArea() {
+		super.createCompositeArea();
 		linkageFilterCombo = new Combo(this, SWT.READ_ONLY);
 		linkageFilterCombo.add(LINK_FILTER_ALL);
 		//activate as soon as API supports those filters
 		//linkageFilterCombo.add(LINK_FILTER_COLLECTION);
 		linkageFilterCombo.add(LINK_FILTER_PUBLIC);
 		linkageFilterCombo.select(0);
-		
-		ModifyListener comboModListener = viewerFilter.new FilterModifyListener(linkageFilterCombo);
-		linkageFilterCombo.addModifyListener(comboModListener);
 	}
 	
 	/**
