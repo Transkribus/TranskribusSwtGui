@@ -1655,9 +1655,23 @@ public class Storage {
 	 * UndisclosedDataSet = only show children if current user is curator OR the model is linked to this collection.<br>
 	 */
 	public boolean isUserAllowedToViewDataSets(TrpHtr h) {
+		return isUserAllowedToViewDataSets(this.getCollId(), h);
+	}
+	
+	/**
+	 * ReleaseLevel of the HTR may imply that the dataset is not visible to current user.<br>
+	 * None = model is obviously linked to collection. Otherwise it wouldn't be visible.<br>
+	 * DisclosedDataSet = Handle like "None".<br>
+	 * UndisclosedDataSet = only show children if current user is curator OR the model is linked to this collection.<br>
+	 */
+	public boolean isUserAllowedToViewDataSets(int colId, TrpHtr h) {
 		if(h == null) {
 			logger.warn("HTR argument is null!");
 			return false;
+		}
+		if(isAdminLoggedIn()) {
+			logger.debug("Admin is allowed to view datasets of HTR '{}'", h.getName());
+			return true;
 		}
 		logger.debug("Checking HTR ReleaseLevel: {}", h.toShortString());
 		
@@ -1666,7 +1680,7 @@ public class Storage {
 		logger.debug("isAllowed based on release level: {}", isAllowed);
 		
 		//check for direct collection link which will allow the user to see the set
-		isAllowed |=  h.getCollectionIdLink() != null && h.getCollectionIdLink() == this.getCollId();
+		isAllowed |=  h.getCollectionIdLink() != null && h.getCollectionIdLink() == colId;
 		logger.debug("isAllowed based on collectionIdLink: {}", isAllowed);
 		
 		//curator may always see the sets even if no explicit link is set to this collection

@@ -17,7 +17,6 @@ import eu.transkribus.core.io.RemoteDocConst;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
-import eu.transkribus.core.model.beans.TrpHtr.ReleaseLevel;
 import eu.transkribus.core.model.beans.enums.DataSetType;
 import eu.transkribus.core.util.DescriptorUtils.AGtDataSet;
 import eu.transkribus.swt.util.ACollectionBoundStructuredContentProvider;
@@ -91,7 +90,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 	HtrGtDataSetElement[] getChildren(HtrGtDataSet gt) {
 		List<TrpGroundTruthPage> gtList = null;
 		
-		if(!isUserAllowedToViewDataSets(gt.getModel(), store.getUserId())) {
+		if(!store.isUserAllowedToViewDataSets(this.getCollId(), gt.getModel())) {
 			return null;
 		}
 		
@@ -157,7 +156,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		} else if (element instanceof HtrGtDataSet) {
 			final HtrGtDataSet s = ((HtrGtDataSet) element);
 			TrpHtr h = ((HtrGtDataSet) element).getModel();
-			if(!isUserAllowedToViewDataSets(h, store.getUserId())) {
+			if(!store.isUserAllowedToViewDataSets(this.getCollId(), h)) {
 				return false;
 			}
 			
@@ -169,25 +168,6 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 			}
 		}
 		return false;
-	}
-	
-	/**
-	 * ReleaseLevel of the HTR may imply that the dataset is not visible to current user.<br>
-	 * None = model is obviously linked to collection. Otherwise it wouldn't be visible.<br>
-	 * DisclosedDataSet = Handle like "None".<br>
-	 * UndisclosedDataSet = only show children if current user is curator OR the model is linked to this collection.<br>
-	 */
-	private boolean isUserAllowedToViewDataSets(TrpHtr h, int userId) {
-		if(h == null) {
-			logger.warn("HTR argument is null!");
-			return false;
-		}
-		logger.debug("Checking HTR ReleaseLevel: {}", h.toShortString());
-		return !ReleaseLevel.isPrivateDataSet(h.getReleaseLevel())
-				//check for direct collection link
-				|| (h.getCollectionIdLink() != null && h.getCollectionIdLink() == store.getCollId())
-				//curator may always see the sets even if no explicit link is set to this collection
-				|| h.getUserId() == store.getUserId();
 	}
 
 	@Override
