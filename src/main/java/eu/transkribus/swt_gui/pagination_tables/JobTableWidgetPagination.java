@@ -154,7 +154,7 @@ public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<
 			@Override
 			public void keyTraversed(TraverseEvent e) {
 				if (e.detail == SWT.TRAVERSE_RETURN) {
-					logger.debug("docId = " + docIdText.getText());
+					logger.debug("docId = " + docIdText.getText()+", type = "+getTypeFilterText());
 					refreshPage(true);
 				}
 			}
@@ -219,6 +219,10 @@ public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<
 		}
 
 	}
+	
+	private String getTypeFilterText() {
+		return StringUtils.isEmpty(typeFilterTxt.getText()) ? null : typeFilterTxt.getText()+"%";
+	}
 
 	// public Button getReloadBtn() { return reloadBtn; }
 	public Button getShowAllJobsBtn() {
@@ -254,7 +258,7 @@ public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<
 					if (store.isLoggedIn()) {
 						try {
 							// sw.start();
-							N = store.getConnection().countJobs(!showAllJobsBtn.getSelection(), getState(), null, getDocId());
+							N = store.getConnection().countJobs(!showAllJobsBtn.getSelection(), getState(), getTypeFilterText(), getDocId());
 							// sw.stop(true, "time for counting jobs: ",
 							// logger);
 						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
@@ -275,7 +279,7 @@ public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<
 						try {
 							// sw.start();
 							logger.debug("loading jobs from server...");
-							jobs = store.getConnection().getJobs(!showAllJobsBtn.getSelection(), getState(), null, getDocId(),
+							jobs = store.getConnection().getJobs(!showAllJobsBtn.getSelection(), getState(), getTypeFilterText(), getDocId(),
 									fromIndex, toIndex - fromIndex, sortPropertyName, sortDirection);
 							// sw.stop(true, "time for loading jobs: ", logger);
 						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
