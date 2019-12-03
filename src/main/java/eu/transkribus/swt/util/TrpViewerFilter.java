@@ -8,6 +8,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.widgets.Scrollable;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,23 +59,11 @@ public abstract class TrpViewerFilter extends ViewerFilter {
 		addListeners();
 	}
 	
-	private void addListeners() {
-		ModifyListener filterModifyListener = new ModifyListener() {
-			DelayedTask dt = new DelayedTask(() -> {
-				if (filterTxt == null || filterTxt.isDisposed()) {
-					return;
-				}
-				
-				updateView();
-			}, true);
-			
-			@Override public void modifyText(ModifyEvent e) {
-				dt.start();
-			}
-		};
+	protected void addListeners() {
+		ModifyListener filterModifyListener = new FilterModifyListener(filterTxt);
 		filterTxt.addModifyListener(filterModifyListener);
 	}
-	
+
 	@Override
 	public boolean select(Viewer viewer, Object parentElement, Object element) {
 		if (SWTUtil.isDisposed(filterTxt)) {
@@ -123,4 +112,23 @@ public abstract class TrpViewerFilter extends ViewerFilter {
 	 * This method is called upon changes in the filter input and needs to trigger updates of the view.
 	 */
 	protected abstract void updateView();
+	
+	public class FilterModifyListener implements ModifyListener {
+		final DelayedTask dt;
+		
+		public FilterModifyListener(Scrollable filterControl) {
+			dt = new DelayedTask(() -> {
+				if (filterControl == null || filterControl.isDisposed()) {
+					return;
+				}
+				
+				updateView();
+			}, true);
+		}
+		
+		@Override 
+		public void modifyText(ModifyEvent e) {
+			dt.start();
+		}
+	};
 }

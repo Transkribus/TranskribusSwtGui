@@ -2,7 +2,6 @@ package eu.transkribus.swt.util;
 
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -19,7 +18,7 @@ public class TrpViewerFilterWidget extends Composite {
 	public final static String FILTER_MESSAGE = "Filter";
 	
 	protected StructuredViewer viewer;
-	protected ViewerFilter viewerFilter;
+	protected TrpViewerFilter viewerFilter;
 	protected Text filterTxt;
 
 	public TrpViewerFilterWidget(Composite parent, StructuredViewer viewer, int style, Class<?> filterTargetClass, String...fieldNames) {
@@ -51,14 +50,17 @@ public class TrpViewerFilterWidget extends Composite {
 			//we only want to filter for objects in the top-level of the tree, i.e. HTR models
 			targetClass = filterTargetClass;
 		}
-		this.viewerFilter = new TrpViewerFilter(filterTxt, targetClass, fieldNames) {
+		this.viewerFilter = newTrpViewerFilter(filterTxt, targetClass, fieldNames);
+		attachFilter();
+	}
+	
+	protected TrpViewerFilter newTrpViewerFilter(Text filterTxt, Class<?> targetClass, String[] fieldNames) {
+		return new TrpViewerFilter(filterTxt, targetClass, fieldNames) {
 			@Override
 			protected void updateView() {
 				refreshViewer();
 			}
 		};
-
-		attachFilter();
 	}
 	
 	/**
@@ -80,5 +82,9 @@ public class TrpViewerFilterWidget extends Composite {
 
 	public Text getFilterText() {
 		return filterTxt;
+	}
+	
+	public void reset() {
+		filterTxt.setText("");
 	}
 }
