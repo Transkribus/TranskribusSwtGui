@@ -41,7 +41,7 @@ public class HtrFilterWithProviderWidget extends HtrFilterWidget {
 	 */
 	@Override
 	protected Layout createLayout() {
-		return new GridLayout(4, false);
+		return new GridLayout(5, false);
 	}
 	
 	private void addProviderFilter(Combo providerCombo, String label, String data) {
