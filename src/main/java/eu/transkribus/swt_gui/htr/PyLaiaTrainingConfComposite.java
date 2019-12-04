@@ -48,10 +48,12 @@ public class PyLaiaTrainingConfComposite extends Composite {
 		learningRateTxt = new Text(this, SWT.BORDER);
 		learningRateTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
+		if (false) {
 		Label trainSizeLbl = new Label(this, SWT.NONE);
 		trainSizeLbl.setText("Train Size per Epoch:");
 		trainSizeTxt = new Text(this, SWT.BORDER);
 		trainSizeTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		}
 
 		//Base models are not supported for PyLaia yet
 		if(enableBaseModelSelection) {
@@ -103,7 +105,9 @@ public class PyLaiaTrainingConfComposite extends Composite {
 		numEpochsTxt.setText("" + PyLaiaHtrTrainConfig.DEFAULT_NUM_EPOCHS);
 		earlyStoppingTxt.setText(""+ PyLaiaHtrTrainConfig.DEFAULT_EARLY_STOPPING);
 		learningRateTxt.setText(""+PyLaiaHtrTrainConfig.DEFAULT_LEARNING_RATE);
-		trainSizeTxt.setText(""+PyLaiaHtrTrainConfig.DEFAULT_BATCH_SIZE);
+		if (trainSizeTxt!=null) {
+			trainSizeTxt.setText(""+PyLaiaHtrTrainConfig.DEFAULT_BATCH_SIZE);	
+		}
 		if(baseModelBtn != null) {
 			baseModelBtn.setModel(null);
 		}
@@ -119,8 +123,10 @@ public class PyLaiaTrainingConfComposite extends Composite {
 		if (!StringUtils.isNumeric(earlyStoppingTxt.getText())) {
 			errorList.add("Early stopping must be a number!");
 		}
-		if (!StringUtils.isNumeric(trainSizeTxt.getText())) {
-			errorList.add("Train size must be a number!");
+		if (trainSizeTxt!=null) {
+			if (!StringUtils.isNumeric(trainSizeTxt.getText())) {
+				errorList.add("Train size must be a number!");
+			}			
 		}
 		if (!CoreUtils.isDouble(learningRateTxt.getText())) {
 			errorList.add("Learning rate must be a floating point number!");
@@ -133,7 +139,9 @@ public class PyLaiaTrainingConfComposite extends Composite {
 		conf.setProvider(this.getProvider());
 		conf.setNumEpochs(Integer.parseInt(numEpochsTxt.getText()));
 		conf.setEarlyStopping(Integer.parseInt(earlyStoppingTxt.getText()));
-		conf.setBatchSize(Integer.parseInt(trainSizeTxt.getText()));
+		if (trainSizeTxt!=null) {
+			conf.setBatchSize(Integer.parseInt(trainSizeTxt.getText()));	
+		}
 		conf.setLearningRate(Double.parseDouble(learningRateTxt.getText()));
 		
 		if(baseModelBtn != null) {
