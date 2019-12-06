@@ -68,8 +68,9 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 		shareToCollectionItem = new MenuItem(menu, SWT.NONE);
 		shareToCollectionItem.setText("Share model...");
 
-		removeFromCollectionItem = new MenuItem(menu, SWT.NONE);
-		removeFromCollectionItem.setText("Remove model from collection");
+		//use ShareHtrDialog
+//		removeFromCollectionItem = new MenuItem(menu, SWT.NONE);
+//		removeFromCollectionItem.setText("Remove model from collection");
 		
 		deleteItem = new MenuItem(menu, SWT.NONE);
 		deleteItem.setText("Delete model...");
@@ -133,6 +134,17 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 		shareToCollectionItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				//openCollectionChooserDialog(e);
+				ShareHtrDialog diag = new ShareHtrDialog(getShell(), htw.getSelectedHtr());
+				int ret = diag.open();
+				logger.debug("ShareHtrDialog closed with return code: {}", ret);
+			}
+			
+			
+			/**
+			 * @deprecated use ShareHtrDialog instead
+			 */
+			public void openCollectionChooserDialog(SelectionEvent e) {
 				ChooseCollectionDialog ccd = new ChooseCollectionDialog(getShell());
 				
 				@SuppressWarnings("unused")
@@ -163,7 +175,7 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 			}
 		});
 
-		removeFromCollectionItem.addSelectionListener(new SelectionAdapter() {
+		SelectionAdapter removeItemListener = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				TrpHtr htr = htw.getSelectedHtr();
@@ -179,7 +191,10 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 				}
 				super.widgetSelected(e);
 			}
-		});
+		};
+		if(removeFromCollectionItem != null) {
+			removeFromCollectionItem.addSelectionListener(removeItemListener);
+		}
 		
 		deleteItem.addSelectionListener(new SelectionAdapter() {
 			@Override
