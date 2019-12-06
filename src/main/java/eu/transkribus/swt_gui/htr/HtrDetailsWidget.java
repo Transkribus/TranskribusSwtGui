@@ -195,7 +195,7 @@ public class HtrDetailsWidget extends SashForm {
 
 	private void createPublishStateComposite(Composite mdComp) {
 		Composite publishComp = new Composite(mdComp, SWT.NONE);
-		publishComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
+		publishComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 4, 1));
 		GridLayout publishCompLayout = new GridLayout(2, false);
 		publishCompLayout.marginHeight = publishCompLayout.marginWidth = 0;
 		publishComp.setLayout(publishCompLayout);
