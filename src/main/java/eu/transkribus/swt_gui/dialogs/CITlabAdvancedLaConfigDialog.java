@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -71,6 +72,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 	private Button rotSchemeDef, rotSchemeHom, rotSchemeHet, sepSchemeDef, sepSchemeAlways, sepSchemeNever;
 	private Group settingsGroup, rotGroup, sepGroup;
 	private Button helpButton;
+	private Button deleteTextCheck;
 	
 	private List<LaModel> modelList;
 	
@@ -100,6 +102,11 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		settingsGroup.setText("Settings");
 		settingsGroup.setLayout(new GridLayout(1, false));
 		settingsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 2));
+		
+		deleteTextCheck = new Button(settingsGroup, SWT.CHECK);
+		deleteTextCheck.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		deleteTextCheck.setText("Delete existing text");
+		deleteTextCheck.setToolTipText("If checked, existing text in the transcription will be deleted during layout analysis");
 		
 		rotGroup = new Group(settingsGroup, SWT.NONE);
 		rotGroup.setLayout(new GridLayout(3, false));
@@ -169,6 +176,10 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		parameters = new ParameterMap();
 		LaModel m = getSelectedNet();
 		
+		if (deleteTextCheck.getSelection()) {
+			parameters.addParameter(LaCITlabUtils.LA_DELETE_SCHEME_KEY, "all");
+		}
+		
 		SepScheme sep = null;
 		if(sepSchemeAlways.getSelection()) {
 			sep = SepScheme.always;
@@ -201,7 +212,14 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 	protected void applyParameterMapToDialog() {
 		LaModel model = resolveSelectedNetFromParameters();
 		setSelectedNet(model);
-				
+		
+		String delScheme = parameters.getParameterValue(LaCITlabUtils.LA_DELETE_SCHEME_KEY);
+		if (StringUtils.equals(delScheme, "all")) {
+			deleteTextCheck.setSelection(true);
+		}
+		else {
+			deleteTextCheck.setSelection(false);
+		}
 		final String rotScheme = parameters.getParameterValue(LaCITlabUtils.ROT_SCHEME_KEY);
 		if(RotScheme.het.toString().equals(rotScheme)) {
 			rotSchemeHet.setSelection(true);
@@ -232,6 +250,14 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		String infoStr = "";
 		LaModel model = resolveSelectedNetFromParameters();
 		infoStr += NEURAL_NET_LBL + " " + (model == null ? "Preset" : model.getLabel());
+		
+		String delScheme = parameters.getParameterValue(LaCITlabUtils.LA_DELETE_SCHEME_KEY);
+		if (StringUtils.equals(delScheme, "all")) {
+			infoStr += "\nDeleting existing transcriptions";
+		}
+		else {
+			infoStr += "\nKeeping existing transcriptions";
+		}
 		
 		infoStr +=  "\n" + ROT_SCHEME_LBL + ": ";
 		final String rotScheme = parameters.getParameterValue(LaCITlabUtils.ROT_SCHEME_KEY);
