@@ -675,3 +675,7 @@ CHANGES AND BUGFIXES
 1.9.1:
 	-> bugfix: force merge of baselines in horizontal direction
 	
+1.10.0:
+	-> HTR ground truth data sets may be copied to a new document via right-click context menu
+	-> HTR sharing dialog accessible via right-click context menu
+	
