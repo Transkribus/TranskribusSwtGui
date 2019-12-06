@@ -100,7 +100,12 @@ public class MetadataTextFieldValidator<T> {
 		 * @return the current value entered in the text field
 		 */
 		String getValue() {
-			return removeCarriageReturn(textField.getText());
+			String value = textField.getText();
+			if (value == null) {
+				return "";
+			} else {
+				return removeCarriageReturn(value);
+			}
 		}
 	}
 	
@@ -154,8 +159,12 @@ public class MetadataTextFieldValidator<T> {
 		String getOrigValue() {
 			if(object == null) {
 				return "";
+			}
+			String value = getter.apply(object);
+			if(value == null) {
+				return "";
 			} else {
-				return removeCarriageReturn(getter.apply(object));
+				return removeCarriageReturn(value);
 			}
 		}
 		
@@ -183,6 +192,7 @@ public class MetadataTextFieldValidator<T> {
 		 * @return true if the values from getOrigValue() and getValue() differ.
 		 */
 		boolean hasChanged() {
+			logger.debug("{}: comparing '{}' and '{}'", name, getOrigValue(), getValue());
 			final boolean isEqual = getOrigValue().equals(getValue());
 			logger.debug("{}: origValue '{}' {} textFieldValue '{}'", name, getOrigValue(), isEqual ? "==" : "!=",getValue());
 			return !isEqual;

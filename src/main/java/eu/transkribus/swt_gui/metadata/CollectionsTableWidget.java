@@ -32,7 +32,7 @@ public class CollectionsTableWidget extends Composite {
 	public CollectionsTableWidget(Composite parent, int style) {
 		super(parent, style);
 		this.setLayout(new GridLayout(1, false));
-		tv = new MyTableViewer(this, SWT.SINGLE);
+		tv = new MyTableViewer(this, SWT.SINGLE | SWT.V_SCROLL);
 		tv.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
 		tv.getTable().setLinesVisible(true);
 		tv.getTable().setHeaderVisible(true);
