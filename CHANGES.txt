@@ -678,5 +678,6 @@ CHANGES AND BUGFIXES
 1.10.0:
 	-> HTR ground truth data sets may be copied to a new document via right-click context menu
 	-> HTR sharing dialog accessible via right-click context menu
+	-> CITlab HTR configuration allows to select integrated dictionary or language model built from its train data set (available for models trained after 6.11.2018 [sic])
 	-> bugfix: baselines were associated to wrong parent shapes on splitting with custom line
 	
