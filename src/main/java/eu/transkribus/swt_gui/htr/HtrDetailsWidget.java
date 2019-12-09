@@ -490,6 +490,20 @@ public class HtrDetailsWidget extends SashForm {
 		
 		if(publishStateCombo != null) {
 			Object publishStateData = publishStateCombo.getData(publishStateCombo.getText());
+			ReleaseLevel releaseLevel = (ReleaseLevel) publishStateData;
+			
+			//check if there is a change that would publish a private data set
+			if(!ReleaseLevel.isPrivateDataSet(releaseLevel) 
+					&& ReleaseLevel.isPrivateDataSet(htrToStore.getReleaseLevel())) {
+				final int answer = DialogUtil.showYesNoDialog(getShell(), "Are you sure you want to publish your data?", 
+						"The new visibility setting will allow other users to access the data sets used to train this model!\n\n"
+						+ "Are you sure you want to save this change?", SWT.ICON_WARNING);
+				if(answer == SWT.NO) {
+					logger.debug("User denied publishing the data.");
+					return;
+				}
+			}
+			
 			htrToStore.setReleaseLevel((ReleaseLevel) publishStateData);
 		}
 		
