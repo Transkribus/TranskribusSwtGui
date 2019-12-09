@@ -478,12 +478,22 @@ public class CanvasScene {
 		if (p2 == null)
 			p2 = shape.getParent();
 		
+		// determine correct association of s1-p1 and s2-p2 according to overlap		
+		if (p1!=null && p2!=null && s1!=null && s2!=null) {
+			if (s1.intersectionArea(p1) < s1.intersectionArea(p2)) {
+				logger.debug("switching split <-> parent association!");
+				ICanvasShape tmp = p1;
+				p1 = p2;
+				p2 = tmp;
+			}
+		}
+		
 		s1.setParentAndAddAsChild(p1);
 		s2.setParentAndAddAsChild(p2);			
 		
 		s1.removeChildren();
-		s2.removeChildren();		
-
+		s2.removeChildren();	
+		
 		// split up children between the two split shapes s1, s2	
 		for (ICanvasShape child : shape.getChildren(false)) {
 			// partition children upon splits by 1st area of intersection and 2nd distance to the center of the split shapes
@@ -505,7 +515,6 @@ public class CanvasScene {
 		}
 						
 		op.addNewShape(s1);
-		
 		op.addNewShape(s2);
 				
 		// add the new shapes to the canvas:

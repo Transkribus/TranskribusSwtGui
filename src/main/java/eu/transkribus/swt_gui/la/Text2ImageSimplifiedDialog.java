@@ -25,8 +25,8 @@ public class Text2ImageSimplifiedDialog extends Dialog {
 	
 	@Override
 	protected Point getInitialSize() {
-		return new Point(400, 350);
-	}
+		return SWTUtil.getPreferredOrMinSize(getShell(), 400, 250);
+	}	
 	
 	@Override
 	protected boolean isResizable() {
@@ -51,7 +51,7 @@ public class Text2ImageSimplifiedDialog extends Dialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("Text2Image configuration");
-		newShell.setMinimumSize(400, 250);
+
 	}
 	
 	@Override

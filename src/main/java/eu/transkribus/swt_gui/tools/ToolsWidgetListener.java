@@ -460,6 +460,10 @@ public class ToolsWidgetListener implements SelectionListener {
 						logger.debug("setting jump_bl = "+conf.jump_bl);
 						pm.addDoubleParam(JobConst.PROP_T2I_JUMP_BASELINE, conf.jump_bl);
 					}
+					if (conf.hyphen!=null) {
+						logger.debug("setting hyphen = "+conf.hyphen);
+						pm.addDoubleParam(JobConst.PROP_T2I_HYPHEN, conf.hyphen);						
+					}
 					if (conf.editStatus!=null) {
 						pm.addParameter(JobConst.PROP_EDIT_STATUS, conf.editStatus.getStr());
 					}
