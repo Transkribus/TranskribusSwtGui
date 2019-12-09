@@ -34,6 +34,7 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 //	Combo thresholdText;
 	CurrentTranscriptOrCurrentDocPagesSelector pagesSelector;
 	Button allowIgnoringTranscriptsBtn, allowSkippingBaselinesBtn, allowIgnoringReadingOrderBtn;
+	Button useHyphenBtn;
 	
 	public static class Text2ImageConf {
 		public TrpHtr model=null;
@@ -46,6 +47,7 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 		public Double skip_word=null;
 		public Double skip_bl=null;
 		public Double jump_bl=null;
+		public Double hyphen=null;
 		
 		public boolean currentTranscript=true;
 		public String pagesStr=null;
@@ -63,7 +65,7 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 			return "Text2ImageConf [model=" + model + ", performLa=" + performLa + ", removeLineBreaks="
 					+ removeLineBreaks + ", editStatus=" + editStatus + ", threshold=" + threshold
 					+ ", skip_word=" + skip_word
-					+ ", skip_bl=" + skip_bl + ", jump_bl=" + jump_bl + ", currentTranscript=" + currentTranscript
+					+ ", skip_bl=" + skip_bl + ", jump_bl=" + jump_bl + ", hyphen="+hyphen+", currentTranscript=" + currentTranscript
 					+ ", pagesStr=" + pagesStr + "]";
 		}
 	}
@@ -87,12 +89,12 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 		performLaBtn = new Button(this, SWT.CHECK);
 		performLaBtn.setText("Perform Layout Analysis");
 		performLaBtn.setToolTipText("Perform a new layout analysis for text alignment - uncheck to use the existing layout");
-		performLaBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		performLaBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nCols, 1));
 		
 		removeLineBreaksBtn = new Button(this, SWT.CHECK);
 		removeLineBreaksBtn.setText("Remove Line Breaks");
 		removeLineBreaksBtn.setToolTipText("Check to disrespect linebreaks of the input text during text alignment");
-		removeLineBreaksBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		removeLineBreaksBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nCols, 1));
 		
 		Composite editStatusComp = new Composite(this, 0);
 		editStatusComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nCols, 1));
@@ -148,6 +150,11 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 		allowIgnoringReadingOrderBtn.setText("Ignore reading order");
 		allowIgnoringReadingOrderBtn.setToolTipText("Allows the tool to ignore the reading order of the layout");
 		
+		useHyphenBtn = new Button(this, SWT.CHECK);
+		useHyphenBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nCols, 1));
+		useHyphenBtn.setText("Use hyphens (3x slower)");
+		useHyphenBtn.setToolTipText("Use default hyphenation signs ('¬', '-', ':', '=') to split text.\nWarning: T2I will be 3x slower!");
+		
 		setUiFromGivenConf(conf);
 	}
 	
@@ -172,6 +179,7 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 		allowIgnoringTranscriptsBtn.setSelection(conf.skip_word!=null);
 		allowSkippingBaselinesBtn.setSelection(conf.skip_bl!=null);
 		allowIgnoringReadingOrderBtn.setSelection(conf.jump_bl!=null);
+		useHyphenBtn.setSelection(conf.hyphen!=null);
 	}
 	
 	public Text2ImageConf getConfigFromUi() {
@@ -205,7 +213,8 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 		
 		conf.skip_word = allowIgnoringTranscriptsBtn.getSelection() ? 4.0d : null;
 		conf.skip_bl = allowSkippingBaselinesBtn.getSelection() ? 0.2d : null;
-		conf.jump_bl = allowIgnoringReadingOrderBtn.getSelection() ? 0.0d : null;	
+		conf.jump_bl = allowIgnoringReadingOrderBtn.getSelection() ? 0.0d : null;
+		conf.hyphen = useHyphenBtn.getSelection() ? 4.0d : null;
 		
 		return conf;
 	}
