@@ -265,8 +265,10 @@ public class HtrDetailsWidget extends SashForm {
 
 		showCharSetBtn.setEnabled(htr.getCharSetList() != null && !htr.getCharSetList().isEmpty());
 
-		showTrainSetBtn.setEnabled(htr.hasTrainGt());
-		showValSetBtn.setEnabled(htr.hasValidationGt());
+		final boolean isGtAccessible = store.isGtDataAccessible(htr);
+		
+		showTrainSetBtn.setEnabled(isGtAccessible);
+		showValSetBtn.setEnabled(isGtAccessible);
 		
 		updateChart(htr);
 		
