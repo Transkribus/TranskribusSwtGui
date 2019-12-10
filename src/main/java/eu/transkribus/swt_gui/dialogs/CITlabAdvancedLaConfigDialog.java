@@ -29,6 +29,7 @@ import eu.transkribus.core.util.LaCITlabUtils.SepScheme;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 
@@ -403,12 +404,15 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		private final static String konzilsProtNetName = "LA_alvermann1.pb";
 		protected final static String postcardNetLabel = "Postcards";
 		private final static String postcardNetName = "postcards_aru_c3.pb";
-		//old newspaper LA net
+		//hebrew newspaper LA net
 		private final static String newspaperV1NetLabel = "Newspapers";
 		private final static String newspaperV1NetName = "LA_ara_news_aru_mix_90_ema.pb";
-		//new newspaper LA net
-		private final static String newspaperV2NetLabel = "Newspapers (NewsEye)";
-		private final static String newspaperV2NetName = "LA_news_onb_att_newseye.pb";
+		//2019-07 newseye newspaper LA net
+		private final static String newspaperV2NetLabel = "Newspapers (NewsEye) July 2019";
+		private final static String newspaperV2NetName = "LA_news_onb_att_newseye_2019-7.pb";
+		//2019-08 newseye newspaper LA net
+		private final static String newspaperV3NetLabel = "Newspapers (NewsEye)";
+		private final static String newspaperV3NetName = "LA_news_onb_att_newseye.pb";
 		private LaDataProvider() {}
 		public static List<LaModel> getModels() {
 			final List<LaModel> nets = new ArrayList<>(1);
@@ -416,10 +420,15 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 			LaModel postcards = new LaModel(postcardNetLabel, postcardNetName);
 			LaModel newspaperV1 = new LaModel(newspaperV1NetLabel, newspaperV1NetName);
 			LaModel newspaperV2 = new LaModel(newspaperV2NetLabel, newspaperV2NetName);
+			LaModel newspaperV3 = new LaModel(newspaperV3NetLabel, newspaperV3NetName);
 			nets.add(konzilsProt);
 			nets.add(postcards);
 			nets.add(newspaperV1);
-			nets.add(newspaperV2);
+			if(Storage.getInstance().isAdminLoggedIn()) {
+				//only admins may access outdated newseye net
+				nets.add(newspaperV2);
+			}
+			nets.add(newspaperV3);
 			return nets;
 		}
 	}
