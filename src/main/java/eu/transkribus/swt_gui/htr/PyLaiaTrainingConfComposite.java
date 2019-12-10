@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -17,15 +18,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
+import eu.transkribus.core.model.beans.TextFeatsCfg;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrPyLaiaUtils;
+import eu.transkribus.swt.util.SWTUtil;
 
 public class PyLaiaTrainingConfComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(PyLaiaTrainingConfComposite.class);
 	
 	private Text numEpochsTxt, earlyStoppingTxt, learningRateTxt, trainSizeTxt;
 	private HtrModelChooserButton baseModelBtn;
+	private Button advancedParsBtn;
+	
+	TextFeatsCfg textFeatsCfg = new TextFeatsCfg();
+	int batchSize = PyLaiaHtrTrainConfig.DEFAULT_BATCH_SIZE;
 	
 	public PyLaiaTrainingConfComposite(Composite parent, boolean enableBaseModelSelection, int style) {
 		super(parent, style);
@@ -47,6 +54,18 @@ public class PyLaiaTrainingConfComposite extends Composite {
 		learningRateLbl.setText("Learning Rate:");
 		learningRateTxt = new Text(this, SWT.BORDER);
 		learningRateTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		advancedParsBtn = new Button(this, SWT.PUSH);
+		advancedParsBtn.setText("Advanced parameters...");
+		advancedParsBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+		SWTUtil.onSelectionEvent(advancedParsBtn, e -> {
+			PyLaiaAdvancedConfDialog d = new PyLaiaAdvancedConfDialog(getShell(), batchSize, textFeatsCfg);
+			if (d.open() == IDialogConstants.OK_ID) {
+				batchSize = d.getBatchSize();
+				textFeatsCfg = d.getConfig();
+				logger.info("preprocessing config = "+textFeatsCfg);
+			}
+		});
 		
 		if (false) {
 		Label trainSizeLbl = new Label(this, SWT.NONE);
@@ -153,6 +172,14 @@ public class PyLaiaTrainingConfComposite extends Composite {
 			}
 		}
 		return conf;
+	}
+	
+	public TextFeatsCfg getPreprocessingConfig() {
+		return textFeatsCfg;
+	}
+	
+	public int getBatchSize() {
+		return batchSize;
 	}
 
 	public String getProvider() {

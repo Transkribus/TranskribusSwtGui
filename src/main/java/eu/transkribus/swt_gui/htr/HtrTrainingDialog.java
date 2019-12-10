@@ -308,6 +308,8 @@ public class HtrTrainingDialog extends Dialog {
 		PyLaiaHtrTrainConfig conf = new PyLaiaHtrTrainConfig();
 		conf = createBaseConfig(conf);
 		conf = pyLaiaTrainingConfComp.addParameters(conf);
+		conf.setTextFeatsCfg(pyLaiaTrainingConfComp.getPreprocessingConfig());
+		conf.setBatchSize(pyLaiaTrainingConfComp.getBatchSize());
 		
 		return conf;
 	}
