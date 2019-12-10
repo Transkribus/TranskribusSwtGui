@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -17,15 +18,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
+import eu.transkribus.core.model.beans.TextFeatsCfg;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrPyLaiaUtils;
+import eu.transkribus.swt.util.SWTUtil;
 
 public class PyLaiaTrainingConfComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(PyLaiaTrainingConfComposite.class);
 	
 	private Text numEpochsTxt, earlyStoppingTxt, learningRateTxt, trainSizeTxt;
 	private HtrModelChooserButton baseModelBtn;
+	private Button preprocessingBtn;
+	
+	TextFeatsCfg textFeatsCfg = new TextFeatsCfg();
 	
 	public PyLaiaTrainingConfComposite(Composite parent, boolean enableBaseModelSelection, int style) {
 		super(parent, style);
@@ -47,6 +53,17 @@ public class PyLaiaTrainingConfComposite extends Composite {
 		learningRateLbl.setText("Learning Rate:");
 		learningRateTxt = new Text(this, SWT.BORDER);
 		learningRateTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		preprocessingBtn = new Button(this, SWT.PUSH);
+		preprocessingBtn.setText("Configure preprocessing...");
+		preprocessingBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+		SWTUtil.onSelectionEvent(preprocessingBtn, e -> {
+			PyLaiaPreprocessingConfDialog d = new PyLaiaPreprocessingConfDialog(getShell(), textFeatsCfg);
+			if (d.open() == IDialogConstants.OK_ID) {
+				textFeatsCfg = d.getConfig();
+				logger.info("preprocessing config = "+textFeatsCfg);
+			}
+		});
 		
 		if (false) {
 		Label trainSizeLbl = new Label(this, SWT.NONE);
@@ -153,6 +170,10 @@ public class PyLaiaTrainingConfComposite extends Composite {
 			}
 		}
 		return conf;
+	}
+	
+	public TextFeatsCfg getPreprocessingConfig() {
+		return textFeatsCfg;
 	}
 
 	public String getProvider() {
