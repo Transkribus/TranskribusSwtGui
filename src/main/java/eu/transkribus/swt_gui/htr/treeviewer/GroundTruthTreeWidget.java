@@ -186,15 +186,18 @@ public class GroundTruthTreeWidget extends Composite {
 						}
 					});
 					
-					MenuItem shareModelItem = new MenuItem(contextMenu, SWT.NONE);
-					shareModelItem.setText("Share model...");
-					shareModelItem.addSelectionListener(new SelectionAdapter() {
-						@Override
-						public void widgetSelected(SelectionEvent e) {
-							ShareHtrDialog diag = new ShareHtrDialog(getShell(), htr);
-							diag.open();
-						}
-					});
+					if(Storage.getInstance().isAdminLoggedIn() 
+							|| (htr.getCollectionIdLink() != null && htr.getCollectionIdLink() == Storage.getInstance().getCollId())) {
+						MenuItem shareModelItem = new MenuItem(contextMenu, SWT.NONE);
+						shareModelItem.setText("Share model...");
+						shareModelItem.addSelectionListener(new SelectionAdapter() {
+							@Override
+							public void widgetSelected(SelectionEvent e) {
+								ShareHtrDialog diag = new ShareHtrDialog(getShell(), htr);
+								diag.open();
+							}
+						});
+					}
 				} else {
 					event.doit = false;
 				}
