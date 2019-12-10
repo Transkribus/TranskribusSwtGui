@@ -18,7 +18,7 @@ public class HtrGroundTruthLabelProvider extends LabelProvider {
 		} else if (element instanceof HtrGtDataSet) {
 			return Images.FOLDER;
 		} else if (element instanceof TrpHtr) {
-			return Images.CHART_LINE;
+			return Images.MODEL_ICON;
 		}
 		return null;
 	}

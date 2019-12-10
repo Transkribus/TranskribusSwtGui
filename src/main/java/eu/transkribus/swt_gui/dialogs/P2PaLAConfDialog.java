@@ -167,7 +167,7 @@ public class P2PaLAConfDialog extends Dialog {
 		}
 		
 		Button modelDetailsBtn = createButton(parent, IDialogConstants.DETAILS_ID, "Models", false);
-		modelDetailsBtn.setImage(Images.CHART_LINE);
+		modelDetailsBtn.setImage(Images.MODEL_ICON);
 		SWTUtil.onSelectionEvent(modelDetailsBtn, e -> {
 			P2PaLAModelDetailsDialog d = new P2PaLAModelDetailsDialog(getShell(), models, modelFilterComp.getModelFilter());
 			d.open();

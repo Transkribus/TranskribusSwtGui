@@ -134,8 +134,8 @@ public class Images {
 	public static final Image INFO = Images.getOrLoad("/icons/information.png");
 	public static final Image ERROR = Images.getOrLoad("/icons/error.png");
 	
-	public static final Image CHART_LINE = Images.getOrLoad("/icons/chart_line_reversed.png");
-	public static final Image CHART_LINE_LINK = Images.getOrLoad("/icons/chart_line_link_reversed.png");
+	public static final Image MODEL_ICON = Images.getOrLoad("/icons/chart_line_reversed.png");
+	public static final Image MODEL_SHARED_ICON = Images.getOrLoad("/icons/chart_line_reversed_world.png");
 	
 
 	static HashMap<String, Image> imageMap;
