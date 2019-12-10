@@ -21,7 +21,6 @@ import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.core.util.HtrPyLaiaUtils;
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.util.TextRecognitionConfig;
 import eu.transkribus.util.TextRecognitionConfig.Mode;
 
@@ -56,24 +55,25 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 		sash.setLayout(new GridLayout(2, false));
 		
 		htrModelsComp = new HtrModelsComposite(sash, 0);
-		htrModelsComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		GridLayout gl = (GridLayout) htrModelsComp.getLayout();
+		gl.marginHeight = gl.marginWidth = 0;
+		htrModelsComp.setLayout(gl);
 		
-		if (!HtrPyLaiaUtils.doesDecodingSupportDicts()) {
-			htrModelsComp.htw.htrTv.addSelectionChangedListener(new ISelectionChangedListener() {
-				@Override
-				public void selectionChanged(SelectionChangedEvent arg0) {
-					updateUi();
-				}
-			});			
-		}
+		htrModelsComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
+		htrModelsComp.htw.htrTv.addSelectionChangedListener(new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent arg0) {
+				updateUi();
+			}
+		});
 		
 		Group dictGrp = new Group(sash, SWT.NONE);
 		dictGrp.setLayout(new GridLayout(1, false));
 		dictGrp.setText("Dictionary");
 		
 		htrDictComp = new HtrDictionaryComposite(dictGrp, 0);
-		htrDictComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		htrDictComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		applyConfig();
 
@@ -92,14 +92,19 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 	}
 	
 	private void updateUi() {
-		if (htrModelsComp.getSelectedHtr()!=null && !HtrPyLaiaUtils.doesDecodingSupportDicts() && htrModelsComp.getSelectedHtr().getProvider().equals(HtrPyLaiaUtils.PROVIDER_PYLAIA)) {
-//			htrDictComp.htrDictCombo.setEnabled(HtrPyLaiaUtils.doesDecodingSupportDicts());
-//			dictGrp.setVisible(HtrPyLaiaUtils.doesDecodingSupportDicts());
-			sash.setWeights(new int[] { 100, 0 });
+		if(htrModelsComp.getSelectedHtr() == null) {
+			return;
 		}
-		else {
-//			htrDictComp.htrDictCombo.setEnabled(true);
-//			dictGrp.setVisible(true);
+		final String provider = htrModelsComp.getSelectedHtr().getProvider();
+		if (!HtrPyLaiaUtils.doesDecodingSupportDicts() 
+				&& provider.equals(HtrPyLaiaUtils.PROVIDER_PYLAIA)) {
+			sash.setWeights(new int[] { 100, 0 });
+		} else if (provider.equals(HtrCITlabUtils.PROVIDER_CITLAB_PLUS)
+				|| provider.equals(HtrCITlabUtils.PROVIDER_CITLAB)) {
+			//show option to select integrated dictionary if available for this model
+			htrDictComp.updateUi(false, htrModelsComp.getSelectedHtr().isLanguageModelExists());
+			sash.setWeights(new int[] { 88, 12 });
+		} else {
 			sash.setWeights(new int[] { 88, 12 });
 		}
 	}
@@ -113,11 +118,12 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 		switch (mode) {
 		case CITlab:
 			htrModelsComp.setSelection(config.getHtrId());
-			htrDictComp.selectDictionary(config.getDictionary());
+			htrDictComp.updateUi(false, htrModelsComp.getSelectedHtr().isLanguageModelExists());
+			htrDictComp.updateSelection(config.getDictionary());
 			break;
 		case UPVLC:
 			htrModelsComp.setSelection(config.getHtrId());
-			htrDictComp.selectDictionary(config.getDictionary());			
+			htrDictComp.updateSelection(config.getDictionary());
 			break;
 		default:
 			break;
@@ -152,7 +158,7 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 			return;
 		}
 		config = new TextRecognitionConfig(mode);
-		config.setDictionary(htrDictComp.getSelectedDictionary());
+		config.setDictionary(htrDictComp.getDictionarySetting());
 		
 		if (htr == null) {
 			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please select a HTR.");

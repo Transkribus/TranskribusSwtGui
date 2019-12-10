@@ -2,11 +2,14 @@ package eu.transkribus.swt_gui.htr;
 
 import java.awt.BasicStroke;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.ClientErrorException;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -14,6 +17,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
@@ -37,6 +41,7 @@ import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.model.beans.TrpHtr.ReleaseLevel;
 import eu.transkribus.core.model.beans.enums.DataSetType;
 import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.core.util.StrUtil;
@@ -60,6 +65,7 @@ public class HtrDetailsWidget extends SashForm {
 	private static final String CER_VAL_KEY = "CER Validation";
 	
 	Text nameTxt, langTxt, descTxt, nrOfLinesTxt, nrOfWordsTxt, finalTrainCerTxt, finalValCerTxt;
+	Combo publishStateCombo;
 	Table paramTable;
 	Button updateMetadataBtn, showTrainSetBtn, showValSetBtn, showCharSetBtn;
 	ChartComposite jFreeChartComp;
@@ -73,6 +79,7 @@ public class HtrDetailsWidget extends SashForm {
 	
 	public HtrDetailsWidget(Composite parent, int style) {
 		super(parent, style);
+		store = Storage.getInstance();
 		validator = new MetadataTextFieldValidator<>();
 		
 		// a composite for the HTR metadata
@@ -120,30 +127,38 @@ public class HtrDetailsWidget extends SashForm {
 		nrOfLinesTxt = new Text(mdComp, SWT.BORDER | SWT.READ_ONLY);
 		nrOfLinesTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 
+		//publishing models is restricted to admins for now
+		if(store.isAdminLoggedIn()) {	
+			createPublishStateComposite(mdComp);
+		}
+
 		Composite btnComp = new Composite(mdComp, SWT.NONE);
 		btnComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
 		//save, trainSet, valSet, charSet buttons
 		final int numButtons = 4;
 		btnComp.setLayout(new GridLayout(numButtons, true));
-
+		GridData btnGridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+		
 		updateMetadataBtn = new Button(btnComp, SWT.PUSH);
 		updateMetadataBtn.setText("Save");
 		updateMetadataBtn.setImage(Images.DISK);
-		updateMetadataBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		updateMetadataBtn.setLayoutData(btnGridData);
 		
 		showTrainSetBtn = new Button(btnComp, SWT.PUSH);
 		showTrainSetBtn.setText("Show Train Set");
-		showTrainSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		showTrainSetBtn.setLayoutData(btnGridData);
 		
 		showValSetBtn = new Button(btnComp, SWT.PUSH);
 		showValSetBtn.setText("Show Validation Set");
-		showValSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		showValSetBtn.setLayoutData(btnGridData);
 		
 		showCharSetBtn = new Button(btnComp, SWT.PUSH);
 		showCharSetBtn.setText("Show Characters");
-		showCharSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		showCharSetBtn.setLayoutData(btnGridData);
 
+		mdComp.pack();
+		
 		// a composite for the CER stuff
 		Composite cerComp = new Composite(this, SWT.BORDER);
 		cerComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -166,13 +181,40 @@ public class HtrDetailsWidget extends SashForm {
 		finalValCerTxt = new Text(cerComp, SWT.BORDER | SWT.READ_ONLY);
 		finalValCerTxt.setLayoutData(gd);
 		
+		if(publishStateCombo != null) {
+			this.setWeights(new int[] { 58, 42 });
+		}
+		
 		this.htr = null;
-		store = Storage.getInstance();
 		
 		//init with no HTR selected, i.e. disable controls
 		updateDetails(null);
 		
 		addListeners();
+	}
+
+	private void createPublishStateComposite(Composite mdComp) {
+		Composite publishComp = new Composite(mdComp, SWT.NONE);
+		publishComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 4, 1));
+		GridLayout publishCompLayout = new GridLayout(2, false);
+		publishCompLayout.marginHeight = publishCompLayout.marginWidth = 0;
+		publishComp.setLayout(publishCompLayout);
+		
+		Label publishStateLabel = new Label(publishComp, SWT.NONE);
+		publishStateLabel.setText("Visibility:");
+		publishStateCombo = new Combo(publishComp, SWT.READ_ONLY);
+		publishStateCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		
+		List<Pair<String, ReleaseLevel>> publishStates = new ArrayList<>(3);
+		publishStates.add(Pair.of("Private Model", ReleaseLevel.None));
+		publishStates.add(Pair.of("Public model with private data sets", ReleaseLevel.UndisclosedDataSet));
+		publishStates.add(Pair.of("Public model with public data sets", ReleaseLevel.DisclosedDataSet));
+		
+		for(Pair<String, ReleaseLevel> e : publishStates) {
+			publishStateCombo.add(e.getKey());
+			publishStateCombo.setData(e.getKey(), e.getValue());
+		}
+		validator.attach("Visibility", publishStateCombo, -1, -1, h -> "" + h.getReleaseLevel());
 	}
 
 	void updateDetails(TrpHtr htr) {		
@@ -210,12 +252,23 @@ public class HtrDetailsWidget extends SashForm {
 		nrOfWordsTxt.setText(htr.getNrOfWords() > 0 ? "" + htr.getNrOfWords() : NOT_AVAILABLE);
 		nrOfLinesTxt.setText(htr.getNrOfLines() > 0 ? "" + htr.getNrOfLines() : NOT_AVAILABLE);
 
+		if(publishStateCombo != null) {
+			for(int i = 0; i < publishStateCombo.getItemCount(); i++) {
+				if(publishStateCombo.getData(publishStateCombo.getItem(i)).equals(htr.getReleaseLevel())) {
+					publishStateCombo.select(i);
+					break;
+				}
+			}
+		}
+		
 		updateParamTable(htr.getParamsProps());
 
 		showCharSetBtn.setEnabled(htr.getCharSetList() != null && !htr.getCharSetList().isEmpty());
 
-		showTrainSetBtn.setEnabled(htr.hasTrainGt());
-		showValSetBtn.setEnabled(htr.hasValidationGt());
+		final boolean isGtAccessible = store.isGtDataAccessible(htr);
+		
+		showTrainSetBtn.setEnabled(isGtAccessible);
+		showValSetBtn.setEnabled(isGtAccessible);
 		
 		updateChart(htr);
 		
@@ -436,6 +489,26 @@ public class HtrDetailsWidget extends SashForm {
 		htrToStore.setName(nameTxt.getText());
 		htrToStore.setDescription(descTxt.getText());
 		htrToStore.setLanguage(langTxt.getText());
+		
+		if(publishStateCombo != null) {
+			Object publishStateData = publishStateCombo.getData(publishStateCombo.getText());
+			ReleaseLevel releaseLevel = (ReleaseLevel) publishStateData;
+			
+			//check if there is a change that would publish a private data set
+			if(!ReleaseLevel.isPrivateDataSet(releaseLevel) 
+					&& ReleaseLevel.isPrivateDataSet(htrToStore.getReleaseLevel())) {
+				final int answer = DialogUtil.showYesNoDialog(getShell(), "Are you sure you want to publish your data?", 
+						"The new visibility setting will allow other users to access the data sets used to train this model!\n\n"
+						+ "Are you sure you want to save this change?", SWT.ICON_WARNING);
+				if(answer == SWT.NO) {
+					logger.debug("User denied publishing the data.");
+					return;
+				}
+			}
+			
+			htrToStore.setReleaseLevel((ReleaseLevel) publishStateData);
+		}
+		
 		try {
 			store.updateHtrMetadata(htrToStore);
 			//reset the text fields to new values

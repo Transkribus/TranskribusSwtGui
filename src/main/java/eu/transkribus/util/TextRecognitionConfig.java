@@ -2,6 +2,7 @@ package eu.transkribus.util;
 
 import java.util.List;
 
+import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.swt_gui.htr.HtrDictionaryComposite;
 
 public class TextRecognitionConfig {
@@ -117,9 +118,11 @@ public class TextRecognitionConfig {
 		String s = "";
 		
 		switch(mode) {
-		case CITlab:
-			s = "CITlab RNN HTR\nNet Name: " + htrName + "\nLanguage: " + language + "\nDictionary: " 
-					+ (dictionary == null ? HtrDictionaryComposite.NO_DICTIONARY : dictionary);
+		case CITlab:			
+			s = "CITlab HTR\n"
+					+ "Net Name: " + htrName + "\n"
+					+ "Language: " + language + "\n"
+					+ getDictLabel(dictionary);
 			break;
 		case UPVLC:
 //			s = "PyLaia HTR\nNet Name: " + htrName + "\nLanguage: " + language+ "\nDictionary: " 
@@ -132,6 +135,20 @@ public class TextRecognitionConfig {
 		}
 		
 		return s;
+	}
+	
+	private String getDictLabel(String dictionary) {
+		String dictLabel;
+		if(dictionary == null) {
+			dictLabel = HtrDictionaryComposite.NO_DICTIONARY;
+		} else if (JobConst.PROP_TRAIN_DATA_DICT_VALUE.equals(dictionary)) {
+			dictLabel = HtrDictionaryComposite.INTEGRATED_DICTIONARY;
+		} else if (JobConst.PROP_TRAIN_DATA_LM_VALUE.equals(dictionary)) {
+			dictLabel = HtrDictionaryComposite.INTEGRATED_LM;
+		} else {
+			dictLabel = "Dictionary: " + dictionary;
+		}
+		return dictLabel;
 	}
 
 	public enum Mode {

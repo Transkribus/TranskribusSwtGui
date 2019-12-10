@@ -35,6 +35,7 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
 import eu.transkribus.swt_gui.htr.HtrFilterWidget;
+import eu.transkribus.swt_gui.htr.ShareHtrDialog;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -52,7 +53,7 @@ public class GroundTruthTreeWidget extends Composite {
 	private Composite filterWidget;
 	private Button reloadBtn;
 	
-	MenuItem copyGtSetToDocItem;
+	Menu contextMenu;
 	
 	//TODO paging
 	//ToolItem clearPageItem, deleteSelectedBtn;
@@ -100,11 +101,8 @@ public class GroundTruthTreeWidget extends Composite {
 		reloadBtn.setImage(Images.getOrLoad("/icons/refresh.gif"));
 		reloadBtn.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, true));
 
-		Menu menu = new Menu(treeViewer.getTree());
-		treeViewer.getTree().setMenu(menu);
-
-		copyGtSetToDocItem = new MenuItem(menu, SWT.NONE);
-		copyGtSetToDocItem.setText("Copy data set to new document...");
+		contextMenu = new Menu(treeViewer.getTree());
+		treeViewer.getTree().setMenu(contextMenu);
 		
 		initCols();
 		
@@ -140,78 +138,107 @@ public class GroundTruthTreeWidget extends Composite {
 					event.doit = false;
 					return;
 				}
+				//clear all options
+				for(MenuItem item : contextMenu.getItems()) {
+					item.dispose();
+				}
+				
 				TreeItem selection = treeViewer.getTree().getSelection()[0];
 				Object selectionData = selection.getData();
 				
 				logger.debug("Menu detected on tree item of type: {}", selectionData.getClass());
 				
-				if(!(selectionData instanceof HtrGtDataSet)) {
-					event.doit = false;
-					return;
-				}
-				HtrGtDataSet gtSet = (HtrGtDataSet) selectionData;
-				TrpHtr htr = gtSet.getModel();
-				boolean isDataSetAccessible = htr.getCollectionIdLink() != null 
-						|| htr.getReleaseLevelValue() >= ReleaseLevel.DisclosedDataSet.getValue();
-				
-				if(!Storage.getInstance().isAdminLoggedIn() && !isDataSetAccessible) {
-					logger.debug("Data set not accessible for this user.");
-					event.doit = false;
-					return;
-				}
-				
-				if (!StorageUtil.canDuplicate(Storage.getInstance().getCollId())) {
-					logger.debug("User not privileged to manage collection.");
-					event.doit = false;
-					return;
-				}
-				
-				//show the menu
-			}
-		});
-		
-		copyGtSetToDocItem.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				ChooseCollectionDialog ccd = new ChooseCollectionDialog(getShell());
-				
-				@SuppressWarnings("unused")
-				int ret = ccd.open();
-				TrpCollection col = ccd.getSelectedCollection();
-				
-				if(col == null) {
-					logger.debug("No collection was selected.");
-					return;
-				}
-				
-				//MenuDetectListener determined that this action is fine for the selection. Only HtrGtDataSet is allowed now
-				TreeItem selection = treeViewer.getTree().getSelection()[0];
-				Object selectionData = selection.getData();
-				
-				if(selectionData == null) {
-					logger.debug("Menu aborted without selection.");
-				}
-				
-				HtrGtDataSet gtSet = (HtrGtDataSet) selectionData;
-
-				final String title = "Copy of HTR " + gtSet.getDataSetType().getLabel() + "'" + gtSet.getModel().getName() + "'";
-				
-				GroundTruthSelectionDescriptor desc = new GroundTruthSelectionDescriptor(gtSet.getId(), gtSet.getDataSetType().toString());
-				
-				try {
-					TrpMainWidget.getInstance().duplicateGtToDocument(col, desc, title);
-				} catch (SessionExpiredException | ServerErrorException | ClientErrorException e1) {
-					logger.debug("Could copy dataset to collection!", e1);
-					String errorMsg = "The data set could not be copied to this collection.";
-					if(!StringUtils.isEmpty(e1.getMessage())) {
-						errorMsg += "\n" + e1.getMessage();
+				if(selectionData instanceof HtrGtDataSet) {
+					HtrGtDataSet gtSet = (HtrGtDataSet) selectionData;
+					TrpHtr htr = gtSet.getModel();
+					boolean isDataSetAccessible = htr.getCollectionIdLink() != null 
+							|| htr.getReleaseLevelValue() >= ReleaseLevel.DisclosedDataSet.getValue();
+					
+					if(!Storage.getInstance().isAdminLoggedIn() && !isDataSetAccessible) {
+						logger.debug("Data set not accessible for this user.");
+						event.doit = false;
+						return;
 					}
-					DialogUtil.showErrorMessageBox(getShell(), "Error while copying data set",
-							errorMsg);
+					
+					if (!StorageUtil.canDuplicate(Storage.getInstance().getCollId())) {
+						logger.debug("User not privileged to manage collection.");
+						event.doit = false;
+						return;
+					}
+					MenuItem copyGtSetToDocItem = new MenuItem(contextMenu, SWT.NONE);
+					copyGtSetToDocItem.setText("Copy data set to new document...");
+					copyGtSetToDocItem.addSelectionListener(new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							startCopyGtSetToDocumentAction();
+							super.widgetSelected(e);
+						}
+					});
+				} else if (selectionData instanceof TrpHtr) {
+					TrpHtr htr = (TrpHtr) selectionData;
+					//open menu and show HTR-related items
+					MenuItem showDetailsItem = new MenuItem(contextMenu, SWT.NONE);
+					showDetailsItem.setText("Show details...");
+					showDetailsItem.addSelectionListener(new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							TrpMainWidget.getInstance().getUi().getServerWidget().showHtrDetailsDialog(htr);
+						}
+					});
+					
+					MenuItem shareModelItem = new MenuItem(contextMenu, SWT.NONE);
+					shareModelItem.setText("Share model...");
+					shareModelItem.addSelectionListener(new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							ShareHtrDialog diag = new ShareHtrDialog(getShell(), htr);
+							diag.open();
+						}
+					});
+				} else {
+					event.doit = false;
 				}
-				super.widgetSelected(e);
 			}
 		});
+	}
+	
+	private void startCopyGtSetToDocumentAction() {
+		ChooseCollectionDialog ccd = new ChooseCollectionDialog(getShell());
+		
+		@SuppressWarnings("unused")
+		int ret = ccd.open();
+		TrpCollection col = ccd.getSelectedCollection();
+		
+		if(col == null) {
+			logger.debug("No collection was selected.");
+			return;
+		}
+		
+		//MenuDetectListener determined that this action is fine for the selection. Only HtrGtDataSet is allowed now
+		TreeItem selection = treeViewer.getTree().getSelection()[0];
+		Object selectionData = selection.getData();
+		
+		if(selectionData == null) {
+			logger.debug("Menu aborted without selection.");
+		}
+		
+		HtrGtDataSet gtSet = (HtrGtDataSet) selectionData;
+
+		final String title = "Copy of HTR " + gtSet.getDataSetType().getLabel() + "'" + gtSet.getModel().getName() + "'";
+		
+		GroundTruthSelectionDescriptor desc = new GroundTruthSelectionDescriptor(gtSet.getId(), gtSet.getDataSetType().toString());
+		
+		try {
+			TrpMainWidget.getInstance().duplicateGtToDocument(col, desc, title);
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e1) {
+			logger.debug("Could copy dataset to collection!", e1);
+			String errorMsg = "The data set could not be copied to this collection.";
+			if(!StringUtils.isEmpty(e1.getMessage())) {
+				errorMsg += "\n" + e1.getMessage();
+			}
+			DialogUtil.showErrorMessageBox(getShell(), "Error while copying data set",
+					errorMsg);
+		}
 	}
 	
 	private void initCols() {

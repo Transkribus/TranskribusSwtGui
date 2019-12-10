@@ -20,7 +20,6 @@ import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
-import eu.transkribus.swt.util.LabeledText;
 
 public class CITlabHtrPlusTrainingConfComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(CITlabHtrPlusTrainingConfComposite.class);
@@ -32,9 +31,7 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 //	private Combo scriptType;
 	private HtrModelChooserButton baseModelBtn;
 	
-	// FIXME as soon as update to CITlabModule 2.0.2 is done, this can be removed. 2.0.1 sets "-1" which would use the whole set in each epoch.
-	public final static int DEFAULT_TRAIN_SIZE_PER_EPOCH = 8192;
-	public final static int DEFAULT_NUM_EPOCHS = 200;	
+	public final static int DEFAULT_NUM_EPOCHS = 50;
 
 //	private CitlabNoiseParamCombo noiseCmb;
 //	private Text trainSizeTxt, learningRateTxt;

@@ -66,7 +66,8 @@ public class HtrGroundTruthTableLabelAndFontProvider extends CellLabelProvider i
 			} else if (element instanceof HtrGtDataSet) {
 				HtrGtDataSet set = (HtrGtDataSet) element;
 				String suffix = "";
-				if(ReleaseLevel.isPrivateDataSet(set.getModel().getReleaseLevel())) {
+				if(set.getModel().getReleaseLevelValue() > 0 
+						&& ReleaseLevel.isPrivateDataSet(set.getModel().getReleaseLevel())) {
 					suffix = " (private)";
 				}
 				return set.getDataSetType().getLabel() + suffix;
