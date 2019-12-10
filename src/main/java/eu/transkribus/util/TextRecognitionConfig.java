@@ -122,7 +122,7 @@ public class TextRecognitionConfig {
 			s = "CITlab HTR\n"
 					+ "Net Name: " + htrName + "\n"
 					+ "Language: " + language + "\n"
-					+ "Dictionary: " + getDictLabel(dictionary);
+					+ getDictLabel(dictionary);
 			break;
 		case UPVLC:
 //			s = "PyLaia HTR\nNet Name: " + htrName + "\nLanguage: " + language+ "\nDictionary: " 
@@ -143,8 +143,10 @@ public class TextRecognitionConfig {
 			dictLabel = HtrDictionaryComposite.NO_DICTIONARY;
 		} else if (JobConst.PROP_TRAIN_DATA_DICT_VALUE.equals(dictionary)) {
 			dictLabel = HtrDictionaryComposite.INTEGRATED_DICTIONARY;
+		} else if (JobConst.PROP_TRAIN_DATA_LM_VALUE.equals(dictionary)) {
+			dictLabel = HtrDictionaryComposite.INTEGRATED_LM;
 		} else {
-			dictLabel = dictionary;
+			dictLabel = "Dictionary: " + dictionary;
 		}
 		return dictLabel;
 	}

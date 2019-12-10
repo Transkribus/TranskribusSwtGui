@@ -3433,6 +3433,22 @@ public class Storage {
 		List<JobImpl> list = getConnection().getJobImplAcl(htrTrainingJobImplFilter);
 		return list.toArray(new JobImpl[list.size()]);
 	}
+
+	public boolean isGtDataAccessible(TrpHtr htr) {
+		if(isAdminLoggedIn()) {
+			return true;
+		}
+		//is model unpublished and linked to this collection?
+		if(ReleaseLevel.None.equals(htr.getReleaseLevel()) 
+				&& htr.getCollectionIdLink() == getCollId()) {
+			return true;
+		}
+		//is model published including the data sets?
+		if(!ReleaseLevel.isPrivateDataSet(htr.getReleaseLevel())) {
+			return true;
+		}
+		return false;
+	}
 	
 //	public void reloadP2PaLAModels() {
 //		reloadP2PaLAModels(true, isAdminLoggedIn(), null, null, null);

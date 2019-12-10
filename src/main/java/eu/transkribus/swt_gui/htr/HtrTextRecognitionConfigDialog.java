@@ -102,7 +102,7 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 		} else if (provider.equals(HtrCITlabUtils.PROVIDER_CITLAB_PLUS)
 				|| provider.equals(HtrCITlabUtils.PROVIDER_CITLAB)) {
 			//show option to select integrated dictionary if available for this model
-			htrDictComp.updateDictionaries(false, htrModelsComp.getSelectedHtr().isLanguageModelExists());
+			htrDictComp.updateUi(false, htrModelsComp.getSelectedHtr().isLanguageModelExists());
 			sash.setWeights(new int[] { 88, 12 });
 		} else {
 			sash.setWeights(new int[] { 88, 12 });
@@ -118,12 +118,12 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 		switch (mode) {
 		case CITlab:
 			htrModelsComp.setSelection(config.getHtrId());
-			htrDictComp.updateDictionaries(false, htrModelsComp.getSelectedHtr().isLanguageModelExists());
-			htrDictComp.selectDictionary(config.getDictionary());
+			htrDictComp.updateUi(false, htrModelsComp.getSelectedHtr().isLanguageModelExists());
+			htrDictComp.updateSelection(config.getDictionary());
 			break;
 		case UPVLC:
 			htrModelsComp.setSelection(config.getHtrId());
-			htrDictComp.selectDictionary(config.getDictionary());
+			htrDictComp.updateSelection(config.getDictionary());
 			break;
 		default:
 			break;
@@ -158,7 +158,7 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 			return;
 		}
 		config = new TextRecognitionConfig(mode);
-		config.setDictionary(htrDictComp.getSelectedDictionary());
+		config.setDictionary(htrDictComp.getDictionarySetting());
 		
 		if (htr == null) {
 			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please select a HTR.");

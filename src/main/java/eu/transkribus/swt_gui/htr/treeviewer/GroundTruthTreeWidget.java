@@ -224,7 +224,7 @@ public class GroundTruthTreeWidget extends Composite {
 		
 		HtrGtDataSet gtSet = (HtrGtDataSet) selectionData;
 
-		final String title = "Copy of HTR " + gtSet.getDataSetType().getLabel() + "'" + gtSet.getModel().getName() + "'";
+		final String title = "Copy of HTR " + gtSet.getDataSetType().getLabel() + " '" + gtSet.getModel().getName() + "'";
 		
 		GroundTruthSelectionDescriptor desc = new GroundTruthSelectionDescriptor(gtSet.getId(), gtSet.getDataSetType().toString());
 		
