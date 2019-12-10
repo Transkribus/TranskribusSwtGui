@@ -29,9 +29,10 @@ public class PyLaiaTrainingConfComposite extends Composite {
 	
 	private Text numEpochsTxt, earlyStoppingTxt, learningRateTxt, trainSizeTxt;
 	private HtrModelChooserButton baseModelBtn;
-	private Button preprocessingBtn;
+	private Button advancedParsBtn;
 	
 	TextFeatsCfg textFeatsCfg = new TextFeatsCfg();
+	int batchSize = PyLaiaHtrTrainConfig.DEFAULT_BATCH_SIZE;
 	
 	public PyLaiaTrainingConfComposite(Composite parent, boolean enableBaseModelSelection, int style) {
 		super(parent, style);
@@ -54,12 +55,13 @@ public class PyLaiaTrainingConfComposite extends Composite {
 		learningRateTxt = new Text(this, SWT.BORDER);
 		learningRateTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
-		preprocessingBtn = new Button(this, SWT.PUSH);
-		preprocessingBtn.setText("Configure preprocessing...");
-		preprocessingBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
-		SWTUtil.onSelectionEvent(preprocessingBtn, e -> {
-			PyLaiaPreprocessingConfDialog d = new PyLaiaPreprocessingConfDialog(getShell(), textFeatsCfg);
+		advancedParsBtn = new Button(this, SWT.PUSH);
+		advancedParsBtn.setText("Advanced parameters...");
+		advancedParsBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+		SWTUtil.onSelectionEvent(advancedParsBtn, e -> {
+			PyLaiaAdvancedConfDialog d = new PyLaiaAdvancedConfDialog(getShell(), batchSize, textFeatsCfg);
 			if (d.open() == IDialogConstants.OK_ID) {
+				batchSize = d.getBatchSize();
 				textFeatsCfg = d.getConfig();
 				logger.info("preprocessing config = "+textFeatsCfg);
 			}
@@ -174,6 +176,10 @@ public class PyLaiaTrainingConfComposite extends Composite {
 	
 	public TextFeatsCfg getPreprocessingConfig() {
 		return textFeatsCfg;
+	}
+	
+	public int getBatchSize() {
+		return batchSize;
 	}
 
 	public String getProvider() {
