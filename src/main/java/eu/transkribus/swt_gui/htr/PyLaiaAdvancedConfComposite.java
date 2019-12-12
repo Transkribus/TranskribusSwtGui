@@ -9,13 +9,13 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 
-import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
+import eu.transkribus.core.model.beans.PyLaiaTrainCtcPars;
 import eu.transkribus.core.model.beans.TextFeatsCfg;
 import eu.transkribus.swt.util.LabeledText;
 
 public class PyLaiaAdvancedConfComposite extends Composite {
 	TextFeatsCfg cfg = new TextFeatsCfg();
-	int batchSize = PyLaiaHtrTrainConfig.DEFAULT_BATCH_SIZE;
+	int batchSize = PyLaiaTrainCtcPars.DEFAULT_BATCH_SIZE;
 	
 	LabeledText batchSizeText;
 	

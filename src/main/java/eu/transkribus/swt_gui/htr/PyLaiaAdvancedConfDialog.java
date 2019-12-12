@@ -13,7 +13,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
+import eu.transkribus.core.model.beans.PyLaiaTrainCtcPars;
 import eu.transkribus.core.model.beans.TextFeatsCfg;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
@@ -23,7 +23,7 @@ public class PyLaiaAdvancedConfDialog extends Dialog {
 	
 	PyLaiaAdvancedConfComposite cfgComp;
 	TextFeatsCfg cfg;
-	int batchSize = PyLaiaHtrTrainConfig.DEFAULT_BATCH_SIZE;
+	int batchSize = PyLaiaTrainCtcPars.DEFAULT_BATCH_SIZE;
 
 	public PyLaiaAdvancedConfDialog(Shell parentShell, int batchSize, TextFeatsCfg cfg) {
 		super(parentShell);
