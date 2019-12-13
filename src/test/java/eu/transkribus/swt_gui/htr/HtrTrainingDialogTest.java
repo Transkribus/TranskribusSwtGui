@@ -28,7 +28,7 @@ public class HtrTrainingDialogTest {
 //		final int colId = 2; //575 = CITlab GT collection
 		final int colId = 1; //575 = CITlab GT collection
 		
-		boolean startTrainingOnServer=true;
+		boolean startTrainingOnServer=false;
 		
 		TrpProperties creds = new TrpProperties("testCreds.properties");
 		new TestApplicationWindow(TrpServerConn.TEST_SERVER_URI, creds.getString("username"), creds.getString("password"), colId) {
