@@ -660,8 +660,8 @@ public class TagSearchComposite extends Composite {
 		String scope = getScope();
 		
 		if (StringUtils.isEmpty(f.getTagName(false))) {
-			if (scope.equals(SCOPE_COLL) /*|| scope.equals(SCOPE_DOC)*/) {
-				DialogUtil.showErrorMessageBox(getShell(), "Error searching for tags", "Cannot search for all tags in collection or document - result set may be too large!");
+			if (scope.equals(SCOPE_COLL) || scope.equals(SCOPE_DOC)) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error searching for tags", "Cannot search for all tags in collection or document - result set may be too large!\n Please choose a tag name");
 				return;
 			}			
 		}

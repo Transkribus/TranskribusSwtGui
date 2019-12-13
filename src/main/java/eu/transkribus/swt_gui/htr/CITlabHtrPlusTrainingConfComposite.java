@@ -32,6 +32,7 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 	private HtrModelChooserButton baseModelBtn;
 	
 	public final static int DEFAULT_NUM_EPOCHS = 50;
+	public final static int MAX_NUM_EPOCHS = 1000;
 
 //	private CitlabNoiseParamCombo noiseCmb;
 //	private Text trainSizeTxt, learningRateTxt;
@@ -144,6 +145,8 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 		}
 		if (!StringUtils.isNumeric(numEpochsTxt.getText())) {
 			errorList.add("Number of Epochs must contain a number!");
+		} else if (Integer.parseInt(numEpochsTxt.getText()) > MAX_NUM_EPOCHS) {
+			errorList.add("Number of Epochs must not exceed " + MAX_NUM_EPOCHS);
 		}
 		if (earlyStoppingTxt!=null) {
 			if (!StringUtils.isEmpty(earlyStoppingTxt.getText()) && !StringUtils.isNumeric(earlyStoppingTxt.getText())) {
