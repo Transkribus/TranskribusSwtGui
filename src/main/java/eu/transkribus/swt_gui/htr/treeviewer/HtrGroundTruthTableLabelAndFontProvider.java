@@ -9,9 +9,9 @@ import org.eclipse.swt.graphics.Image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.ReleaseLevel;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
-import eu.transkribus.core.model.beans.TrpHtr.ReleaseLevel;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
