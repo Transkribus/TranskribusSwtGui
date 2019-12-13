@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.htr;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -168,7 +169,7 @@ public class HtrDictionaryComposite extends Composite {
 	private List<String> loadHtrDicts() {
 		try {
 			return store.getHtrDicts();
-		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e) {
+		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException | ProcessingException e) {
 			TrpMainWidget.getInstance().onError("Error", "Could not load HTR model list!", e);
 			return new ArrayList<>(0);
 		}
