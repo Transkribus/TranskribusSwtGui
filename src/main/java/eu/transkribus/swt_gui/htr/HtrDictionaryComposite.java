@@ -103,10 +103,12 @@ public class HtrDictionaryComposite extends Composite {
 	public void updateSelection(String dictConfigValue) {
 		if(StringUtils.isEmpty(dictConfigValue)) {
 			dictConfigValue = NO_DICTIONARY;
+			logger.debug("Empty config value passed => select '{}'", NO_DICTIONARY);
 		}
 		switch (dictConfigValue) {
 		case NO_DICTIONARY:
 			selectDictionaryOption(NO_DICTIONARY);
+			return;
 		case JobConst.PROP_TRAIN_DATA_DICT_VALUE:
 			selectDictionaryOption(INTEGRATED_DICTIONARY);
 			return;
@@ -119,7 +121,7 @@ public class HtrDictionaryComposite extends Composite {
 		}
 	}
 	
-	public void selectDictionary(String dictionaryName) {
+	private void selectDictionary(String dictionaryName) {
 		tableWidget.setSelection(dictionaryName);
 	}
 	
