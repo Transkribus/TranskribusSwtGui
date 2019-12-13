@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
+import eu.transkribus.core.model.beans.PyLaiaTrainCtcPars;
 import eu.transkribus.core.model.beans.TextFeatsCfg;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.CoreUtils;
@@ -32,7 +33,7 @@ public class PyLaiaTrainingConfComposite extends Composite {
 	private Button advancedParsBtn;
 	
 	TextFeatsCfg textFeatsCfg = new TextFeatsCfg();
-	int batchSize = PyLaiaHtrTrainConfig.DEFAULT_BATCH_SIZE;
+	int batchSize = PyLaiaTrainCtcPars.DEFAULT_BATCH_SIZE;
 	
 	public PyLaiaTrainingConfComposite(Composite parent, boolean enableBaseModelSelection, int style) {
 		super(parent, style);
@@ -121,11 +122,11 @@ public class PyLaiaTrainingConfComposite extends Composite {
 	}
 	
 	public void setDefaults() {
-		numEpochsTxt.setText("" + PyLaiaHtrTrainConfig.DEFAULT_NUM_EPOCHS);
-		earlyStoppingTxt.setText(""+ PyLaiaHtrTrainConfig.DEFAULT_EARLY_STOPPING);
-		learningRateTxt.setText(""+PyLaiaHtrTrainConfig.DEFAULT_LEARNING_RATE);
+		numEpochsTxt.setText("" + PyLaiaTrainCtcPars.DEFAULT_MAX_EPOCHS);
+		earlyStoppingTxt.setText(""+ PyLaiaTrainCtcPars.DEFAULT_MAX_NONDECREASING_EPOCHS);
+		learningRateTxt.setText(""+PyLaiaTrainCtcPars.DEFAULT_LEARNING_RATE);
 		if (trainSizeTxt!=null) {
-			trainSizeTxt.setText(""+PyLaiaHtrTrainConfig.DEFAULT_BATCH_SIZE);	
+			trainSizeTxt.setText(""+PyLaiaTrainCtcPars.DEFAULT_BATCH_SIZE);	
 		}
 		if(baseModelBtn != null) {
 			baseModelBtn.setModel(null);
