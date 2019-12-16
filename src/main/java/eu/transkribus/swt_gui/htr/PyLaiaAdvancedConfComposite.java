@@ -234,11 +234,11 @@ public class PyLaiaAdvancedConfComposite extends Composite {
 		enhPrmText = new LabeledText(preprocGroup, "Sauvola enhancement parameter: ");
 		enhPrmText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		normHeightText = new LabeledText(preprocGroup, "Nomralized height: ");
+		normHeightText = new LabeledText(preprocGroup, "Line height: ");
 		normHeightText.setToolTipText("Normalized height of extracted lines. Set to 0 for no normalization.");
 		normHeightText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		normxHeightText = new LabeledText(preprocGroup, "Normalized x-height: ");
+		normxHeightText = new LabeledText(preprocGroup, "Line x-height: ");
 		normxHeightText.setToolTipText("Normalized x-height (= height - descender and cap height) of extracted lines. Set to 0 for no normalization.");
 		normxHeightText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
