@@ -20,12 +20,12 @@ import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
 
 public class PyLaiaAdvancedConfComposite extends Composite {
-	int batchSize = PyLaiaTrainCtcPars.DEFAULT_BATCH_SIZE;
+//	int batchSize = PyLaiaTrainCtcPars.DEFAULT_BATCH_SIZE;
 	TextFeatsCfg textFeatsCfg = new TextFeatsCfg();
 	PyLaiaCreateModelPars modelPars;
 	PyLaiaTrainCtcPars trainPars;
 	
-	LabeledText batchSizeText;
+//	LabeledText batchSizeText;
 	
 	Group preprocGroup;
 	
@@ -49,35 +49,55 @@ public class PyLaiaAdvancedConfComposite extends Composite {
 	Group trainParsGroup;
 	Text trainParsText;
 	
-	public PyLaiaAdvancedConfComposite(Composite parent, int batchSize, TextFeatsCfg textFeatsCfg, PyLaiaCreateModelPars modelPars, PyLaiaTrainCtcPars trainPars) {
+	public PyLaiaAdvancedConfComposite(Composite parent, /*int batchSize,*/ TextFeatsCfg textFeatsCfg, PyLaiaCreateModelPars modelPars, PyLaiaTrainCtcPars trainPars) {
 		super(parent, 0);
 
-		this.batchSize = batchSize;
+//		this.batchSize = batchSize;
 		this.textFeatsCfg = textFeatsCfg == null ? new TextFeatsCfg() : textFeatsCfg;
 		this.modelPars = modelPars == null ? PyLaiaCreateModelPars.getDefault() : modelPars;
 		this.trainPars = trainPars == null ? PyLaiaTrainCtcPars.getDefault() : trainPars;
 		
-		// remove irrelevant parameters
-		this.modelPars.remove("--fixed_input_height"); // this is determined via fixed height par in textFeatsCfg already!
-		this.trainPars.remove("--batch_size"); // set via custom field
+		// remove pars that are explicitly set via custom UI fields
+//		this.trainPars.remove("--batch_size"); // set via custom field
 		this.trainPars.remove("--max_nondecreasing_epochs"); // set via main UI
 		this.trainPars.remove("--max_epochs"); // set via main UI
 		this.trainPars.remove("--learning_rate"); // set via main UI
+
+		// those are the fixed parameters that cannot be changed by the user (will be set to default value at server):
+		this.modelPars.remove("--fixed_input_height"); // determined via fixed height par in textFeatsCfg
+		this.modelPars.remove("--logging_level");
+		this.modelPars.remove("--logging_also_to_stderr");
+		this.modelPars.remove("--logging_file");
+		this.modelPars.remove("--logging_config");
+		this.modelPars.remove("--logging_overwrite");
+		this.modelPars.remove("--train_path");
+		this.modelPars.remove("--model_filename");
+		this.modelPars.remove("--print_args");
+		
+		this.trainPars.remove("--logging_level");
+		this.trainPars.remove("--logging_also_to_stderr");
+		this.trainPars.remove("--logging_file");
+		this.trainPars.remove("--logging_config");
+		this.trainPars.remove("--logging_overwrite");
+		this.trainPars.remove("--train_path");
+		this.trainPars.remove("--show_progress_bar");
+		this.trainPars.remove("--delimiters");
+		this.trainPars.remove("--print_args");
 		
 		createContent();
 	}
 	
-	public int getCurrentBatchSize() throws IOException {
-		try {
-			batchSize = Integer.parseInt(batchSizeText.getText());
-			if (batchSize <= 0 || batchSize>50) {
-				throw new IOException("Batch size not in range 1-50");
-			}
-			return batchSize;
-		} catch (NumberFormatException e) {
-			throw new IOException("Not a valid batch size: "+batchSizeText.getText());
-		}
-	}
+//	public int getCurrentBatchSize() throws IOException {
+//		try {
+//			batchSize = Integer.parseInt(batchSizeText.getText());
+//			if (batchSize <= 0 || batchSize>50) {
+//				throw new IOException("Batch size not in range 1-50");
+//			}
+//			return batchSize;
+//		} catch (NumberFormatException e) {
+//			throw new IOException("Not a valid batch size: "+batchSizeText.getText());
+//		}
+//	}
 	
 	public TextFeatsCfg getTextFeatsCfg() {
 		textFeatsCfg.setDeslope(deslopeCheck.getSelection());
@@ -122,7 +142,7 @@ public class PyLaiaAdvancedConfComposite extends Composite {
 	}
 	
 	private void updateUi() {
-		batchSizeText.setText(""+batchSize);
+//		batchSizeText.setText(""+batchSize);
 		
 		// preprocess pars:
 		deslopeCheck.setSelection(textFeatsCfg.isDeslope());
@@ -148,9 +168,9 @@ public class PyLaiaAdvancedConfComposite extends Composite {
 	
 	private void createContent() {
 		this.setLayout(new GridLayout(1, false));
-		batchSizeText = new LabeledText(this, "Batch size: ");
-		batchSizeText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Fonts.setBoldFont(batchSizeText.getLabel());
+//		batchSizeText = new LabeledText(this, "Batch size: ");
+//		batchSizeText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		Fonts.setBoldFont(batchSizeText.getLabel());
 		
 		SashForm subC = new SashForm(this, 0);
 		subC.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
@@ -160,7 +180,7 @@ public class PyLaiaAdvancedConfComposite extends Composite {
 		createModelParsUi(subC);
 		createTrainParsUi(subC);
 		
-		subC.setWeights(new int[] {1, 1, 1});
+		subC.setWeights(new int[] {3, 3, 2});
 		
 		updateUi();
 	}
@@ -171,7 +191,7 @@ public class PyLaiaAdvancedConfComposite extends Composite {
 		modelParsGroup.setText("Model");
 		modelParsGroup.setLayout(new GridLayout(1, false));
 		modelParsGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
-		modelParsText = new Text(modelParsGroup, SWT.MULTI | SWT.V_SCROLL);
+		modelParsText = new Text(modelParsGroup, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
 		modelParsText.setLayoutData(new GridData(GridData.FILL_BOTH));
 	}
 	
@@ -181,7 +201,7 @@ public class PyLaiaAdvancedConfComposite extends Composite {
 		trainParsGroup.setText("Training");
 		trainParsGroup.setLayout(new GridLayout(1, false));
 		trainParsGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
-		trainParsText = new Text(trainParsGroup, SWT.MULTI | SWT.V_SCROLL);
+		trainParsText = new Text(trainParsGroup, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
 		trainParsText.setLayoutData(new GridData(GridData.FILL_BOTH));
 	}
 	
@@ -208,31 +228,33 @@ public class PyLaiaAdvancedConfComposite extends Composite {
 		enhanceCheck.setText("Enhance");
 		enhanceCheck.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		enhWinText = new LabeledText(preprocGroup, "Enhance window: ");
+		enhWinText = new LabeledText(preprocGroup, "Enhance window size: ");
 		enhWinText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		enhPrmText = new LabeledText(preprocGroup, "Sauvola enhancement parameter: ");
 		enhPrmText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		normHeightText = new LabeledText(preprocGroup, "Norm-height: ");
+		normHeightText = new LabeledText(preprocGroup, "Nomralized height: ");
+		normHeightText.setToolTipText("Normalized height of extracted lines. Set to 0 for no normalization.");
 		normHeightText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		normxHeightText = new LabeledText(preprocGroup, "Norm-xheight: ");
+		normxHeightText = new LabeledText(preprocGroup, "Normalized x-height: ");
+		normxHeightText.setToolTipText("Normalized x-height (= height - descender and cap height) of extracted lines. Set to 0 for no normalization.");
 		normxHeightText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		momentnormCheck = new Button(preprocGroup, SWT.CHECK);
-		momentnormCheck.setText("Use moment normalization");
+		momentnormCheck.setText("Moment normalization");
 		momentnormCheck.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		fpgramCheck = new Button(preprocGroup, SWT.CHECK);
-		fpgramCheck.setText("Use feature parallelograms");
+		fpgramCheck.setText("Features parallelogram");
 		fpgramCheck.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		fcontourCheck = new Button(preprocGroup, SWT.CHECK);
-		fcontourCheck.setText("Use features surrounding polygon");
+		fcontourCheck.setText("Features surrounding polygon");
 		fcontourCheck.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		fcontour_dilateText = new LabeledText(preprocGroup, "Dilate for features surrounding polygon: ");
+		fcontour_dilateText = new LabeledText(preprocGroup, "Features surrounding polygon dilate: ");
 		fcontour_dilateText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		paddingText = new LabeledText(preprocGroup, "Left/right padding: ");

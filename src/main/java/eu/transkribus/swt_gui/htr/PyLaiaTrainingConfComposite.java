@@ -12,6 +12,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
@@ -37,13 +38,12 @@ public class PyLaiaTrainingConfComposite extends Composite {
 	TextFeatsCfg textFeatsCfg = new TextFeatsCfg();
 	PyLaiaCreateModelPars createModelPars = PyLaiaCreateModelPars.getDefault();
 	PyLaiaTrainCtcPars trainCtcPars = PyLaiaTrainCtcPars.getDefault();
-	
-	int batchSize = PyLaiaTrainCtcPars.DEFAULT_BATCH_SIZE;
+//	int batchSize = PyLaiaTrainCtcPars.DEFAULT_BATCH_SIZE;
 	
 	public PyLaiaTrainingConfComposite(Composite parent, boolean enableBaseModelSelection, int style) {
 		super(parent, style);
 		setLayout(new GridLayout(2, false));
-
+		
 		Label numEpochsLbl = new Label(this, SWT.NONE);
 		numEpochsLbl.setText("Max-nr. of Epochs:");
 		numEpochsTxt = new Text(this, SWT.BORDER);
@@ -55,6 +55,21 @@ public class PyLaiaTrainingConfComposite extends Composite {
 		earlyStoppingTxt = new Text(this, SWT.BORDER);
 		earlyStoppingTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		earlyStoppingTxt.setToolTipText("Stop training early, if model does not improve for this number of epochs");
+		
+		//Base models are not supported for PyLaia yet
+		if(enableBaseModelSelection) {
+			Label baseModelLbl = new Label(this, SWT.NONE);
+			baseModelLbl.setText("Base Model:");		
+			baseModelBtn = new HtrModelChooserButton(this, true, getProvider());
+			baseModelBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		} else {
+			baseModelBtn = null;
+		}		
+		
+//		Group advancedParsGroup = new Group(this, 0);
+//		advancedParsGroup.setText("Advanced parameters");
+//		advancedParsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+//		advancedParsGroup.setLayout(new GridLayout(2, false));
 
 		Label learningRateLbl = new Label(this, SWT.NONE);
 		learningRateLbl.setText("Learning Rate:");
@@ -65,13 +80,13 @@ public class PyLaiaTrainingConfComposite extends Composite {
 		advancedParsBtn.setText("Advanced parameters...");
 		advancedParsBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
 		SWTUtil.onSelectionEvent(advancedParsBtn, e -> {
-			PyLaiaAdvancedConfDialog d = new PyLaiaAdvancedConfDialog(getShell(), batchSize, textFeatsCfg, createModelPars, trainCtcPars);
+			PyLaiaAdvancedConfDialog d = new PyLaiaAdvancedConfDialog(getShell(), /*batchSize,*/ textFeatsCfg, createModelPars, trainCtcPars);
 			if (d.open() == IDialogConstants.OK_ID) {
-				batchSize = d.getBatchSize();
+//				batchSize = d.getBatchSize();
 				textFeatsCfg = d.getTextFeatsCfg();
 				createModelPars = d.getModelPars();
 				trainCtcPars = d.getTrainPars();
-				logger.info("batch size = "+batchSize);
+//				logger.info("batch size = "+batchSize);
 				logger.info("preprocessing config = "+textFeatsCfg.toSingleLineConfigString());
 				logger.info("modelPars = "+createModelPars.toSingleLineString());
 				logger.info("trainPars = "+trainCtcPars.toSingleLineString());
@@ -85,16 +100,6 @@ public class PyLaiaTrainingConfComposite extends Composite {
 //		trainSizeTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 //		}
 
-		//Base models are not supported for PyLaia yet
-		if(enableBaseModelSelection) {
-			Label baseModelLbl = new Label(this, SWT.NONE);
-			baseModelLbl.setText("Base Model:");		
-			baseModelBtn = new HtrModelChooserButton(this, true, getProvider());
-			baseModelBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
-		} else {
-			baseModelBtn = null;
-		}
-		
 		setDefaults();
 
 		new Label(this, SWT.NONE);
@@ -134,7 +139,8 @@ public class PyLaiaTrainingConfComposite extends Composite {
 	public void setDefaults() {
 		numEpochsTxt.setText("" + PyLaiaTrainCtcPars.DEFAULT_MAX_EPOCHS);
 		earlyStoppingTxt.setText(""+ PyLaiaTrainCtcPars.DEFAULT_MAX_NONDECREASING_EPOCHS);
-		learningRateTxt.setText(""+PyLaiaTrainCtcPars.DEFAULT_LEARNING_RATE);
+//		learningRateTxt.setText(""+PyLaiaTrainCtcPars.DEFAULT_LEARNING_RATE);
+		learningRateTxt.setText(CoreUtils.formatDoubleNonScientific(PyLaiaTrainCtcPars.DEFAULT_LEARNING_RATE));
 //		if (trainSizeTxt!=null) {
 //			trainSizeTxt.setText(""+PyLaiaTrainCtcPars.DEFAULT_BATCH_SIZE);	
 //		}
@@ -174,7 +180,7 @@ public class PyLaiaTrainingConfComposite extends Composite {
 		conf.setTrainCtcPars(trainCtcPars);
 		
 		// those are the "main" parameters:
-		conf.setBatchSize(batchSize);
+//		conf.setBatchSize(batchSize); // now set in advanced pars dialog
 		conf.setNumEpochs(Integer.parseInt(numEpochsTxt.getText()));
 		conf.setEarlyStopping(Integer.parseInt(earlyStoppingTxt.getText()));
 //		if (trainSizeTxt!=null) {

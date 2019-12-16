@@ -26,12 +26,12 @@ public class PyLaiaAdvancedConfDialog extends Dialog {
 	TextFeatsCfg textFeatsCfg;
 	PyLaiaCreateModelPars modelPars;
 	PyLaiaTrainCtcPars trainPars;	
-	int batchSize = PyLaiaTrainCtcPars.DEFAULT_BATCH_SIZE;
+//	int batchSize = PyLaiaTrainCtcPars.DEFAULT_BATCH_SIZE;
 
-	public PyLaiaAdvancedConfDialog(Shell parentShell, int batchSize, TextFeatsCfg textFeatsCfg, PyLaiaCreateModelPars modelPars, PyLaiaTrainCtcPars trainPars) {
+	public PyLaiaAdvancedConfDialog(Shell parentShell, /*int batchSize,*/ TextFeatsCfg textFeatsCfg, PyLaiaCreateModelPars modelPars, PyLaiaTrainCtcPars trainPars) {
 		super(parentShell);
 		
-		this.batchSize = batchSize;
+//		this.batchSize = batchSize;
 		this.textFeatsCfg = textFeatsCfg;
 		this.modelPars = modelPars;
 		this.trainPars = trainPars;
@@ -39,7 +39,7 @@ public class PyLaiaAdvancedConfDialog extends Dialog {
 	
 	@Override
 	protected Point getInitialSize() {
-		return SWTUtil.getPreferredOrMinSize(getShell(), 400, 250);
+		return SWTUtil.getPreferredOrMinSize(getShell(), 1000, 500);
 	}
 	
 	@Override
@@ -72,14 +72,14 @@ public class PyLaiaAdvancedConfDialog extends Dialog {
 		Composite cont = (Composite) super.createDialogArea(parent);
 		cont.setLayout(new GridLayout(1, false));
 		
-		cfgComp = new PyLaiaAdvancedConfComposite(cont, batchSize, textFeatsCfg, modelPars, trainPars);
+		cfgComp = new PyLaiaAdvancedConfComposite(cont, /*batchSize,*/ textFeatsCfg, modelPars, trainPars);
 		cfgComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		return cont;
 	}
 	
 	private void storeConf() throws IOException {
-		this.batchSize = cfgComp.getCurrentBatchSize();
+//		this.batchSize = cfgComp.getCurrentBatchSize();
 		this.textFeatsCfg = cfgComp.getTextFeatsCfg();
 		this.modelPars = cfgComp.getCreateModelPars();
 		this.trainPars = cfgComp.getTrainCtcPars();
@@ -97,15 +97,15 @@ public class PyLaiaAdvancedConfDialog extends Dialog {
 		return trainPars;
 	}
 
-	public int getBatchSize() {
-		return batchSize;
-	}
+//	public int getBatchSize() {
+//		return batchSize;
+//	}
 	
 	@Override
 	protected void okPressed() {
 		try {
 			storeConf();
-			logger.trace("ok pressed, batchsize = "+batchSize);
+//			logger.trace("ok pressed, batchsize = "+batchSize);
 			logger.trace("textFeatsCfg = "+textFeatsCfg.toSingleLineConfigString());
 			logger.trace("modelPars = "+modelPars.toSingleLineString());
 			logger.trace("trainPars = "+trainPars.toSingleLineString());
