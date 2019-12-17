@@ -93,7 +93,7 @@ public class DocumentManager extends Dialog {
 	protected Composite groupComposite;
 	protected Composite labelComposite;
 
-	Combo labelCombo, statusCombo, movePage;
+	Combo labelCombo, statusCombo, movePage, optionCombo;
 
 	Composite editCombos;
 
@@ -126,7 +126,7 @@ public class DocumentManager extends Dialog {
 	private TreeViewer tv;
 	private CollectionContentProvider contentProv;
 	private CollectionLabelProviderExtended labelProv;
-	private Composite buttonComp, buttonComp2;
+	private Composite buttonComp, buttonComp2, imageComp;
 	private Canvas previewLbl;
 
 	private int colId;
@@ -572,13 +572,12 @@ public class DocumentManager extends Dialog {
 				mw.addSeveralPages2Doc();
 				try {
 					Storage.getInstance().reloadCurrentDocument(colId);
+					totalReload(colId);
 				} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-				reload();
-				mw.getUi().getThumbnailWidget().reload();
-				tv.getTree().redraw();
+				
 			}
 		});
 		
@@ -785,19 +784,13 @@ public class DocumentManager extends Dialog {
 		imageGroup.setLayout(new GridLayout(2, true));
 		imageGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2,2));
 		
-		Composite imageComp = new Composite(imageGroup, SWT.NONE);
+		imageComp = new Composite(imageGroup, SWT.NONE);
 		imageComp.setLayout(new GridLayout(1, true));
 		
 		addToSampleSetBtn = new Button(imageComp, SWT.PUSH);
 		addToSampleSetBtn.setImage(Images.ADD);
 		addToSampleSetBtn.setText("Add to Sample Set");
 		addToSampleSetBtn.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
-		
-		nrOfPagesTxt = new LabeledText(imageComp, "Nr. of pages for sample");
-		nrOfPagesTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true , false , 2,1));
-		
-		documentNameLbl = new LabeledText(imageComp, "Document name");
-		documentNameLbl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true , false , 2,1));
 		
 		GridData tableGd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		GridLayout tableGl = new GridLayout(1, true);
@@ -893,12 +886,6 @@ public class DocumentManager extends Dialog {
 				Object o = selection.getFirstElement();
 				int currDocId = 0;
 				if (o instanceof TrpPage) {
-					movePage.setEnabled(true);
-					deletePage.setEnabled(true);
-					addPage.setEnabled(false);
-					addTrans.setEnabled(false);
-					revert.setEnabled(false);
-					sort.setEnabled(false);
 					TrpPage p = (TrpPage) o;
 					try {
 						if (image != null) {
@@ -918,12 +905,7 @@ public class DocumentManager extends Dialog {
 						logger.error("Could not load image", e);
 					}
 				} else if (o instanceof TrpDocMetadata) {
-					movePage.setEnabled(false);
-					deletePage.setEnabled(false);
-					addPage.setEnabled(true);
-					addTrans.setEnabled(true);
-					revert.setEnabled(true);
-					sort.setEnabled(true);
+
 					if (image != null) {
 						image.dispose();
 						image = null;
@@ -955,6 +937,7 @@ public class DocumentManager extends Dialog {
 							tv.setExpandedState(o, !i.getExpanded());
 							break;
 						}
+						
 					}
 					TrpLocation loc = new TrpLocation();
 					loc.collId = colId;
@@ -1025,7 +1008,7 @@ public class DocumentManager extends Dialog {
 				}
 				updateTable(sampleSetOverviewTable, sampleDocMap);
 				updateColors();
-				nrOfPagesTxt.setText(""+getSampleSetMetadata().getPages());
+//				nrOfPagesTxt.setText(""+getSampleSetMetadata().getPages());
 			}
 		});
 
@@ -1039,10 +1022,13 @@ public class DocumentManager extends Dialog {
 					}
 					updateTable(sampleSetOverviewTable, sampleDocMap);
 					updateColors();
-					nrOfPagesTxt.setText(""+getSampleSetMetadata().getPages());
+//					nrOfPagesTxt.setText(""+getSampleSetMetadata().getPages());
 				}
 			}
 		});
+		
+		
+		
 		
 		createSampleButton.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -1052,30 +1038,73 @@ public class DocumentManager extends Dialog {
 				msg += "Sample set size:\n \t\t\t\t" + sampleSetMd.getPages() + " pages\n";
 				msg += "\t\t\t\t" + sampleSetMd.getLines() + " lines\n";
 				msg += "\t\t\t\t" + sampleSetMd.getWords() + " words\n";
-				msg += "Samples Options:\n ";
-				msg += "\t\t\t\t" + nrOfPagesTxt.getText()  + " pages\n";
+//				msg += "Samples Options:\n ";
+//				msg += "\t\t\t\t" + nrOfPagesTxt.getText()  + " pages\n";
 				
-				if(sampleSetMd.getPages() < Integer.parseInt(nrOfPagesTxt.getText())) {
-					DialogUtil.showErrorMessageBox(getShell(), "Error number of lines", "Choose at most "+sampleSetMd.getPages()+" lines for your sample");
-				}else {
+				
 					
-					int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
+				Composite optionComp = new Composite(getParent(), SWT.NONE);
+				optionComp.setLayout(new GridLayout(2,false));
+				
+				optionCombo = initComboWithLabel(optionComp, "Option : ", SWT.DROP_DOWN | SWT.READ_ONLY);
+				optionCombo.setItems("Random","Systematic","For each document x pages");
+				optionCombo.setEnabled(true);
+				
+				nrOfPagesTxt = new LabeledText(optionComp, "Sequence of pages (comma-seperated)");
+				nrOfPagesTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true , false , 2,2));
+				nrOfPagesTxt.setText(""+getSampleSetMetadata().getPages());
+				
 					
-					if (result == SWT.YES) {	
+				documentNameLbl = new LabeledText(optionComp, "Document name");
+				documentNameLbl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true , false , 2,2));
+				
+				optionCombo.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						logger.debug(optionCombo.getText());
+						if(optionCombo.getText().equals("Systematic")) {
+							nrOfPagesTxt.label.setText("Sequence of pages (comma-seperated)");
+						}else if(optionCombo.getText().equals("Random")) {
+							nrOfPagesTxt.label.setText("Nr. of pages for sample");
+						}else {
+							nrOfPagesTxt.label.setText("Nr of pages for each document");
+						}
+					}
+				});
+				
+					
+				Button start = new Button(optionComp, SWT.NONE);
+				start.setText("Create");
+				start.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true , false , 2,2));
+				
+				DialogUtil.openShellWithComposite(getShell(), optionComp, 350, 200, "Sample options");
+				
+				start.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						
+						if(sampleSetMd.getPages() < Integer.parseInt(nrOfPagesTxt.getText())) {
+							DialogUtil.showErrorMessageBox(getShell(), "Error number of lines", "Choose at most "+sampleSetMd.getPages()+" pages for your sample");
+						}
+						else if(documentNameLbl.getText().isEmpty()) {
+							DialogUtil.showErrorMessageBox(getShell(), "Error document name is missing", "Please insert a document name");
+						}else {
+						
 						try {
 							
 							store.createSamplePages(sampleDocMap, Integer.parseInt(nrOfPagesTxt.getText()), "Sample_"+documentNameLbl.getText(), "Description");
-						
-							DialogUtil.showInfoMessageBox(getShell(), "Sample Job started", "Started sample job ");
 							
+							DialogUtil.showInfoMessageBox(getShell(), "Sample Job started", "Started sample job ");
+								
 
 						} catch (ServerErrorException | ClientErrorException
 								| IllegalArgumentException | SessionExpiredException ex) {
-							ex.printStackTrace();
+								ex.printStackTrace();
+							}
 						}
-						
 					}
-				}
+				});
+				
 			}
 		});
 
@@ -1321,9 +1350,10 @@ public class DocumentManager extends Dialog {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				tv.getTree().redraw();
 				reload();
 				mw.getUi().getThumbnailWidget().reload();
-				tv.getTree().redraw();
+				
 			}
 
 		});
