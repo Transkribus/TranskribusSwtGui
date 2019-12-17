@@ -59,7 +59,7 @@ public class HtrDetailsWidget extends SashForm {
 
 	private static final String[] CITLAB_TRAIN_PARAMS = { CitLabHtrTrainConfig.NUM_EPOCHS_KEY, 
 			CitLabHtrTrainConfig.LEARNING_RATE_KEY, CitLabHtrTrainConfig.NOISE_KEY, CitLabHtrTrainConfig.TRAIN_SIZE_KEY,
-			CitLabHtrTrainConfig.BASE_MODEL_ID_KEY, CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY, CitLabHtrTrainConfig.EARLY_STOPPING_KEY };
+			CitLabHtrTrainConfig.BASE_MODEL_ID_KEY, CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY, CitLabHtrTrainConfig.BEST_NET_EPOCH_KEY };
 
 	private static final String CER_TRAIN_KEY = "CER Train";
 	private static final String CER_VAL_KEY = "CER Validation";
@@ -333,44 +333,57 @@ public class HtrDetailsWidget extends SashForm {
 		rangeAxis.setNumberFormatOverride(pctFormat);
 		rangeAxis.setRange(0.0, 1.0);
 		
-		int storedNetEpoch = -1;
-		XYLineAnnotation lineAnnot = null;
 		if(referenceSeries != null && referenceSeries.length > 0) {
-			//determine location of best net annotation line and final CER values to show in text fields
-			double min = Double.MAX_VALUE;
-			if(htr.isBestNetStored()) {
-				//if best net is stored then seach reference CER series for the minimum value
-				for (int i = 0; i < referenceSeries.length; i++) {
-					final double val = referenceSeries[i];
-					//HTR+ always stores best net. If validation CER does not change, the first net with this CER is kept
-					if (val < min) {
-						min = val;
-						storedNetEpoch = i + 1;
-					}
+			int storedNetEpoch = -1;
+			if(htr.getParamsProps().containsKey(CitLabHtrTrainConfig.BEST_NET_EPOCH_KEY)) {
+				String storedNetEpochStr = htr.getParamsProps().getProperty("Best Net Epoch");
+				try {
+					storedNetEpoch = Integer.parseInt(storedNetEpochStr);
+				} catch (NumberFormatException e) {
+					//in case the best net is just the base model there won't be a number here
+					logger.debug("Best Net Epoch value is no number: {}", storedNetEpochStr);
 				}
 			} else {
-				//set last epoch as minimum
-				storedNetEpoch = referenceSeries.length;
-			}
-			logger.debug("best net stored after epoch {}", storedNetEpoch);
-			int seriesIndex = 0;
-			if(htr.hasCerLog()) {
-				double storedHtrTrainCer = htr.getCerLog()[storedNetEpoch - 1];
-				storedHtrTrainCerStr = HtrCITlabUtils.formatCerVal(storedHtrTrainCer);
-				plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.BLUE);
+				//use legacy routine, working for HTR but not HTR+!
+				//determine location of best net annotation line and final CER values to show in text fields
+				double min = Double.MAX_VALUE;
+				if(htr.isBestNetStored()) {
+					//if best net is stored then seach reference CER series for the minimum value
+					for (int i = 0; i < referenceSeries.length; i++) {
+						final double val = referenceSeries[i];
+						//HTR+ always stores best net. If validation CER does not change, the first net with this CER is kept
+						if (val < min) {
+							min = val;
+							storedNetEpoch = i + 1;
+						}
+					}
+				} else {
+					//set last epoch as minimum
+					storedNetEpoch = referenceSeries.length;
+				}
 			}
 			
-			if (htr.hasCerTestLog()) {
-				double storedHtrValCer = htr.getCerTestLog()[storedNetEpoch - 1];
-				storedHtrValCerStr = HtrCITlabUtils.formatCerVal(storedHtrValCer);
-				plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.RED);
+			if(storedNetEpoch > -1) {
+				logger.debug("best net stored after epoch {}", storedNetEpoch);
+				int seriesIndex = 0;
+				if(htr.hasCerLog()) {
+					double storedHtrTrainCer = htr.getCerLog()[storedNetEpoch - 1];
+					storedHtrTrainCerStr = HtrCITlabUtils.formatCerVal(storedHtrTrainCer);
+					plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.BLUE);
+				}
+				
+				if (htr.hasCerTestLog()) {
+					double storedHtrValCer = htr.getCerTestLog()[storedNetEpoch - 1];
+					storedHtrValCerStr = HtrCITlabUtils.formatCerVal(storedHtrValCer);
+					plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.RED);
+				}
+				
+				//annotate storedNetEpoch in the chart
+				XYLineAnnotation lineAnnot = new XYLineAnnotation(storedNetEpoch, 0.0, storedNetEpoch, 100.0,
+						new BasicStroke(), java.awt.Color.GREEN);
+				lineAnnot.setToolTipText("Stored HTR");
+				plot.addAnnotation(lineAnnot);
 			}
-			
-			//annotate storedNetEpoch in the chart
-			lineAnnot = new XYLineAnnotation(storedNetEpoch, 0.0, storedNetEpoch, 100.0,
-					new BasicStroke(), java.awt.Color.GREEN);
-			lineAnnot.setToolTipText("Stored HTR");
-			plot.addAnnotation(lineAnnot);
 		} else {
 			plot.setNoDataMessage("No data available");
 		}
