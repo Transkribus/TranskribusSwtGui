@@ -21,6 +21,7 @@ public class TextRecognitionConfig {
 	private boolean keepOriginalLinePolygons = false;
 	private boolean doStoreConfMats = true;
 	private boolean clearLines = true;
+	private int batchSize = 10;
 	
 	public TextRecognitionConfig(Mode mode) {
 		this.mode = mode;
@@ -29,8 +30,6 @@ public class TextRecognitionConfig {
 	public boolean isDoLinePolygonSimplification() {
 		return doLinePolygonSimplification;
 	}
-
-
 
 	public void setDoLinePolygonSimplification(boolean doLinePolygonSimplification) {
 		this.doLinePolygonSimplification = doLinePolygonSimplification;
@@ -62,6 +61,14 @@ public class TextRecognitionConfig {
 
 	public void setClearLines(boolean clearLines) {
 		this.clearLines = clearLines;
+	}
+	
+	public void setBatchSize(int batchSize) {
+		this.batchSize = batchSize;
+	}
+	
+	public int getBatchSize() {
+		return batchSize;
 	}
 
 	public Mode getMode() {
