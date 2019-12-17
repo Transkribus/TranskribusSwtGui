@@ -26,7 +26,8 @@ public class CITlabHtrTrainingConfComposite extends Composite {
 	public final static int DEFAULT_TRAIN_SIZE_PER_EPOCH = 10000;
 	public final static String DEFAULT_NOISE = "both";
 	public final static String DEFAULT_LEARNING_RATE = "1e-3";
-	public final static int DEFAULT_NUM_EPOCHS = 20;	
+	public final static int DEFAULT_NUM_EPOCHS = 20;
+	public final static int MAX_NUM_EPOCHS = 1000;
 	
 	private Text trainSizeTxt;
 
@@ -115,7 +116,9 @@ public class CITlabHtrTrainingConfComposite extends Composite {
 		}
 		
 		if (!StringUtils.isNumeric(numEpochsTxt.getText())) {
-			errorList.add("Number of Epochs must contain a number!");
+			errorList.add("Number of Epochs must contain a positive number!");
+		} else if (Integer.parseInt(numEpochsTxt.getText()) > MAX_NUM_EPOCHS) {
+			errorList.add("Number of Epochs must not exceed " + MAX_NUM_EPOCHS);
 		}
 		if (StringUtils.isEmpty(learningRateTxt.getText())) {
 			errorList.add("Learning rate must not be empty!");

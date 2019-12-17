@@ -10,8 +10,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Text;
 
+import eu.transkribus.core.model.beans.ReleaseLevel;
 import eu.transkribus.core.model.beans.TrpHtr;
-import eu.transkribus.core.model.beans.TrpHtr.ReleaseLevel;
 import eu.transkribus.swt.util.TrpViewerFilter;
 import eu.transkribus.swt.util.TrpViewerFilterWidget;
 

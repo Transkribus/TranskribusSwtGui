@@ -73,6 +73,16 @@ public class LabeledText extends Composite {
 	public Text getTextField() { return text; }
 	public Label getLabel() { return label; }
 	
+	public int toIntVal(int defaultValue) {
+		Integer val = toIntVal();
+		return val != null ? val : defaultValue;
+	}
+	
+	public double toDoubleVal(double defaultValue) {
+		Double val = toDoubleVal();
+		return val != null ? val : defaultValue;
+	}	
+	
 	public Integer toIntVal() {
 		try {
 			return Integer.parseInt(text.getText());

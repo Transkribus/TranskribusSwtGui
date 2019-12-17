@@ -61,9 +61,9 @@ public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontPro
 			switch (ct) {
 			case HtrTableWidget.HTR_NAME_COL:
 				if(((TrpHtr)element).getReleaseLevelValue() > 0) {
-					return Images.CHART_LINE_LINK;
+					return Images.MODEL_SHARED_ICON;
 				}
-				return Images.CHART_LINE;
+				return Images.MODEL_ICON;
 			default:
 				return null;
 			}
