@@ -45,7 +45,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 	private boolean docsSelected = false;
 	private List<DocumentSelectionDescriptor> selectedDocDescriptors;
 	
-	private Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn, doStoreConfMatsBtn;
+	private Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn, doStoreConfMatsBtn, clearLinesBtn;
 	private MultiCheckSelectionCombo multiCombo;
 	
 	private Storage store = Storage.getInstance();
@@ -101,9 +101,15 @@ public class HtrTextRecognitionDialog extends Dialog {
 		
 		doLinePolygonSimplificationBtn = new Button(cont, SWT.CHECK);
 		doLinePolygonSimplificationBtn.setText("Do polygon simplification");
-		doLinePolygonSimplificationBtn.setToolTipText("Perform a line polygon simplification after the recognition process to reduce the number of output points and thus the size of the file");
+		doLinePolygonSimplificationBtn.setToolTipText("Perform a line polygon simplification after the recognition process to reduce the number of points");
 		doLinePolygonSimplificationBtn.setSelection(true);
 		doLinePolygonSimplificationBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		
+		clearLinesBtn = new Button(cont, SWT.CHECK);
+		clearLinesBtn.setText("Clear lines");
+		clearLinesBtn.setToolTipText("Clear existing transcriptions before recognition");
+		clearLinesBtn.setSelection(true);
+		clearLinesBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));		
 		
 		keepOriginalLinePolygonsBtn = new Button(cont, SWT.CHECK);
 		keepOriginalLinePolygonsBtn.setText("Keep original line polygons");
@@ -241,15 +247,18 @@ public class HtrTextRecognitionDialog extends Dialog {
 		config.setStructures(selectionArray);
 		config.setKeepOriginalLinePolygons(keepOriginalLinePolygonsBtn.getSelection());
 		config.setDoLinePolygonSimplification(doLinePolygonSimplificationBtn.getSelection());
+		config.setClearLines(clearLinesBtn.getSelection());
 		config.setDoStoreConfMats(doStoreConfMatsBtn.getSelection());
 		
 		super.okPressed();
 	}
 	
 	private void updateUi() {
-		keepOriginalLinePolygonsBtn.setVisible(config!=null && config.getMode()==Mode.CITlab);
-		doLinePolygonSimplificationBtn.setVisible(config!=null && config.getMode()==Mode.CITlab);
-		doStoreConfMatsBtn.setVisible(config!=null && config.getMode()==Mode.CITlab);
+		doLinePolygonSimplificationBtn.setVisible(true);
+		boolean isCitlab = config!=null && config.getMode()==Mode.CITlab;
+		clearLinesBtn.setVisible(!isCitlab);
+		keepOriginalLinePolygonsBtn.setVisible(isCitlab);
+		doStoreConfMatsBtn.setVisible(isCitlab);
 	}
 
 	@Override

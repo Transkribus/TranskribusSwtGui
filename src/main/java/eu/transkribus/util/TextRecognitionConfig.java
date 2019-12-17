@@ -20,6 +20,7 @@ public class TextRecognitionConfig {
 	private boolean doLinePolygonSimplification = true;
 	private boolean keepOriginalLinePolygons = false;
 	private boolean doStoreConfMats = true;
+	private boolean clearLines = true;
 	
 	public TextRecognitionConfig(Mode mode) {
 		this.mode = mode;
@@ -53,6 +54,14 @@ public class TextRecognitionConfig {
 	
 	public void setDoStoreConfMats(boolean doStoreConfMats) {
 		this.doStoreConfMats = doStoreConfMats;
+	}
+	
+	public boolean isClearLines() {
+		return clearLines;
+	}
+
+	public void setClearLines(boolean clearLines) {
+		this.clearLines = clearLines;
 	}
 
 	public Mode getMode() {
