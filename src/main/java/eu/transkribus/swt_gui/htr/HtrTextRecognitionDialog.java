@@ -38,7 +38,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 	private Button thisPageBtn, severalPagesBtn;
 	private CurrentTranscriptOrDocPagesOrCollectionSelector dps;
 	private boolean docsSelected = false;
-	private List<DocumentSelectionDescriptor> selectedDocDescriptors;
+//	private List<DocumentSelectionDescriptor> selectedDocDescriptors;
 	private List<DocSelection> selectedDocSelections;
 	
 //	private Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn, doStoreConfMatsBtn, clearLinesBtn;
@@ -217,11 +217,11 @@ public class HtrTextRecognitionDialog extends Dialog {
 		return docsSelected;
 	}
 	
-	public List<DocumentSelectionDescriptor> getDocs(){
-		return selectedDocDescriptors;
-	}
+//	public List<DocumentSelectionDescriptor> getDocs(){
+//		return selectedDocDescriptors;
+//	}
 	
-	public List<DocSelection> getDocSelections() {
+	public List<DocSelection> getDocs() {
 		return selectedDocSelections;
 	}
 	
@@ -245,9 +245,9 @@ public class HtrTextRecognitionDialog extends Dialog {
 			}
 		} else {
 			docsSelected = dps.isDocsSelection();
-			selectedDocDescriptors = dps.getDocumentsSelected();
+//			selectedDocDescriptors = dps.getDocumentsSelected();
 			selectedDocSelections = dps.getDocSelections();
-			if(CollectionUtils.isEmpty(selectedDocDescriptors)) {
+			if(CollectionUtils.isEmpty(selectedDocSelections)) {
 				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "No documents selected for recognition.");
 				return;
 			}

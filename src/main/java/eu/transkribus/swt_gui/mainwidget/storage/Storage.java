@@ -62,6 +62,7 @@ import eu.transkribus.core.io.UnsupportedFormatException;
 import eu.transkribus.core.io.util.ExtensionFileFilter;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
+import eu.transkribus.core.model.beans.DocSelection;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
 import eu.transkribus.core.model.beans.EdFeature;
@@ -3454,6 +3455,17 @@ public class Storage {
 			return true;
 		}
 		return false;
+	}
+	
+	public DocumentSelectionDescriptor getDocumentSelectionDescriptor(int colId, DocSelection docSel) throws TrpServerErrorException, TrpClientErrorException, SessionExpiredException, StorageException {
+		checkLoggedIn();
+		
+		DocumentSelectionDescriptor dsd = new DocumentSelectionDescriptor(docSel.getDocId());
+		if (!StringUtils.isEmpty(docSel.getPages())) {
+			List<Integer> pids = conn.getPageIdsByPagesStr(colId, docSel.getDocId(), docSel.getPages());
+			dsd.addPages(pids);							
+		}
+		return dsd;
 	}
 	
 //	public void reloadP2PaLAModels() {

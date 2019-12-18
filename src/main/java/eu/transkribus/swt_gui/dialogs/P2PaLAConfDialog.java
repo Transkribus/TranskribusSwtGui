@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.model.beans.DocSelection;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpP2PaLA;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
@@ -67,7 +68,8 @@ public class P2PaLAConfDialog extends Dialog {
 //	MyTableViewer modelsTable;
 	CurrentTranscriptOrDocPagesOrCollectionSelector pagesSelector;
 	private boolean docsSelected = false;
-	private List<DocumentSelectionDescriptor> selectedDocDescriptors;
+//	private List<DocumentSelectionDescriptor> selectedDocDescriptors;
+	private List<DocSelection> docSelections;
 //	Combo modelCombo;
 	ComboViewer modelComboViewer;
 	AutoCompleteField modelsAutocomplete;
@@ -229,7 +231,7 @@ public class P2PaLAConfDialog extends Dialog {
 //		});
 //		Fonts.setBoldFont(infoText);
 		
-		pagesSelector = new CurrentTranscriptOrDocPagesOrCollectionSelector(cont, SWT.NONE, false, true, false);
+		pagesSelector = new CurrentTranscriptOrDocPagesOrCollectionSelector(cont, SWT.NONE, false, true, true);
 		pagesSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
 		Composite modelContainer = new Composite(cont, 0);
@@ -426,18 +428,18 @@ public class P2PaLAConfDialog extends Dialog {
 		return conf;
 	}
 	
-	public List<DocumentSelectionDescriptor> getDocs(){
-		return selectedDocDescriptors;
+//	public List<DocumentSelectionDescriptor> getDocs(){
+//		return selectedDocDescriptors;
+//	}
+	
+	public List<DocSelection> getDocs(){
+		return docSelections;
 	}
 	
 	public boolean isDocsSelected() {
 		return docsSelected;
 	}
 
-	public List<DocumentSelectionDescriptor> getSelectedDocDescriptors() {
-		return selectedDocDescriptors;
-	}	
-	
 	@Override
 	protected void okPressed() {
 		if (!storeConf()) {
@@ -447,7 +449,8 @@ public class P2PaLAConfDialog extends Dialog {
 		if(pagesSelector.isDocsSelection()){
 
 			docsSelected = pagesSelector.isDocsSelection();
-			selectedDocDescriptors = pagesSelector.getDocumentsSelected();
+//			selectedDocDescriptors = pagesSelector.getDocumentsSelected();
+			docSelections = pagesSelector.getDocSelections();
 			
 		}
 		super.okPressed();

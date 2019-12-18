@@ -178,12 +178,12 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 		docsLabel.setText(txt);
 	}
 	
-	public List<DocumentSelectionDescriptor> getDocumentsSelected() {
-		if (documentsSelected == null || documentsSelected.isEmpty()){
-			return null;
-		}
-		return documentsSelected;
-	}
+//	public List<DocumentSelectionDescriptor> getDocumentsSelected() {
+//		if (documentsSelected == null || documentsSelected.isEmpty()){
+//			return null;
+//		}
+//		return documentsSelected;
+//	}
 	
 	public List<DocSelection> getDocSelections() {
 		return docSelections;
