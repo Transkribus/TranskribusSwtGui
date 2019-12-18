@@ -680,4 +680,5 @@ CHANGES AND BUGFIXES
 	-> HTR sharing dialog accessible via right-click context menu
 	-> CITlab HTR configuration allows to select integrated dictionary or language model built from its train data set (available for models trained after 6.11.2018 [sic])
 	-> bugfix: baselines were associated to wrong parent shapes on splitting with custom line
+	-> CITlab HTR+ display bugfix: the model used for recognition is the one from the last epoch => display CER values from final training iteration.
 	
