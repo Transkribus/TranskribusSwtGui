@@ -2616,6 +2616,17 @@ public class Storage {
 		return null;
 	}
 	
+	public TrpJobStatus createSamplePages(Map<TrpDocMetadata, List<TrpPage>> sampleDocMap, int nrOfPages, String sampleName, String sampleDescription, String option) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+		List<DocumentSelectionDescriptor> descList = null;
+		try {
+			descList = DescriptorUtils.buildCompleteSelectionDescriptorList(sampleDocMap, null);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Could not build selection descriptor list");
+		}
+		conn.createSamplePagesJob(collId, descList, nrOfPages, sampleName, sampleDescription, option);
+		return null;
+	}
+	
 	public TrpJobStatus computeSampleRate(int docId, ParameterMap params) throws TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
 		return conn.computeSampleJob(docId,params);
 	}
