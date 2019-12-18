@@ -274,7 +274,7 @@ public class SamplesCompareDialog extends Dialog {
 		removeFromSampleSetBtn = new Button(sampleSetGrp, SWT.PUSH);
 		removeFromSampleSetBtn.setLayoutData(buttonGd);
 		removeFromSampleSetBtn.setImage(Images.CROSS);
-		removeFromSampleSetBtn.setText("Remove selected entries from train set");
+		removeFromSampleSetBtn.setText("Remove selected entries from sample set");
 		
 		createSampleButton = new Button(sampleSetGrp, SWT.PUSH);
 		createSampleButton.setLayoutData(buttonGd);

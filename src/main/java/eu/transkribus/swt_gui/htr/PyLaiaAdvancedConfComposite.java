@@ -1,7 +1,5 @@
 package eu.transkribus.swt_gui.htr;
 
-import java.io.IOException;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
