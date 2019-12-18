@@ -25,7 +25,6 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -300,6 +299,16 @@ public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<
 		class JobStateTableColumnLabelProvider extends TableColumnBeanLabelProvider {
 			public JobStateTableColumnLabelProvider(String colName) {
 				super(colName);
+			}
+			
+			@Override
+			public String getText(Object element) {
+				if(element instanceof TrpJobStatus 
+						&& TrpJobStatus.CREATED.equals(((TrpJobStatus)element).getState())) {
+					//show PENDING instead of CREATED to make clear that the job will be executed
+					return "PENDING";
+				}
+				return super.getText(element);
 			}
 
 			@Override
