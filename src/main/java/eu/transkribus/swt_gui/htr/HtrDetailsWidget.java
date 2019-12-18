@@ -40,16 +40,21 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
+import eu.transkribus.core.model.beans.PyLaiaCreateModelPars;
+import eu.transkribus.core.model.beans.PyLaiaTrainCtcPars;
 import eu.transkribus.core.model.beans.ReleaseLevel;
+import eu.transkribus.core.model.beans.TextFeatsCfg;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.DataSetType;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.core.util.HtrPyLaiaUtils;
 import eu.transkribus.core.util.StrUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.MetadataTextFieldValidator;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.CharSetViewerDialog;
 import eu.transkribus.swt_gui.dialogs.DocImgViewerDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -71,7 +76,7 @@ public class HtrDetailsWidget extends SashForm {
 	Text nameTxt, langTxt, descTxt, nrOfLinesTxt, nrOfWordsTxt, finalTrainCerTxt, finalValCerTxt;
 	Combo publishStateCombo;
 	Table paramTable;
-	Button updateMetadataBtn, showTrainSetBtn, showValSetBtn, showCharSetBtn;
+	Button updateMetadataBtn, showTrainSetBtn, showValSetBtn, showCharSetBtn, showAdvancedParsBtn;
 	ChartComposite jFreeChartComp;
 	JFreeChart chart = null;
 	DocImgViewerDialog trainDocViewer, valDocViewer = null;
@@ -113,13 +118,22 @@ public class HtrDetailsWidget extends SashForm {
 		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		validator.attach("Description", descTxt, 1, 2048, h -> h.getDescription());
 		
-		paramTable = new Table(mdComp, SWT.BORDER | SWT.V_SCROLL);
+		Composite paramsContainer = new Composite(mdComp, 0);
+		paramsContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		paramsContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		paramTable = new Table(paramsContainer, SWT.BORDER | SWT.V_SCROLL);
 		paramTable.setHeaderVisible(false);
 		TableColumn paramCol = new TableColumn(paramTable, SWT.NONE);
 		paramCol.setText("Parameter");
 		TableColumn valueCol = new TableColumn(paramTable, SWT.NONE);
 		valueCol.setText("Value");
 		paramTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		showAdvancedParsBtn = new Button(paramsContainer, 0);
+		showAdvancedParsBtn.setText("Show advanced parameters...");
+//		showAdvancedParsBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		showAdvancedParsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		Label nrOfWordsLbl = new Label(mdComp, SWT.NONE);
 		nrOfWordsLbl.setText("Nr. of Words:");
@@ -245,6 +259,7 @@ public class HtrDetailsWidget extends SashForm {
 			showCharSetBtn.setEnabled(false);
 			showValSetBtn.setEnabled(false);
 			showTrainSetBtn.setEnabled(false);
+			showAdvancedParsBtn.setEnabled(false);
 			updateParamTable(null);
 			updateChart(null);
 			return;
@@ -264,6 +279,8 @@ public class HtrDetailsWidget extends SashForm {
 				}
 			}
 		}
+		
+		showAdvancedParsBtn.setEnabled(htr.getProvider().equals(HtrPyLaiaUtils.PROVIDER_PYLAIA));
 		
 		updateParamTable(htr.getParamsProps());
 
@@ -290,6 +307,13 @@ public class HtrDetailsWidget extends SashForm {
 			t.setEditable(enabled);
 		}
 	}
+	
+	private TableItem addTableItem(Table table, String key, String value) {
+		TableItem item = new TableItem(paramTable, SWT.NONE);
+		item.setText(0, key);
+		item.setText(1, value);
+		return item;
+	}
 
 	private void updateParamTable(Properties paramsProps) {
 		paramTable.removeAll();
@@ -303,21 +327,48 @@ public class HtrDetailsWidget extends SashForm {
 			item.setText(1, NOT_AVAILABLE);
 		} else {
 			if (htr.getProvider().equals(HtrPyLaiaUtils.PROVIDER_PYLAIA)) {
-				for (Object key : paramsProps.keySet()) {
-					TableItem item = new TableItem(paramTable, SWT.NONE);
-					String keyStr = ""+key;
-					String value = paramsProps.getProperty(keyStr);
-					if (StringUtils.equals(keyStr, TEXT_FEATS_CFG_KEY)) {
-						keyStr = "preprocessing";
-						value = value.replaceAll("\\{", "").replaceAll("\\}", "")
-								.replaceAll("\\:",  "")
-								.replaceAll("TextFeatExtractor", "")
-//								.replaceAll("\\;", "")
-								.trim();
+				TextFeatsCfg textFeatsCfg = TextFeatsCfg.fromConfigString2(paramsProps.getProperty("textFeatsCfg"));
+				PyLaiaCreateModelPars createModelPars = PyLaiaCreateModelPars.fromSingleLineString2(paramsProps.getProperty("createModelPars"));
+				PyLaiaTrainCtcPars trainCtcPars = PyLaiaTrainCtcPars.fromSingleLineString2(paramsProps.getProperty("trainCtcPars"));
+
+				// add fixed pars:
+				if (trainCtcPars!=null) {
+					addTableItem(paramTable, "Max epochs", trainCtcPars.getParameterValue("--max_epochs"));
+					addTableItem(paramTable, "Early stopping", trainCtcPars.getParameterValue("--max_nondecreasing_epochs"));
+					if (htr.getCerLog()!=null) {
+						addTableItem(paramTable, "Epochs trained", ""+htr.getCerLog().length);	
 					}
-					item.setText(0, keyStr + " ");
-					item.setText(1, value);					
+					
+					String lrStr = trainCtcPars.getParameterValue("--learning_rate");
+					try {
+						addTableItem(paramTable, "Learning rate", CoreUtils.formatDoubleNonScientific(Double.valueOf(lrStr)));
+					} catch (Exception e) {
+						addTableItem(paramTable, "Learning rate", lrStr);
+					}
+					addTableItem(paramTable, "Batch size", trainCtcPars.getParameterValue("--batch_size"));			
 				}
+				
+				if (textFeatsCfg!=null) {
+					addTableItem(paramTable, "Normalized height", ""+textFeatsCfg.getNormheight());
+				}
+				
+				// TODO: how to show all pars? --> advanced pars dialog --> via showAdvancedParsBtn!!
+				
+//				for (Object key : paramsProps.keySet()) {
+//					TableItem item = new TableItem(paramTable, SWT.NONE);
+//					String keyStr = ""+key;
+//					String value = paramsProps.getProperty(keyStr);
+//					if (StringUtils.equals(keyStr, TEXT_FEATS_CFG_KEY)) {
+//						keyStr = "preprocessing";
+//						value = value.replaceAll("\\{", "").replaceAll("\\}", "")
+//								.replaceAll("\\:",  "")
+//								.replaceAll("TextFeatExtractor", "")
+////								.replaceAll("\\;", "")
+//								.trim();
+//					}
+//					item.setText(0, keyStr + " ");
+//					item.setText(1, value);					
+//				}
 			}
 			else {
 				for (String s : CITLAB_TRAIN_PARAMS) {
@@ -441,6 +492,20 @@ public class HtrDetailsWidget extends SashForm {
 	
 	
 	private void addListeners() {
+		SWTUtil.onSelectionEvent(showAdvancedParsBtn, e -> {
+			if(htr == null || !htr.getProvider().equals(HtrPyLaiaUtils.PROVIDER_PYLAIA)) {
+				return;
+			}
+			
+			Properties paramsProps = htr.getParamsProps();
+			TextFeatsCfg textFeatsCfg = TextFeatsCfg.fromConfigString2(paramsProps.getProperty("textFeatsCfg"));
+			PyLaiaCreateModelPars createModelPars = PyLaiaCreateModelPars.fromSingleLineString2(paramsProps.getProperty("createModelPars"));
+			PyLaiaTrainCtcPars trainCtcPars = PyLaiaTrainCtcPars.fromSingleLineString2(paramsProps.getProperty("trainCtcPars"));
+			
+			PyLaiaAdvancedConfDialog d = new PyLaiaAdvancedConfDialog(getShell(), textFeatsCfg, createModelPars, trainCtcPars);
+			d.open();
+		});
+		
 		this.showTrainSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
