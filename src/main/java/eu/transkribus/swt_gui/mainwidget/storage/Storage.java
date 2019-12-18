@@ -3463,7 +3463,10 @@ public class Storage {
 		DocumentSelectionDescriptor dsd = new DocumentSelectionDescriptor(docSel.getDocId());
 		if (!StringUtils.isEmpty(docSel.getPages())) {
 			List<Integer> pids = conn.getPageIdsByPagesStr(colId, docSel.getDocId(), docSel.getPages());
-			dsd.addPages(pids);							
+			dsd.addPages(pids);					
+		}
+		else {
+			logger.debug("pagesStr is empty for DocSelection -> leaving pages empty s.t. all pages get processed!");
 		}
 		return dsd;
 	}
