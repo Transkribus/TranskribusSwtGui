@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.batik.dom.util.DocumentDescriptor;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -20,6 +21,7 @@ import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
 
+import eu.transkribus.core.model.beans.DocSelection;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
@@ -43,17 +45,22 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 	ExpandableComposite docChooserExp;
 	
 	List<DocumentSelectionDescriptor> documentsSelected = null;
+	List<DocSelection> docSelections = null; 
+	
+	boolean withPagesSelector=false;
 	
 	/*
 	 * selection of pages can be done for current page, several/all pages of current doc or several/all documents of loaded collection
 	 */
-	public CurrentTranscriptOrDocPagesOrCollectionSelector(Composite parent, int style, boolean oneRow, boolean withCurrentTranscript) {
+	public CurrentTranscriptOrDocPagesOrCollectionSelector(Composite parent, int style, boolean oneRow, boolean withCurrentTranscript, boolean withPagesSelector) {
 		super(parent, style);
 		
 		int nColumns = oneRow ? 3 : 3;
 		GridLayout gl = new GridLayout(nColumns, false);
 		gl.marginHeight = gl.marginWidth = 0;
 		this.setLayout(gl);
+		
+		this.withPagesSelector = withPagesSelector;
 		
 		if(withCurrentTranscript) {
 			currentTanscriptRadio = new Button(this, SWT.RADIO);
@@ -117,9 +124,10 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 	    docsSelectorBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				DocumentsSelectorDialog dsd = new DocumentsSelectorDialog(getShell(), "Select documents for job", Storage.getInstance().getDocList());
+				DocumentsSelectorDialog dsd = new DocumentsSelectorDialog(getShell(), "Select documents for job", Storage.getInstance().getDocList(), withPagesSelector);
 				if (dsd.open() == IDialogConstants.OK_ID) {
 					documentsSelected = dsd.getCheckedDocumentDescriptors();
+					docSelections = dsd.getCheckedDocSelections();
 					//System.out.println("n selected documents: "+dsd.getCheckedDocs().size());
 				}
 				
@@ -175,6 +183,10 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 			return null;
 		}
 		return documentsSelected;
+	}
+	
+	public List<DocSelection> getDocSelections() {
+		return docSelections;
 	}
 
 	public void updateGui() {

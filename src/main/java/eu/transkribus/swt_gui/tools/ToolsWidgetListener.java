@@ -17,6 +17,7 @@ import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
+import eu.transkribus.core.model.beans.DocSelection;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpErrorRateResult;
@@ -597,7 +598,8 @@ public class ToolsWidgetListener implements SelectionListener {
 						TextRecognitionConfig config = trd2.getConfig();
 						String msg;
 						try {
-							final boolean isDocsSelection = trd2.isDocsSelection() && trd2.getDocs() != null && Storage.getInstance().isAdminLoggedIn();
+//							final boolean isDocsSelection = trd2.isDocsSelection() && trd2.getDocs() != null && Storage.getInstance().isAdminLoggedIn();
+							final boolean isDocsSelection = trd2.isDocsSelection() && trd2.getDocSelections() != null && Storage.getInstance().isAdminLoggedIn();
 							if (isDocsSelection) {
 								pages = null;
 								msg = "Do you really want to start the HTR for "+ trd2.getDocs().size() + " docs in this collection?";
@@ -611,17 +613,18 @@ public class ToolsWidgetListener implements SelectionListener {
 							}
 
 							if (isDocsSelection){
-								/*
-								 * ToDo: we could start LA for all docs at once in a single job instead of starting it for each doc separately
-								 * this way the jobs are parallelized automatically, results will be finsished earlier
-								 * but job list will be much longer
-								 */
-								for (DocumentSelectionDescriptor docDescr : trd2.getDocs()){
-									logger.debug("start HTR for all pages with docId = {}", docDescr.getDocId());
-
-									String tmp = store.runHtr(docDescr, config);
-									jobIds.add(tmp);
+								// NEW: use DocSelection here, as they contain the pages string for each doc:
+								for (DocSelection docSel : trd2.getDocSelections()) {
+									String jobId = store.runHtr(docSel.getDocId(), docSel.getPages(), config);
+									jobIds.add(jobId);
 								}
+								// OLD: use DocumentSelectionDescriptor which do *not* contain individual pages
+//								for (DocumentSelectionDescriptor docDescr : trd2.getDocs()){
+//									logger.debug("start HTR for all pages with docId = {}", docDescr.getDocId());
+//
+//									String tmp = store.runHtr(docDescr, config);
+//									jobIds.add(tmp);
+//								}
 							} else {
 								String jobId = store.runHtr(pages, config);
 								jobIds.add(jobId);

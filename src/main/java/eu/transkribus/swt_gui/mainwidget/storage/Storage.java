@@ -2890,7 +2890,7 @@ public class Storage {
 					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), 
 					config.isDoStoreConfMats(), config.getStructures());
 		case UPVLC:
-			return conn.runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), getDocId(), pages, 
+			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), getDocId(), pages, 
 					config.getHtrId(), config.getDictionary(),
 					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(),
 					config.getBatchSize(),
@@ -2909,7 +2909,7 @@ public class Storage {
 					config.isDoStoreConfMats(), config.getStructures()
 					);
 		case UPVLC:
-			return conn.runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), descriptor, config.getHtrId(), config.getDictionary(), 
+			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), descriptor, config.getHtrId(), config.getDictionary(), 
 					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(),
 					config.getBatchSize(),
 					config.getStructures()
@@ -2926,7 +2926,7 @@ public class Storage {
 			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), docId, pages, 
 					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), config.isDoStoreConfMats(), config.getStructures());
 		case UPVLC:
-			return conn.runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), docId, pages, 
+			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), docId, pages, 
 					config.getHtrId(), config.getDictionary(), 
 					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(),
 					config.getBatchSize(),
@@ -2947,7 +2947,7 @@ public class Storage {
 		if(config == null) {
 			throw new IllegalArgumentException("Config is null!");
 		}
-		return conn.runPyLaiaTraining(config);
+		return conn.getPyLaiaCalls().runPyLaiaTraining(config);
 	}	
 	
 	public String runCitLabText2Image(CitLabSemiSupervisedHtrTrainConfig config) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {

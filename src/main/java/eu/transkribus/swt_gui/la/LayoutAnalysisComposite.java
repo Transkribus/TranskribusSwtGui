@@ -88,7 +88,7 @@ public class LayoutAnalysisComposite extends Composite {
 //		methodCombo.combo.select(0);
 		
 		//with this selector jobs can be started for complete collections
-		dps = new CurrentTranscriptOrDocPagesOrCollectionSelector(mainContainer, SWT.NONE, false, true);		
+		dps = new CurrentTranscriptOrDocPagesOrCollectionSelector(mainContainer, SWT.NONE, false, true, false);		
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
 		
 

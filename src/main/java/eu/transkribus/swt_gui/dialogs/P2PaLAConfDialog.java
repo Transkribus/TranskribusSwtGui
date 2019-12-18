@@ -229,7 +229,7 @@ public class P2PaLAConfDialog extends Dialog {
 //		});
 //		Fonts.setBoldFont(infoText);
 		
-		pagesSelector = new CurrentTranscriptOrDocPagesOrCollectionSelector(cont, SWT.NONE, false,true);
+		pagesSelector = new CurrentTranscriptOrDocPagesOrCollectionSelector(cont, SWT.NONE, false, true, false);
 		pagesSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
 		Composite modelContainer = new Composite(cont, 0);
