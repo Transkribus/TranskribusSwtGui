@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.ClientErrorException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -59,7 +60,7 @@ public class HtrDetailsWidget extends SashForm {
 
 	private static final String[] CITLAB_TRAIN_PARAMS = { CitLabHtrTrainConfig.NUM_EPOCHS_KEY, 
 			CitLabHtrTrainConfig.LEARNING_RATE_KEY, CitLabHtrTrainConfig.NOISE_KEY, CitLabHtrTrainConfig.TRAIN_SIZE_KEY,
-			CitLabHtrTrainConfig.BASE_MODEL_ID_KEY, CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY, CitLabHtrTrainConfig.BEST_NET_EPOCH_KEY };
+			CitLabHtrTrainConfig.BASE_MODEL_ID_KEY, CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY};
 
 	private static final String CER_TRAIN_KEY = "CER Train";
 	private static final String CER_VAL_KEY = "CER Validation";
@@ -301,6 +302,20 @@ public class HtrDetailsWidget extends SashForm {
 					item.setText(1, paramsProps.getProperty(s));
 				}
 			}
+			
+			if(paramsProps.containsKey(CitLabHtrTrainConfig.BEST_NET_EPOCH_KEY)) {
+				String bestNetEpochValue = paramsProps.getProperty(CitLabHtrTrainConfig.BEST_NET_EPOCH_KEY);
+				TableItem item = new TableItem(paramTable, SWT.NONE);
+				item.setText(0, CitLabHtrTrainConfig.BEST_NET_EPOCH_KEY + " ");
+				final String text;
+				if(StringUtils.isNumeric(bestNetEpochValue) && Integer.parseInt(bestNetEpochValue) == 0) {
+					//bestNet is actually the base model
+					text = "Base Model";
+				} else {
+					text = bestNetEpochValue;
+				}
+				item.setText(1, text);
+			}
 		}
 		paramTable.getColumn(0).pack();
 		paramTable.getColumn(1).pack();
@@ -334,36 +349,27 @@ public class HtrDetailsWidget extends SashForm {
 		rangeAxis.setRange(0.0, 1.0);
 		
 		if(referenceSeries != null && referenceSeries.length > 0) {
-			int storedNetEpoch = -1;
-			if(htr.getParamsProps().containsKey(CitLabHtrTrainConfig.BEST_NET_EPOCH_KEY)) {
-				String storedNetEpochStr = htr.getParamsProps().getProperty("Best Net Epoch");
-				try {
-					storedNetEpoch = Integer.parseInt(storedNetEpochStr);
-				} catch (NumberFormatException e) {
-					//in case the best net is just the base model there won't be a number here
-					logger.debug("Best Net Epoch value is no number: {}", storedNetEpochStr);
-				}
-			} else {
-				//use legacy routine, working for HTR but not HTR+!
-				//determine location of best net annotation line and final CER values to show in text fields
-				double min = Double.MAX_VALUE;
-				if(htr.isBestNetStored()) {
-					//if best net is stored then seach reference CER series for the minimum value
-					for (int i = 0; i < referenceSeries.length; i++) {
-						final double val = referenceSeries[i];
-						//HTR+ always stores best net. If validation CER does not change, the first net with this CER is kept
-						if (val < min) {
-							min = val;
-							storedNetEpoch = i + 1;
-						}
-					}
-				} else {
-					//set last epoch as minimum
-					storedNetEpoch = referenceSeries.length;
-				}
-			}
 			
-			if(storedNetEpoch > -1) {
+			Integer storedNetEpoch;
+			if(HtrCITlabUtils.PROVIDER_CITLAB_PLUS.equals(htr.getProvider())) {
+				//determine location of best net annotation line and final CER values to show in text fields
+				storedNetEpoch = getStoredNetEpoch(htr);
+				
+				//the former wrong annotation may be activated by setting this to true
+				final boolean annotateMinCerValueDebug = false;
+				if(annotateMinCerValueDebug) {
+					int minCerEpoch = getMinCerEpoch(htr, referenceSeries);
+					XYLineAnnotation lineAnnot2 = new XYLineAnnotation(minCerEpoch, 0.0, minCerEpoch, 100.0,
+							new BasicStroke(), java.awt.Color.CYAN);
+					lineAnnot2.setToolTipText("Min. CER on validation set");
+					plot.addAnnotation(lineAnnot2);
+				}				
+			} else {
+				//legacy routine, working for HTR and PyLaia but not HTR+! Find min value in referenceSeries
+				storedNetEpoch = getMinCerEpoch(htr, referenceSeries);
+			}
+
+			if(storedNetEpoch != null && storedNetEpoch > 0) {
 				logger.debug("best net stored after epoch {}", storedNetEpoch);
 				int seriesIndex = 0;
 				if(htr.hasCerLog()) {
@@ -393,6 +399,42 @@ public class HtrDetailsWidget extends SashForm {
 
 		finalTrainCerTxt.setText(storedHtrTrainCerStr);
 		finalValCerTxt.setText(storedHtrValCerStr);
+	}
+	
+	private int getMinCerEpoch(TrpHtr htr2, double[] referenceSeries) {
+		double min = Double.MAX_VALUE;
+		int minCerEpoch = -1;
+		if(htr.isBestNetStored()) {
+			//if best net is stored then seach reference CER series for the minimum value
+			for (int i = 0; i < referenceSeries.length; i++) {
+				final double val = referenceSeries[i];
+				//HTR+ always stores best net. If validation CER does not change, the first net with this CER is kept
+				if (val < min) {
+					min = val;
+					minCerEpoch = i + 1;
+				}
+			}
+		} else {
+			//set last epoch as minimum
+			minCerEpoch = referenceSeries.length;
+		}
+		return minCerEpoch;
+	}
+
+	private Integer getStoredNetEpoch(TrpHtr htr) {
+		String bestNetEpochProp = htr.getParamsProps().getProperty(CitLabHtrTrainConfig.BEST_NET_EPOCH_KEY);
+		if(bestNetEpochProp == null) {
+			//the property is not set
+			return null;
+		}
+		
+		try {
+			return Integer.parseInt(bestNetEpochProp);
+		} catch (NumberFormatException e) {
+			//in case the best net is just the base model there won't be a number here
+			logger.debug("Best Net Epoch value is no number: {}", bestNetEpochProp);
+			return null;
+		}
 	}
 	
 	void triggerChartUpdate() {

@@ -1,7 +1,9 @@
 package eu.transkribus.swt_gui.htr;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.client.InvocationCallback;
 
@@ -48,9 +50,18 @@ public class HtrUpdateChartTest {
 				htrs = htrList.get().getList();
 				comp.htw.refreshList(htrs);
 				
+				List<TrpHtr> badHtrs = new LinkedList<>();
+				
 				for(TrpHtr htr : htrs) {
-					comp.updateDetails(htr);
+					try {
+						comp.updateDetails(htr);
+					} catch (ArrayIndexOutOfBoundsException e) {
+						badHtrs.add(htr);
+					}
 				}
+				
+				logger.info("Found {} bad HTRs", badHtrs.size());
+				logger.info("IDs = " + badHtrs.stream().map(h -> "" + h.getHtrId()).collect(Collectors.joining(", ")) );
 			}
 		};
 		test.show();
