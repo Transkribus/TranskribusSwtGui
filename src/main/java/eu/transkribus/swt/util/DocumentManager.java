@@ -780,7 +780,7 @@ public class DocumentManager extends Dialog {
 		// buttonComp.setLayout(new GridLayout(1, false));
 		
 		Group imageGroup = new Group(docSashOptionImage, SWT.SHADOW_IN);
-		imageGroup.setText("Create sample");
+		imageGroup.setText("Create basic set");
 		imageGroup.setLayout(new GridLayout(2, true));
 		imageGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2,2));
 		
@@ -789,14 +789,14 @@ public class DocumentManager extends Dialog {
 		
 		addToSampleSetBtn = new Button(imageComp, SWT.PUSH);
 		addToSampleSetBtn.setImage(Images.ADD);
-		addToSampleSetBtn.setText("Add to Sample Set");
+		addToSampleSetBtn.setText("Add to Basic Set");
 		addToSampleSetBtn.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
 		
 		GridData tableGd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		GridLayout tableGl = new GridLayout(1, true);
 		
 		Group sampleSetGrp = new Group(imageGroup, SWT.NONE);
-		sampleSetGrp.setText("Documents added to Sample Set");
+		sampleSetGrp.setText("Documents added to Basic Set");
 		sampleSetGrp.setLayoutData(tableGd);
 		sampleSetGrp.setLayout(tableGl);
 
@@ -1050,7 +1050,7 @@ public class DocumentManager extends Dialog {
 				optionCombo.setItems("Random","Systematic","For each document x pages");
 				optionCombo.setEnabled(true);
 				
-				nrOfPagesTxt = new LabeledText(optionComp, "Sequence of pages (comma-seperated)");
+				nrOfPagesTxt = new LabeledText(optionComp, "Nr of pages for each document");
 				nrOfPagesTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true , false , 2,2));
 				nrOfPagesTxt.setText(""+getSampleSetMetadata().getPages());
 				
@@ -1063,7 +1063,7 @@ public class DocumentManager extends Dialog {
 					public void widgetSelected(SelectionEvent e) {
 						logger.debug(optionCombo.getText());
 						if(optionCombo.getText().equals("Systematic")) {
-							nrOfPagesTxt.label.setText("Sequence of pages (comma-seperated)");
+							nrOfPagesTxt.label.setText("For each document x pages");
 						}else if(optionCombo.getText().equals("Random")) {
 							nrOfPagesTxt.label.setText("Nr. of pages for sample");
 						}else {
@@ -1087,12 +1087,15 @@ public class DocumentManager extends Dialog {
 							DialogUtil.showErrorMessageBox(getShell(), "Error number of lines", "Choose at most "+sampleSetMd.getPages()+" pages for your sample");
 						}
 						else if(documentNameLbl.getText().isEmpty()) {
-							DialogUtil.showErrorMessageBox(getShell(), "Error document name is missing", "Please insert a document name");
-						}else {
+							DialogUtil.showErrorMessageBox(getShell(), "Error! Document name is missing", "Please insert a document name");
+						}else if(optionCombo.getText().isEmpty()) {
+							DialogUtil.showErrorMessageBox(getShell(), "Error! Option is missing", "Please insert an option");
+						}
+						else {
 						
 						try {
 							
-							store.createSamplePages(sampleDocMap, Integer.parseInt(nrOfPagesTxt.getText()), "Sample_"+documentNameLbl.getText(), "Description");
+							store.createSamplePages(sampleDocMap, Integer.parseInt(nrOfPagesTxt.getText()), "Sample_"+documentNameLbl.getText(), "Description", optionCombo.getText() );
 							
 							DialogUtil.showInfoMessageBox(getShell(), "Sample Job started", "Started sample job ");
 								
