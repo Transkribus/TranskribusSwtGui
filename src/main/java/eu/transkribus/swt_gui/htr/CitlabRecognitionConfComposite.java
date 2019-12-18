@@ -20,9 +20,7 @@ import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 public class CitlabRecognitionConfComposite extends Composite {
 	
 	Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn, doStoreConfMatsBtn;
-	ToolBar structureBar;
-	ToolItem structureItem;
-	ToolBox structureBox;
+	StructureTagComposite structreTagComp;
 	List<String> selectionArray = new ArrayList<>();
 
 	public CitlabRecognitionConfComposite(Composite parent) {
@@ -52,7 +50,7 @@ public class CitlabRecognitionConfComposite extends Composite {
 		});
 		doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());		
 		
-		StructureTagComposite structreTagComp = new StructureTagComposite(this);
+		structreTagComp = new StructureTagComposite(this);
 		structreTagComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));	
 		
 	}
