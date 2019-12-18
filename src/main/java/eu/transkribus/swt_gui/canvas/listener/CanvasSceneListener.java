@@ -753,7 +753,14 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				 *  So the coordinates of the lines should be taken for the comparison
 				 */
 //				Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<>());
-				TrpShapeTypeUtils.sortShapesByCoordinates(trpMergedShapes, false);
+				
+				if (trpMergedShapes.size() > 0 && trpMergedShapes.get(0) instanceof TrpTextLineType){
+					TrpShapeTypeUtils.sortShapesByXY(trpMergedShapes);
+				}
+				else{
+					TrpShapeTypeUtils.sortShapesByCoordinates(trpMergedShapes, false);
+				}
+				
 				
 				logger.debug("minIndex = "+minIndex);
 				
