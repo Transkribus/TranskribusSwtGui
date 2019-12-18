@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.ClientErrorException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -39,15 +40,21 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
+import eu.transkribus.core.model.beans.PyLaiaCreateModelPars;
+import eu.transkribus.core.model.beans.PyLaiaTrainCtcPars;
 import eu.transkribus.core.model.beans.ReleaseLevel;
+import eu.transkribus.core.model.beans.TextFeatsCfg;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.DataSetType;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
+import eu.transkribus.core.util.HtrPyLaiaUtils;
 import eu.transkribus.core.util.StrUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.MetadataTextFieldValidator;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.CharSetViewerDialog;
 import eu.transkribus.swt_gui.dialogs.DocImgViewerDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -59,7 +66,7 @@ public class HtrDetailsWidget extends SashForm {
 
 	private static final String[] CITLAB_TRAIN_PARAMS = { CitLabHtrTrainConfig.NUM_EPOCHS_KEY, 
 			CitLabHtrTrainConfig.LEARNING_RATE_KEY, CitLabHtrTrainConfig.NOISE_KEY, CitLabHtrTrainConfig.TRAIN_SIZE_KEY,
-			CitLabHtrTrainConfig.BASE_MODEL_ID_KEY, CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY, CitLabHtrTrainConfig.EARLY_STOPPING_KEY };
+			CitLabHtrTrainConfig.BASE_MODEL_ID_KEY, CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY};
 
 	private static final String CER_TRAIN_KEY = "CER Train";
 	private static final String CER_VAL_KEY = "CER Validation";
@@ -67,7 +74,7 @@ public class HtrDetailsWidget extends SashForm {
 	Text nameTxt, langTxt, descTxt, nrOfLinesTxt, nrOfWordsTxt, finalTrainCerTxt, finalValCerTxt;
 	Combo publishStateCombo;
 	Table paramTable;
-	Button updateMetadataBtn, showTrainSetBtn, showValSetBtn, showCharSetBtn;
+	Button updateMetadataBtn, showTrainSetBtn, showValSetBtn, showCharSetBtn, showAdvancedParsBtn;
 	ChartComposite jFreeChartComp;
 	JFreeChart chart = null;
 	DocImgViewerDialog trainDocViewer, valDocViewer = null;
@@ -109,13 +116,22 @@ public class HtrDetailsWidget extends SashForm {
 		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		validator.attach("Description", descTxt, 1, 2048, h -> h.getDescription());
 		
-		paramTable = new Table(mdComp, SWT.BORDER | SWT.V_SCROLL);
+		Composite paramsContainer = new Composite(mdComp, 0);
+		paramsContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		paramsContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		paramTable = new Table(paramsContainer, SWT.BORDER | SWT.V_SCROLL);
 		paramTable.setHeaderVisible(false);
 		TableColumn paramCol = new TableColumn(paramTable, SWT.NONE);
 		paramCol.setText("Parameter");
 		TableColumn valueCol = new TableColumn(paramTable, SWT.NONE);
 		valueCol.setText("Value");
 		paramTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		showAdvancedParsBtn = new Button(paramsContainer, 0);
+		showAdvancedParsBtn.setText("Show advanced parameters...");
+//		showAdvancedParsBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		showAdvancedParsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		Label nrOfWordsLbl = new Label(mdComp, SWT.NONE);
 		nrOfWordsLbl.setText("Nr. of Words:");
@@ -241,6 +257,7 @@ public class HtrDetailsWidget extends SashForm {
 			showCharSetBtn.setEnabled(false);
 			showValSetBtn.setEnabled(false);
 			showTrainSetBtn.setEnabled(false);
+			showAdvancedParsBtn.setEnabled(false);
 			updateParamTable(null);
 			updateChart(null);
 			return;
@@ -260,6 +277,8 @@ public class HtrDetailsWidget extends SashForm {
 				}
 			}
 		}
+		
+		showAdvancedParsBtn.setEnabled(htr.getProvider().equals(HtrPyLaiaUtils.PROVIDER_PYLAIA));
 		
 		updateParamTable(htr.getParamsProps());
 
@@ -286,19 +305,89 @@ public class HtrDetailsWidget extends SashForm {
 			t.setEditable(enabled);
 		}
 	}
-
+	
+	private TableItem addTableItem(Table table, String key, String value) {
+		TableItem item = new TableItem(paramTable, SWT.NONE);
+		item.setText(0, key);
+		item.setText(1, value);
+		return item;
+	}
+	
 	private void updateParamTable(Properties paramsProps) {
 		paramTable.removeAll();
+		if (htr == null) {
+			return;
+		}
+		
 		if (paramsProps == null || paramsProps.isEmpty()) {
 			TableItem item = new TableItem(paramTable, SWT.NONE);
 			item.setText(0, NOT_AVAILABLE);
 			item.setText(1, NOT_AVAILABLE);
 		} else {
-			for (String s : CITLAB_TRAIN_PARAMS) {
-				if (paramsProps.containsKey(s)) {
+			if (htr.getProvider().equals(HtrPyLaiaUtils.PROVIDER_PYLAIA)) {
+				TextFeatsCfg textFeatsCfg = TextFeatsCfg.fromConfigString2(paramsProps.getProperty("textFeatsCfg"));
+				PyLaiaCreateModelPars createModelPars = PyLaiaCreateModelPars.fromSingleLineString2(paramsProps.getProperty("createModelPars"));
+				PyLaiaTrainCtcPars trainCtcPars = PyLaiaTrainCtcPars.fromSingleLineString2(paramsProps.getProperty("trainCtcPars"));
+
+				// add fixed pars:
+				if (trainCtcPars!=null) {
+					addTableItem(paramTable, "Max epochs", trainCtcPars.getParameterValue("--max_epochs"));
+					addTableItem(paramTable, "Early stopping", trainCtcPars.getParameterValue("--max_nondecreasing_epochs"));
+					if (htr.getCerLog()!=null) {
+						addTableItem(paramTable, "Epochs trained", ""+htr.getCerLog().length);	
+					}
+					
+					String lrStr = trainCtcPars.getParameterValue("--learning_rate");
+					try {
+						addTableItem(paramTable, "Learning rate", CoreUtils.formatDoubleNonScientific(Double.valueOf(lrStr)));
+					} catch (Exception e) {
+						addTableItem(paramTable, "Learning rate", lrStr);
+					}
+					addTableItem(paramTable, "Batch size", trainCtcPars.getParameterValue("--batch_size"));			
+				}
+				
+				if (textFeatsCfg!=null) {
+					addTableItem(paramTable, "Normalized height", ""+textFeatsCfg.getNormheight());
+				}
+				
+				// TODO: how to show all pars? --> advanced pars dialog --> via showAdvancedParsBtn!!
+				
+//				for (Object key : paramsProps.keySet()) {
+//					TableItem item = new TableItem(paramTable, SWT.NONE);
+//					String keyStr = ""+key;
+//					String value = paramsProps.getProperty(keyStr);
+//					if (StringUtils.equals(keyStr, TEXT_FEATS_CFG_KEY)) {
+//						keyStr = "preprocessing";
+//						value = value.replaceAll("\\{", "").replaceAll("\\}", "")
+//								.replaceAll("\\:",  "")
+//								.replaceAll("TextFeatExtractor", "")
+////								.replaceAll("\\;", "")
+//								.trim();
+//					}
+//					item.setText(0, keyStr + " ");
+//					item.setText(1, value);					
+//				}
+			} else {
+				for (String s : CITLAB_TRAIN_PARAMS) {
+					if (paramsProps.containsKey(s)) {
+						TableItem item = new TableItem(paramTable, SWT.NONE);
+						item.setText(0, s + " ");
+						item.setText(1, paramsProps.getProperty(s));
+					}
+				}
+				
+				if(paramsProps.containsKey(CitLabHtrTrainConfig.BEST_NET_EPOCH_KEY)) {
+					String bestNetEpochValue = paramsProps.getProperty(CitLabHtrTrainConfig.BEST_NET_EPOCH_KEY);
 					TableItem item = new TableItem(paramTable, SWT.NONE);
-					item.setText(0, s + " ");
-					item.setText(1, paramsProps.getProperty(s));
+					item.setText(0, CitLabHtrTrainConfig.BEST_NET_EPOCH_KEY + " ");
+					final String text;
+					if(StringUtils.isNumeric(bestNetEpochValue) && Integer.parseInt(bestNetEpochValue) == 0) {
+						//bestNet is actually the base model
+						text = "Base Model";
+					} else {
+						text = bestNetEpochValue;
+					}
+					item.setText(1, text);
 				}
 			}
 		}
@@ -333,44 +422,48 @@ public class HtrDetailsWidget extends SashForm {
 		rangeAxis.setNumberFormatOverride(pctFormat);
 		rangeAxis.setRange(0.0, 1.0);
 		
-		int storedNetEpoch = -1;
-		XYLineAnnotation lineAnnot = null;
 		if(referenceSeries != null && referenceSeries.length > 0) {
-			//determine location of best net annotation line and final CER values to show in text fields
-			double min = Double.MAX_VALUE;
-			if(htr.isBestNetStored()) {
-				//if best net is stored then seach reference CER series for the minimum value
-				for (int i = 0; i < referenceSeries.length; i++) {
-					final double val = referenceSeries[i];
-					//HTR+ always stores best net. If validation CER does not change, the first net with this CER is kept
-					if (val < min) {
-						min = val;
-						storedNetEpoch = i + 1;
-					}
-				}
+			
+			Integer storedNetEpoch;
+			if(HtrCITlabUtils.PROVIDER_CITLAB_PLUS.equals(htr.getProvider())) {
+				//determine location of best net annotation line and final CER values to show in text fields
+				storedNetEpoch = getStoredNetEpoch(htr);
+				
+				//the former wrong annotation may be activated by setting this to true
+				final boolean annotateMinCerValueDebug = false;
+				if(annotateMinCerValueDebug) {
+					int minCerEpoch = getMinCerEpoch(htr, referenceSeries);
+					XYLineAnnotation lineAnnot2 = new XYLineAnnotation(minCerEpoch, 0.0, minCerEpoch, 100.0,
+							new BasicStroke(), java.awt.Color.CYAN);
+					lineAnnot2.setToolTipText("Min. CER on validation set");
+					plot.addAnnotation(lineAnnot2);
+				}				
 			} else {
-				//set last epoch as minimum
-				storedNetEpoch = referenceSeries.length;
+				//legacy routine, working for HTR and PyLaia but not HTR+! Find min value in referenceSeries
+				storedNetEpoch = getMinCerEpoch(htr, referenceSeries);
 			}
-			logger.debug("best net stored after epoch {}", storedNetEpoch);
-			int seriesIndex = 0;
-			if(htr.hasCerLog()) {
-				double storedHtrTrainCer = htr.getCerLog()[storedNetEpoch - 1];
-				storedHtrTrainCerStr = HtrCITlabUtils.formatCerVal(storedHtrTrainCer);
-				plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.BLUE);
+
+			if(storedNetEpoch != null && storedNetEpoch > 0) {
+				logger.debug("best net stored after epoch {}", storedNetEpoch);
+				int seriesIndex = 0;
+				if(htr.hasCerLog()) {
+					double storedHtrTrainCer = htr.getCerLog()[storedNetEpoch - 1];
+					storedHtrTrainCerStr = HtrCITlabUtils.formatCerVal(storedHtrTrainCer);
+					plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.BLUE);
+				}
+				
+				if (htr.hasCerTestLog()) {
+					double storedHtrValCer = htr.getCerTestLog()[storedNetEpoch - 1];
+					storedHtrValCerStr = HtrCITlabUtils.formatCerVal(storedHtrValCer);
+					plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.RED);
+				}
+				
+				//annotate storedNetEpoch in the chart
+				XYLineAnnotation lineAnnot = new XYLineAnnotation(storedNetEpoch, 0.0, storedNetEpoch, 100.0,
+						new BasicStroke(), java.awt.Color.GREEN);
+				lineAnnot.setToolTipText("Stored HTR");
+				plot.addAnnotation(lineAnnot);
 			}
-			
-			if (htr.hasCerTestLog()) {
-				double storedHtrValCer = htr.getCerTestLog()[storedNetEpoch - 1];
-				storedHtrValCerStr = HtrCITlabUtils.formatCerVal(storedHtrValCer);
-				plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.RED);
-			}
-			
-			//annotate storedNetEpoch in the chart
-			lineAnnot = new XYLineAnnotation(storedNetEpoch, 0.0, storedNetEpoch, 100.0,
-					new BasicStroke(), java.awt.Color.GREEN);
-			lineAnnot.setToolTipText("Stored HTR");
-			plot.addAnnotation(lineAnnot);
 		} else {
 			plot.setNoDataMessage("No data available");
 		}
@@ -380,6 +473,42 @@ public class HtrDetailsWidget extends SashForm {
 
 		finalTrainCerTxt.setText(storedHtrTrainCerStr);
 		finalValCerTxt.setText(storedHtrValCerStr);
+	}
+	
+	private int getMinCerEpoch(TrpHtr htr2, double[] referenceSeries) {
+		double min = Double.MAX_VALUE;
+		int minCerEpoch = -1;
+		if(htr.isBestNetStored()) {
+			//if best net is stored then seach reference CER series for the minimum value
+			for (int i = 0; i < referenceSeries.length; i++) {
+				final double val = referenceSeries[i];
+				//HTR+ always stores best net. If validation CER does not change, the first net with this CER is kept
+				if (val < min) {
+					min = val;
+					minCerEpoch = i + 1;
+				}
+			}
+		} else {
+			//set last epoch as minimum
+			minCerEpoch = referenceSeries.length;
+		}
+		return minCerEpoch;
+	}
+
+	private Integer getStoredNetEpoch(TrpHtr htr) {
+		String bestNetEpochProp = htr.getParamsProps().getProperty(CitLabHtrTrainConfig.BEST_NET_EPOCH_KEY);
+		if(bestNetEpochProp == null) {
+			//the property is not set
+			return null;
+		}
+		
+		try {
+			return Integer.parseInt(bestNetEpochProp);
+		} catch (NumberFormatException e) {
+			//in case the best net is just the base model there won't be a number here
+			logger.debug("Best Net Epoch value is no number: {}", bestNetEpochProp);
+			return null;
+		}
 	}
 	
 	void triggerChartUpdate() {
@@ -401,6 +530,20 @@ public class HtrDetailsWidget extends SashForm {
 	
 	
 	private void addListeners() {
+		SWTUtil.onSelectionEvent(showAdvancedParsBtn, e -> {
+			if(htr == null || !htr.getProvider().equals(HtrPyLaiaUtils.PROVIDER_PYLAIA)) {
+				return;
+			}
+			
+			Properties paramsProps = htr.getParamsProps();
+			TextFeatsCfg textFeatsCfg = TextFeatsCfg.fromConfigString2(paramsProps.getProperty("textFeatsCfg"));
+			PyLaiaCreateModelPars createModelPars = PyLaiaCreateModelPars.fromSingleLineString2(paramsProps.getProperty("createModelPars"));
+			PyLaiaTrainCtcPars trainCtcPars = PyLaiaTrainCtcPars.fromSingleLineString2(paramsProps.getProperty("trainCtcPars"));
+			
+			PyLaiaAdvancedConfDialog d = new PyLaiaAdvancedConfDialog(getShell(), textFeatsCfg, createModelPars, trainCtcPars);
+			d.open();
+		});
+		
 		this.showTrainSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {

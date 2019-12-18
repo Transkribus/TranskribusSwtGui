@@ -219,7 +219,18 @@ public class DocumentsSelector extends APreviewListViewer<TrpDocMetadata> {
 	
 	public List<DocSelection> getCheckedDocSelections() {
 		logger.debug("getCheckedDocSelections, pagesStrs = "+CoreUtils.mapToString(pagesStrs));
-		return getCheckedDocuments().stream().map(d -> new DocSelection(d.getDocId(), pagesStrs.get(d.getDocId()), null, null)).collect(Collectors.toList());
+		return getCheckedDocuments().stream()
+				.map(d -> {
+					String pagesStr = pagesStrs.get(d.getDocId());
+					logger.debug("pagesStr = "+pagesStr);
+					// if all pages selected -> clear pagesStr -> = select all pages!
+					if (!StringUtils.isEmpty(pagesStr) && pagesStr.equals("1-"+d.getNrOfPages())) { // necessary !?
+						logger.debug("clearing pagesStr as all pages are selected!");
+						pagesStr = null;
+					}
+					return new DocSelection(d.getDocId(), pagesStr, null, null);
+				})
+				.collect(Collectors.toList());
 	}
 	
 	public List<DocumentSelectionDescriptor> getCheckedDocumentDescriptors() {

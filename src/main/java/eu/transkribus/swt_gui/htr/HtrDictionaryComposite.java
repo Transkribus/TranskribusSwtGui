@@ -37,6 +37,10 @@ public class HtrDictionaryComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(HtrDictionaryComposite.class);
 	
 	public final static String NO_DICTIONARY = "No dictionary";
+	/**
+	 * The integrated dictionary might be very large nad results don't differ much from the LM which is much faster
+	 */
+	@Deprecated
 	public final static String INTEGRATED_DICTIONARY = "Dictionary from training data";
 	public final static String INTEGRATED_LM = "Language model from training data";
 	public final static String CUSTOM_DICTIONARY = "Custom dictionary";
@@ -87,7 +91,8 @@ public class HtrDictionaryComposite extends Composite {
 	public String getDictionarySetting() {
 		switch (dictOptionCombo.getText()) {
 		case INTEGRATED_DICTIONARY:
-			return JobConst.PROP_TRAIN_DATA_DICT_VALUE;
+			//go to LM block
+//			return JobConst.PROP_TRAIN_DATA_DICT_VALUE;
 		case INTEGRATED_LM:
 			return JobConst.PROP_TRAIN_DATA_LM_VALUE;
 		case CUSTOM_DICTIONARY:
@@ -111,8 +116,9 @@ public class HtrDictionaryComposite extends Composite {
 			selectDictionaryOption(NO_DICTIONARY);
 			return;
 		case JobConst.PROP_TRAIN_DATA_DICT_VALUE:
-			selectDictionaryOption(INTEGRATED_DICTIONARY);
-			return;
+			//no available anymore -> jump to LM block
+//			selectDictionaryOption(INTEGRATED_DICTIONARY);
+//			return;
 		case JobConst.PROP_TRAIN_DATA_LM_VALUE:
 			selectDictionaryOption(INTEGRATED_LM);
 			return;
@@ -151,7 +157,8 @@ public class HtrDictionaryComposite extends Composite {
 		dictOptionCombo.removeAll();
 		dictOptionCombo.add(NO_DICTIONARY);
 		if(showIntegratedDictOptions) {
-			dictOptionCombo.add(INTEGRATED_DICTIONARY);
+			//do not show dictionary option
+//			dictOptionCombo.add(INTEGRATED_DICTIONARY);
 			dictOptionCombo.add(INTEGRATED_LM);
 		}
 		dictOptionCombo.add(CUSTOM_DICTIONARY);
