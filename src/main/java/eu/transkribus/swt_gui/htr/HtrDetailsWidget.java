@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.ClientErrorException;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -44,6 +45,7 @@ import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.DataSetType;
 import eu.transkribus.core.util.HtrCITlabUtils;
+import eu.transkribus.core.util.HtrPyLaiaUtils;
 import eu.transkribus.core.util.StrUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
@@ -60,6 +62,8 @@ public class HtrDetailsWidget extends SashForm {
 	private static final String[] CITLAB_TRAIN_PARAMS = { CitLabHtrTrainConfig.NUM_EPOCHS_KEY, 
 			CitLabHtrTrainConfig.LEARNING_RATE_KEY, CitLabHtrTrainConfig.NOISE_KEY, CitLabHtrTrainConfig.TRAIN_SIZE_KEY,
 			CitLabHtrTrainConfig.BASE_MODEL_ID_KEY, CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY, CitLabHtrTrainConfig.BEST_NET_EPOCH_KEY };
+	
+	private static final String TEXT_FEATS_CFG_KEY = "textFeatsCfg";
 
 	private static final String CER_TRAIN_KEY = "CER Train";
 	private static final String CER_VAL_KEY = "CER Validation";
@@ -289,17 +293,40 @@ public class HtrDetailsWidget extends SashForm {
 
 	private void updateParamTable(Properties paramsProps) {
 		paramTable.removeAll();
+		if (htr == null) {
+			return;
+		}
+		
 		if (paramsProps == null || paramsProps.isEmpty()) {
 			TableItem item = new TableItem(paramTable, SWT.NONE);
 			item.setText(0, NOT_AVAILABLE);
 			item.setText(1, NOT_AVAILABLE);
 		} else {
-			for (String s : CITLAB_TRAIN_PARAMS) {
-				if (paramsProps.containsKey(s)) {
+			if (htr.getProvider().equals(HtrPyLaiaUtils.PROVIDER_PYLAIA)) {
+				for (Object key : paramsProps.keySet()) {
 					TableItem item = new TableItem(paramTable, SWT.NONE);
-					item.setText(0, s + " ");
-					item.setText(1, paramsProps.getProperty(s));
+					String keyStr = ""+key;
+					String value = paramsProps.getProperty(keyStr);
+					if (StringUtils.equals(keyStr, TEXT_FEATS_CFG_KEY)) {
+						keyStr = "preprocessing";
+						value = value.replaceAll("\\{", "").replaceAll("\\}", "")
+								.replaceAll("\\:",  "")
+								.replaceAll("TextFeatExtractor", "")
+//								.replaceAll("\\;", "")
+								.trim();
+					}
+					item.setText(0, keyStr + " ");
+					item.setText(1, value);					
 				}
+			}
+			else {
+				for (String s : CITLAB_TRAIN_PARAMS) {
+					if (paramsProps.containsKey(s)) {
+						TableItem item = new TableItem(paramTable, SWT.NONE);
+						item.setText(0, s + " ");
+						item.setText(1, paramsProps.getProperty(s));
+					}
+				}				
 			}
 		}
 		paramTable.getColumn(0).pack();

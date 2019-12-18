@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.DocSelection;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
@@ -43,7 +44,8 @@ public class HtrTextRecognitionDialog extends Dialog {
 	private Button thisPageBtn, severalPagesBtn;
 	private CurrentTranscriptOrDocPagesOrCollectionSelector dps;
 	private boolean docsSelected = false;
-	private List<DocumentSelectionDescriptor> selectedDocDescriptors;
+//	private List<DocumentSelectionDescriptor> selectedDocDescriptors;
+	private List<DocSelection> selectedDocSelections;
 	
 //	private Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn, doStoreConfMatsBtn, clearLinesBtn;
 	private MultiCheckSelectionCombo multiCombo;
@@ -83,7 +85,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 		
 		//FIXME the document selection is not initialized before the selection dialog is opened once
 		//with this selector jobs can be started for complete collections
-		dps = new CurrentTranscriptOrDocPagesOrCollectionSelector(cont, SWT.NONE, true,true);		
+		dps = new CurrentTranscriptOrDocPagesOrCollectionSelector(cont, SWT.NONE, true, true, true);		
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 3, 1));
 		
 		citlabConfComp = new CitlabRecognitionConfComposite(cont);
@@ -182,8 +184,12 @@ public class HtrTextRecognitionDialog extends Dialog {
 		return docsSelected;
 	}
 	
-	public List<DocumentSelectionDescriptor> getDocs(){
-		return selectedDocDescriptors;
+//	public List<DocumentSelectionDescriptor> getDocs(){
+//		return selectedDocDescriptors;
+//	}
+	
+	public List<DocSelection> getDocs() {
+		return selectedDocSelections;
 	}
 	
 	@Override
@@ -206,8 +212,9 @@ public class HtrTextRecognitionDialog extends Dialog {
 			}
 		} else {
 			docsSelected = dps.isDocsSelection();
-			selectedDocDescriptors = dps.getDocumentsSelected();
-			if(CollectionUtils.isEmpty(selectedDocDescriptors)) {
+//			selectedDocDescriptors = dps.getDocumentsSelected();
+			selectedDocSelections = dps.getDocSelections();
+			if(CollectionUtils.isEmpty(selectedDocSelections)) {
 				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "No documents selected for recognition.");
 				return;
 			}
