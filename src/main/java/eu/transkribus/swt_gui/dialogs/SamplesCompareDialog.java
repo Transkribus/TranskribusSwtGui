@@ -1004,11 +1004,11 @@ public class SamplesCompareDialog extends Dialog {
 		}
 		
 		Display.getDefault().asyncExec(() -> { 
-			AJobResultTableEntry<?> e = resultTable.getSelectedEntry();
+			AJobResultTableEntry<?> e = resultTableError.getSelectedEntry();
 			if(resultTableError != null && !resultTableError.isDisposed()) {
 				resultTableError.getTableViewer().setInput(errorList);
 			}
-			if(e != null) {
+			if(e != null ) {
 				TrpErrorResultTableEntry o = (TrpErrorResultTableEntry)e;
 				int index = errorList.indexOf(o);
 				resultTableError.getTableViewer().getTable().select(index);
