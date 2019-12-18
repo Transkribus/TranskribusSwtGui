@@ -52,45 +52,8 @@ public class CitlabRecognitionConfComposite extends Composite {
 		});
 		doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());		
 		
-		List<StructCustomTagSpec> tags = new ArrayList<>();
-		tags = Storage.getInstance().getStructCustomTagSpecs();
-		
-//		multiCombo = new MultiCheckSelectionCombo(cont, SWT.FILL,"Restrict on structure tags", 1, 200, 300 );
-//		multiCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));		
-//		
-//		for(StructCustomTagSpec tag : tags) {
-//			int itemCount = multiCombo.getItemCount();
-//			List<String> items = new ArrayList<>();
-//			for(int i = 0; i < itemCount; i++) {
-//				items.add(multiCombo.getItem(i));
-//			}	
-//			if(!items.contains(tag.getCustomTag().getType())) {
-//				multiCombo.add(tag.getCustomTag().getType());
-//			}	
-//		}
-		
-		structureBar = new ToolBar(this, SWT.FILL);
-		
-		structureItem = new ToolItem(structureBar, SWT.CHECK);
-		structureItem.setToolTipText("Choose structures...");
-		structureItem.setText("Restrict on structure tags");
-		
-		structureBox = new ToolBox(getShell(), true, "Structures");
-		structureBox.addTriggerWidget(structureItem);
-		
-		for(StructCustomTagSpec tag : tags) {
-			Button button = structureBox.addButton(tag.getCustomTag().getType(), null, SWT.CHECK);
-			button.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					if(selectionArray.contains(tag.getCustomTag().getType())) {
-						selectionArray.remove(tag.getCustomTag().getType());
-					}else {
-						selectionArray.add(tag.getCustomTag().getType());
-					}
-			      }
-			});
-			
-		}		
+		StructureTagComposite structreTagComp = new StructureTagComposite(this);
+		structreTagComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));	
 		
 	}
 

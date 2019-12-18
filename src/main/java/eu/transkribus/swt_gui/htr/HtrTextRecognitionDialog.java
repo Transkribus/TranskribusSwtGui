@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.htr;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -17,14 +18,19 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.MultiCheckSelectionCombo;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt.util.ToolBox;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrDocPagesOrCollectionSelector;
 import eu.transkribus.util.TextRecognitionConfig;
 import eu.transkribus.util.TextRecognitionConfig.Mode;
@@ -40,11 +46,11 @@ public class HtrTextRecognitionDialog extends Dialog {
 	private List<DocumentSelectionDescriptor> selectedDocDescriptors;
 	
 //	private Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn, doStoreConfMatsBtn, clearLinesBtn;
-//	private MultiCheckSelectionCombo multiCombo;
-//	ToolBar structureBar;
-//	ToolItem structureItem;
-//	ToolBox structureBox;
-//	List<String> selectionArray = new ArrayList<>();
+	private MultiCheckSelectionCombo multiCombo;
+	ToolBar structureBar;
+	ToolItem structureItem;
+	ToolBox structureBox;
+	List<String> selectionArray = new ArrayList<>();
 	
 	PyLaiaRecognitionConfComposite pylaiaConfComp;
 	CitlabRecognitionConfComposite citlabConfComp;
@@ -135,46 +141,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 //			doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());
 //		});
 //		doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());		
-//		
-//		List<StructCustomTagSpec> tags = new ArrayList<>();
-//		tags = store.getStructCustomTagSpecs();
-//		
-////		multiCombo = new MultiCheckSelectionCombo(cont, SWT.FILL,"Restrict on structure tags", 1, 200, 300 );
-////		multiCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));		
-////		
-////		for(StructCustomTagSpec tag : tags) {
-////			int itemCount = multiCombo.getItemCount();
-////			List<String> items = new ArrayList<>();
-////			for(int i = 0; i < itemCount; i++) {
-////				items.add(multiCombo.getItem(i));
-////			}	
-////			if(!items.contains(tag.getCustomTag().getType())) {
-////				multiCombo.add(tag.getCustomTag().getType());
-////			}	
-////		}
-//		
-//		structureBar = new ToolBar(cont, SWT.FILL);
-//		
-//		structureItem = new ToolItem(structureBar, SWT.CHECK);
-//		structureItem.setToolTipText("Choose structures...");
-//		structureItem.setText("Restrict on structure tags");
-//		
-//		structureBox = new ToolBox(getShell(), true, "Structures");
-//		structureBox.addTriggerWidget(structureItem);
-//		
-//		for(StructCustomTagSpec tag : tags) {
-//			Button button = structureBox.addButton(tag.getCustomTag().getType(), null, SWT.CHECK);
-//			button.addSelectionListener(new SelectionAdapter() {
-//				public void widgetSelected(SelectionEvent event) {
-//					if(selectionArray.contains(tag.getCustomTag().getType())) {
-//						selectionArray.remove(tag.getCustomTag().getType());
-//					}else {
-//						selectionArray.add(tag.getCustomTag().getType());
-//					}
-//			      }
-//			});
-//		}
-		
+//				
 		configTxt = new Text(cont, SWT.MULTI | SWT.READ_ONLY | SWT.BORDER);
 		configTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 6));
 				
@@ -274,7 +241,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 			}
 		}
 		
-//		config.setStructures(selectionArray);
+		config.setStructures(selectionArray);
 //		config.setKeepOriginalLinePolygons(keepOriginalLinePolygonsBtn.getSelection());
 //		config.setDoLinePolygonSimplification(doLinePolygonSimplificationBtn.getSelection());
 //		config.setClearLines(clearLinesBtn.getSelection());
