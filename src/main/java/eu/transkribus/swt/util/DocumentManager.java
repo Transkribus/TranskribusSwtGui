@@ -1063,7 +1063,7 @@ public class DocumentManager extends Dialog {
 					public void widgetSelected(SelectionEvent e) {
 						logger.debug(optionCombo.getText());
 						if(optionCombo.getText().equals("Systematic")) {
-							nrOfPagesTxt.label.setText("For each document x pages");
+							nrOfPagesTxt.label.setText("For each document x-th page");
 						}else if(optionCombo.getText().equals("Random")) {
 							nrOfPagesTxt.label.setText("Nr. of pages for sample");
 						}else {
