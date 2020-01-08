@@ -73,7 +73,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 	private Button rotSchemeDef, rotSchemeHom, rotSchemeHet, sepSchemeDef, sepSchemeAlways, sepSchemeNever;
 	private Group settingsGroup, rotGroup, sepGroup;
 	private Button helpButton;
-	private Button deleteTextCheck;
+//	private Button deleteTextCheck;
 	
 	private List<LaModel> modelList;
 	
@@ -104,10 +104,10 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		settingsGroup.setLayout(new GridLayout(1, false));
 		settingsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 2));
 		
-		deleteTextCheck = new Button(settingsGroup, SWT.CHECK);
-		deleteTextCheck.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		deleteTextCheck.setText("Delete existing text");
-		deleteTextCheck.setToolTipText("If checked, existing text in the transcription will be deleted during layout analysis");
+//		deleteTextCheck = new Button(settingsGroup, SWT.CHECK);
+//		deleteTextCheck.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		deleteTextCheck.setText("Delete existing text");
+//		deleteTextCheck.setToolTipText("If checked, existing text in the transcription will be deleted during layout analysis");
 		
 		rotGroup = new Group(settingsGroup, SWT.NONE);
 		rotGroup.setLayout(new GridLayout(3, false));
@@ -177,9 +177,9 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		parameters = new ParameterMap();
 		LaModel m = getSelectedNet();
 		
-		if (deleteTextCheck.getSelection()) {
-			parameters.addParameter(LaCITlabUtils.LA_DELETE_SCHEME_KEY, "all");
-		}
+//		if (deleteTextCheck.getSelection()) {
+//			parameters.addParameter(LaCITlabUtils.LA_DELETE_SCHEME_KEY, "all");
+//		}
 		
 		SepScheme sep = null;
 		if(sepSchemeAlways.getSelection()) {
@@ -214,13 +214,13 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		LaModel model = resolveSelectedNetFromParameters();
 		setSelectedNet(model);
 		
-		String delScheme = parameters.getParameterValue(LaCITlabUtils.LA_DELETE_SCHEME_KEY);
-		if (StringUtils.equals(delScheme, "all")) {
-			deleteTextCheck.setSelection(true);
-		}
-		else {
-			deleteTextCheck.setSelection(false);
-		}
+//		String delScheme = parameters.getParameterValue(LaCITlabUtils.LA_DELETE_SCHEME_KEY);
+//		if (StringUtils.equals(delScheme, "all")) {
+//			deleteTextCheck.setSelection(true);
+//		}
+//		else {
+//			deleteTextCheck.setSelection(false);
+//		}
 		final String rotScheme = parameters.getParameterValue(LaCITlabUtils.ROT_SCHEME_KEY);
 		if(RotScheme.het.toString().equals(rotScheme)) {
 			rotSchemeHet.setSelection(true);
