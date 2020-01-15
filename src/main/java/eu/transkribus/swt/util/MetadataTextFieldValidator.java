@@ -125,7 +125,7 @@ public class MetadataTextFieldValidator<T> {
 		 */
 		String getValue() {
 			Object data = combo.getData(combo.getText());
-			if(data == null) {
+			if(!combo.isEnabled() || data == null) {
 				return "";
 			}
 			return "" + data;
