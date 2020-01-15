@@ -17,6 +17,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,7 +105,7 @@ public class HtrTableWidget extends Composite {
 		new ColumnConfig(HTR_ID_COL, 50, true, DefaultTableColumnViewerSorter.ASC),
 	};
 	
-	public static boolean USE_LAZY_LOADING = true;
+	private final static boolean USE_LAZY_LOADING = true;
 	
 	public HtrTableWidget(Composite parent, int style, String providerFilter) {
 		super(parent, style);
@@ -151,6 +152,12 @@ public class HtrTableWidget extends Composite {
 		addFilter();
 	}
 	
+	@Override
+	public void addListener(int eventType, Listener listener) {
+		super.addListener(eventType, listener);
+		filterComposite.addListener(eventType, listener);
+	}
+	
 	private void addFilter() {
 		filterAndReloadComp = new Composite(this, SWT.NONE);
 		filterAndReloadComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -187,17 +194,14 @@ public class HtrTableWidget extends Composite {
 	void resetProviderFilter() {
 		filterComposite.resetProviderFilter();
 	}
-	
-	public Combo getProviderCombo() {
-		return filterComposite.getProviderCombo();
-	}
 
 	public Button getReloadButton() {
 		return reloadBtn;
 	}
 	
 	public String getProviderComboValue() {
-		return (String)getProviderCombo().getData(getProviderCombo().getText());
+		Combo providerCombo = filterComposite.getProviderCombo();
+		return (String) providerCombo.getData(providerCombo.getText());
 	}
 	
 	public TrpHtr getSelectedHtr() {

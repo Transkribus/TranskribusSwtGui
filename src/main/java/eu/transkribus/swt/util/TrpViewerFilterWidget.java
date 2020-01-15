@@ -8,6 +8,7 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Text;
@@ -48,14 +49,6 @@ public class TrpViewerFilterWidget extends Composite {
 		filterTxt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		filterTxt.setMessage(FILTER_MESSAGE);
 		filterTxt.setToolTipText(FILTER_TOOLTIP);
-		filterTxt.addKeyListener(new KeyAdapter() {			
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (!isDisposed() && e.keyCode == SWT.KEYPAD_CR || e.keyCode == SWT.CR) {
-					refreshViewer();
-				}
-			}
-		});
 	}
 
 	protected TrpViewerFilter newTrpViewerFilter(Text filterTxt, Class<?> targetClass, String[] fieldNames) {
@@ -63,6 +56,19 @@ public class TrpViewerFilterWidget extends Composite {
 			@Override
 			protected void updateView() {
 				refreshViewer();
+			}
+			
+			@Override
+			protected void addListeners() {
+				super.addListeners();
+				filterTxt.addKeyListener(new KeyAdapter() {			
+					@Override
+					public void keyPressed(KeyEvent e) {
+						if (!isDisposed() && e.keyCode == SWT.KEYPAD_CR || e.keyCode == SWT.CR) {
+							refreshViewer();
+						}
+					}
+				});
 			}
 		};
 	}
@@ -76,8 +82,16 @@ public class TrpViewerFilterWidget extends Composite {
 		return new GridLayout(2, false);
 	}
 
+	/**
+	 * Refresh structure viewer and send Event of type {@link SWT#Modify} to notify about possible change in model and selection
+	 */
 	protected void refreshViewer() {
 		viewer.refresh();
+		
+		//send modify event referencing the viewerFilter
+		Event event = new Event();
+		event.data = viewerFilter;
+		this.notifyListeners(SWT.Modify, event);
 	}
 	
 	protected void attachFilter() {

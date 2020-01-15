@@ -25,9 +25,6 @@ public class HtrFilterWidget extends TrpViewerFilterWidget {
 	
 	public HtrFilterWidget(Composite parent, StructuredViewer viewer, int style) {
 		super(parent, viewer, style, TrpHtr.class, "htrId", "name", "language");
-		
-		ModifyListener comboModListener = viewerFilter.new FilterModifyListener(linkageFilterCombo);
-		linkageFilterCombo.addModifyListener(comboModListener);
 	}
 	
 	@Override
@@ -35,8 +32,8 @@ public class HtrFilterWidget extends TrpViewerFilterWidget {
 		super.createCompositeArea();
 		linkageFilterCombo = new Combo(this, SWT.READ_ONLY);
 		linkageFilterCombo.add(LINK_FILTER_ALL);
-		//activate as soon as API supports those filters
-		//linkageFilterCombo.add(LINK_FILTER_COLLECTION);
+		//FIXME collectionId is not set for admins in current HtrDao and filtering by this is not possible.
+		linkageFilterCombo.add(LINK_FILTER_COLLECTION);
 		linkageFilterCombo.add(LINK_FILTER_PUBLIC);
 		linkageFilterCombo.select(0);
 	}
@@ -59,6 +56,13 @@ public class HtrFilterWidget extends TrpViewerFilterWidget {
 			}
 			
 			@Override
+			protected void addListeners() {
+				super.addListeners();
+				ModifyListener comboModListener = new FilterModifyListener(linkageFilterCombo);
+				linkageFilterCombo.addModifyListener(comboModListener);
+			}
+			
+			@Override
 			public boolean select(Viewer viewer, Object parentElement, Object element) {
 				boolean isSelectedByTxtFilter = super.select(viewer, parentElement, element);
 				
@@ -68,10 +72,11 @@ public class HtrFilterWidget extends TrpViewerFilterWidget {
 					TrpHtr htr = (TrpHtr) element;
 					switch(linkageFilterCombo.getText()) {
 					case LINK_FILTER_COLLECTION:
-						//FIXME collectionIdLink is NOT set for admins! Otherwise it's current collection's ID
-//						isSelectedByLinkageFilter = htr.getCollectionIdLink() != null;
-						//show only private models for now
-						isSelectedByLinkageFilter = htr.getReleaseLevelValue() == ReleaseLevel.None.getValue();
+						/*
+						 * FIXME collectionIdLink is NOT set for admins! Otherwise it's current collection's ID
+						 * => This filter must not be shown for admins
+						 */
+						isSelectedByLinkageFilter = htr.getCollectionIdLink() != null;
 						break;
 					case LINK_FILTER_PUBLIC:
 						isSelectedByLinkageFilter = htr.getReleaseLevelValue() > ReleaseLevel.None.getValue();

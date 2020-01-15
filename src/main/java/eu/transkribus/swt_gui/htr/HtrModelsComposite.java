@@ -116,13 +116,15 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 				});
 			}
 		});
-
-		htw.getProviderCombo().addSelectionListener(new SelectionAdapter() {
+		
+		Listener filterModifyListener = new Listener() {
 			@Override
-			public void widgetSelected(SelectionEvent e) {
+			public void handleEvent(Event event) {
 				updateHtrs(htw.getProviderComboValue());
+				updateDetails(getSelectedHtr());
 			}
-		});
+		};
+		htw.addListener(SWT.Modify, filterModifyListener);
 		
 		htw.getReloadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
