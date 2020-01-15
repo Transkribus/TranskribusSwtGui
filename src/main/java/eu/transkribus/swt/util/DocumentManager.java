@@ -208,24 +208,25 @@ public class DocumentManager extends Dialog {
 			// Storage.getInstance().getDoc().getMd());
 			if (Storage.getInstance().getDoc() != null && md.compareTo(Storage.getInstance().getDoc().getMd()) == 0) {
 				tv.expandToLevel(md, 1);
-				if (ti.getItems().length > 0) {
-					TreeItem[] childs = ti.getItems();
-					for (TreeItem child : ti.getItems()) {
-						TrpPage p = (TrpPage) child.getData();
-						tv.getTree().setSelection(child);
-						try {
-							image = ImgLoader.load(p.getUrl());
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						previewLbl.redraw();
-						previewLbl.update();
-						break;
-					}
-				}
 				updateColors();
-				updateSymbolicImgLabels();
+//				if (ti.getItems().length > 0) {
+//					TreeItem[] childs = ti.getItems();
+//					for (TreeItem child : ti.getItems()) {
+//						TrpPage p = (TrpPage) child.getData();
+//						tv.getTree().setSelection(child);
+//						try {
+//							image = ImgLoader.load(p.getUrl());
+//						} catch (IOException e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						}
+////						previewLbl.redraw();
+////						previewLbl.update();
+//						break;
+//					}
+//				}
+//				
+//				updateSymbolicImgLabels();
 			}
 		}
 
@@ -750,25 +751,25 @@ public class DocumentManager extends Dialog {
 		createSampleButton.setImage(Images.DISK);
 		createSampleButton.setText("Create Sample");
 		
-		previewLbl = new Canvas(docSashOptionImage, SWT.NONE);
-
-		GridData gd2 = new GridData(GridData.CENTER, GridData.CENTER, true, true);
-
-		previewLbl.setLayoutData(gd2);
-
-		previewLbl.addPaintListener(new PaintListener() {
-			public void paintControl(final PaintEvent event) {
-				if (image != null) {
-					float ratio = (float) image.getBounds().height / image.getBounds().width;
-					ImageData data = image.getImageData();
-					int h = (int) (250 * ratio);
-					event.gc.drawImage(image, docSashOptionImage.getSashWidth()/2, 0, image.getBounds().width, image.getBounds().height, 0, 0, 250, h);
-				}
-			}
-		});
+//		previewLbl = new Canvas(docSashOptionImage, SWT.NONE);
+//
+//		GridData gd2 = new GridData(GridData.CENTER, GridData.CENTER, true, true);
+//
+//		previewLbl.setLayoutData(gd2);
+//
+//		previewLbl.addPaintListener(new PaintListener() {
+//			public void paintControl(final PaintEvent event) {
+//				if (image != null) {
+//					float ratio = (float) image.getBounds().height / image.getBounds().width;
+//					ImageData data = image.getImageData();
+//					int h = (int) (250 * ratio);
+//					event.gc.drawImage(image, docSashOptionImage.getSashWidth()/2, 0, image.getBounds().width, image.getBounds().height, 0, 0, 250, h);
+//				}
+//			}
+//		});
 
 		updateColors();
-		docSashOptionImage.setWeights(new int[] { 45, 50 ,40});
+		docSashOptionImage.setWeights(new int[] { 45, 50});
 		docSash2.setWeights(new int[] { 35, 65 });
 
 
@@ -819,7 +820,7 @@ public class DocumentManager extends Dialog {
 						}
 						//image = ImgLoader.load(p.getThumbUrl());
 						image = ImgLoader.load(p.getUrl());
-						previewLbl.redraw();
+//						previewLbl.redraw();
 						currDocId = p.getDocId();
 
 						// if (previewLbl.getImage() != null) {
@@ -835,7 +836,7 @@ public class DocumentManager extends Dialog {
 						image.dispose();
 						image = null;
 					}
-					previewLbl.redraw();
+//					previewLbl.redraw();
 					currDocId = ((TrpDocMetadata) o).getDocId();
 					
 					// if (previewLbl.getImage() != null) {
