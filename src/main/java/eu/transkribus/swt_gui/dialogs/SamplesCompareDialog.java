@@ -811,6 +811,7 @@ public class SamplesCompareDialog extends Dialog {
 	
 	private void drawChartJob(TrpJobStatus job) {
 		if(job.isFinished()) {
+			rl.setStopped();
 			TrpProperties props = job.getJobDataProps();
 			final String xmlStr = props.getString(JobConst.PROP_RESULT);
 			TrpComputeSample res = new TrpComputeSample();
@@ -876,6 +877,7 @@ public class SamplesCompareDialog extends Dialog {
 			}
 			for(TrpJobStatus job : jobs) {
 				if(job.isFinished()) {
+					rl.setStopped();
 					TrpProperties props = job.getJobDataProps();
 					final String xmlStr = props.getString(JobConst.PROP_RESULT);
 					TrpComputeSample res = new TrpComputeSample();
