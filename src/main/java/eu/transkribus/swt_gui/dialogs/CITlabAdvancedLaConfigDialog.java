@@ -23,12 +23,14 @@ import org.eclipse.swt.widgets.Shell;
 
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.rest.JobConst;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.LaCITlabUtils;
 import eu.transkribus.core.util.LaCITlabUtils.RotScheme;
 import eu.transkribus.core.util.LaCITlabUtils.SepScheme;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
@@ -180,6 +182,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 //		if (deleteTextCheck.getSelection()) {
 //			parameters.addParameter(LaCITlabUtils.LA_DELETE_SCHEME_KEY, "all");
 //		}
+		parameters.addParameter(LaCITlabUtils.LA_DELETE_SCHEME_KEY, null); // del-scheme gets set in job at server
 		
 		SepScheme sep = null;
 		if(sepSchemeAlways.getSelection()) {
@@ -221,6 +224,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 //		else {
 //			deleteTextCheck.setSelection(false);
 //		}
+		
 		final String rotScheme = parameters.getParameterValue(LaCITlabUtils.ROT_SCHEME_KEY);
 		if(RotScheme.het.toString().equals(rotScheme)) {
 			rotSchemeHet.setSelection(true);
@@ -252,13 +256,13 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		LaModel model = resolveSelectedNetFromParameters();
 		infoStr += NEURAL_NET_LBL + " " + (model == null ? "Preset" : model.getLabel());
 		
-		String delScheme = parameters.getParameterValue(LaCITlabUtils.LA_DELETE_SCHEME_KEY);
-		if (StringUtils.equals(delScheme, "all")) {
-			infoStr += "\nDeleting existing transcriptions";
-		}
-		else {
-			infoStr += "\nKeeping existing transcriptions";
-		}
+//		String delScheme = parameters.getParameterValue(LaCITlabUtils.LA_DELETE_SCHEME_KEY);
+//		if (StringUtils.equals(delScheme, "all")) {
+//			infoStr += "\nDeleting existing transcriptions";
+//		}
+//		else {
+//			infoStr += "\nKeeping existing transcriptions";
+//		}
 		
 		infoStr +=  "\n" + ROT_SCHEME_LBL + ": ";
 		final String rotScheme = parameters.getParameterValue(LaCITlabUtils.ROT_SCHEME_KEY);

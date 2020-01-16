@@ -6509,4 +6509,16 @@ public class TrpMainWidget {
 		String jobId = storage.getConnection().duplicateGtToDocument(col.getColId(), descList, title, null);
 		registerJobStatusUpdateAndShowSuccessMessage(jobId);
 	}
+	
+	public List<String> getSelectedRegionIds() {
+		List<String> rids = new ArrayList<>();
+		for (ICanvasShape s : canvas.getScene().getSelectedAsNewArray()) {
+			ITrpShapeType st = GuiUtil.getTrpShape(s);
+			if (st == null || !(st instanceof TrpTextRegionType)) {
+				continue;
+			}
+			rids.add(st.getId());
+		}
+		return rids;
+	}	
 }

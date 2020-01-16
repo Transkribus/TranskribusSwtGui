@@ -108,17 +108,17 @@ public class ToolsWidgetListener implements SelectionListener {
 		});
 	}
 
-	List<String> getSelectedRegionIds() {
-		List<String> rids = new ArrayList<>();
-		for (ICanvasShape s : canvas.getScene().getSelectedAsNewArray()) {
-			ITrpShapeType st = GuiUtil.getTrpShape(s);
-			if (st == null || !(st instanceof TrpTextRegionType)) {
-				continue;
-			}
-			rids.add(st.getId());
-		}
-		return rids;
-	}
+//	List<String> getSelectedRegionIds() {
+//		List<String> rids = new ArrayList<>();
+//		for (ICanvasShape s : canvas.getScene().getSelectedAsNewArray()) {
+//			ITrpShapeType st = GuiUtil.getTrpShape(s);
+//			if (st == null || !(st instanceof TrpTextRegionType)) {
+//				continue;
+//			}
+//			rids.add(st.getId());
+//		}
+//		return rids;
+//	}
 
 	boolean isLayoutAnalysis(Object s) {
 		return s == tw.startLaBtn || s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn || s==tw.p2palaBtn || s==tw.p2palaTrainBtn || s==tw.t2iBtn;
@@ -273,10 +273,14 @@ public class ToolsWidgetListener implements SelectionListener {
 				
 				String msg = (tw.laComp.isDocsSelection() && tw.laComp.getDocs() != null && Storage.getInstance().isAdminLoggedIn()) ? "Do you really want to start the LA for "+ tw.laComp.getDocs().size() + " docs in this collection?" : "Do you really want to start the LA for page(s) " + pageStr + "  ?";
 				
+				List<String> rids = mw.getSelectedRegionIds();
 				String configInfoStr = null;
 				//get information on config for configurable methods
 				if(JobImpl.CITlabAdvancedLaJob.equals(tw.laComp.getJobImpl())) {
 					configInfoStr = new CITlabAdvancedLaConfigDialog(mw.getShell(), tw.laComp.getParameters()).getConfigInfoString();
+				}
+				if (tw.laComp.isCurrentTranscript() && !CoreUtils.isEmpty(rids)) {
+					configInfoStr+="\nSelected regions: "+rids;
 				}
 				
 				if(configInfoStr != null) {
@@ -328,7 +332,6 @@ public class ToolsWidgetListener implements SelectionListener {
 							tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, false,
 							tw.laComp.getJobImpl().toString(), tw.laComp.getParameters());
 				} else {
-					List<String> rids = getSelectedRegionIds();
 					logger.debug("running la on current transcript and selected rids: " + CoreUtils.join(rids));
 					jobIds = store.analyzeLayoutOnCurrentTranscript(rids, tw.laComp.isDoBlockSeg(),
 							tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, false,
@@ -346,7 +349,7 @@ public class ToolsWidgetListener implements SelectionListener {
 							false, false, false, isPolygon2Baseline, !isPolygon2Baseline, jobImpl, null);
 				} else {
 					logger.debug(btnName + " on current transcript");
-					List<String> rids = getSelectedRegionIds();
+					List<String> rids = mw.getSelectedRegionIds();
 
 					jobIds = store.analyzeLayoutOnCurrentTranscript(rids, false, false, false, isPolygon2Baseline,
 							!isPolygon2Baseline, jobImpl, null);
