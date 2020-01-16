@@ -215,13 +215,17 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		} catch (ServerErrorException | IllegalArgumentException e) {
 			e.printStackTrace();
 		}
-		if(comboHyp.getItemCount() != 0) {
-			comboHyp.select(0);
-			params.addParameter("hyp", comboHyp.getItem(comboHyp.getSelectionIndex()));
-		}
+		
 		compare = new Button(comp,SWT.PUSH);
 		compare.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 4, 4));
 		compare.setText("Compare");
+		
+		if(comboHyp.getItemCount() != 0) {
+			comboHyp.select(0);
+			params.addParameter("hyp", comboHyp.getItem(comboHyp.getSelectionIndex()));
+		}else {
+			compare.setEnabled(false);
+		}
 		
 	}
 	
