@@ -236,6 +236,7 @@ public class HtrDetailsWidget extends SashForm {
 		this.htr = htr;
 		validator.setOriginalObject(htr);
 		
+		publishStateCombo.setEnabled(htr != null);
 		nameTxt.setEnabled(htr != null);
 		descTxt.setEnabled(htr != null);
 		langTxt.setEnabled(htr != null);
@@ -253,6 +254,7 @@ public class HtrDetailsWidget extends SashForm {
 			paramTable.clearAll();
 			nrOfLinesTxt.setText("");
 			nrOfWordsTxt.setText("");
+			publishStateCombo.select(0);
 			showCharSetBtn.setEnabled(false);
 			showValSetBtn.setEnabled(false);
 			showTrainSetBtn.setEnabled(false);
