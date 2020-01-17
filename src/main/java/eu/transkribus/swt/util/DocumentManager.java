@@ -436,35 +436,42 @@ public class DocumentManager extends Dialog {
 
 		statusCombo = initComboWithLabel(editCombos, "Change edit status: ", SWT.DROP_DOWN | SWT.READ_ONLY);
 		statusCombo.setItems(EditStatus.getStatusListWithoutNew());
+		statusCombo.setEnabled(false);
 		
 		Label addLable = new Label(editCombos, SWT.CENTER);
 		addLable.setText("Add new page(s)");
 		addPage = new Button(editCombos, SWT.PUSH);
 		addPage.setImage(Images.ADD);
+		addPage.setEnabled(false);
 		
 		Label transLabel = new Label(editCombos, SWT.CENTER);
 		transLabel.setText("Add local transcription (PAGEXML)");
 		addTrans = new Button(editCombos, SWT.PUSH);
 		addTrans.setImage(Images.ADD);
+		addTrans.setEnabled(false);
 		
 		Label revertLabel = new Label(editCombos, SWT.CENTER);
 		revertLabel.setText("Revert to previous version(s) of last job");
 		revert = new Button(editCombos, SWT.PUSH);
 		revert.setImage(Images.ADD);
+		revert.setEnabled(false);
 		
 		Label sortLabel = new Label(editCombos, SWT.CENTER);
 		sortLabel.setText("Sort pages by filename list..");
 		sort = new Button(editCombos, SWT.CENTER);
 		sort.setImage(Images.ADD);
+		sort.setEnabled(false);
 		
 		// Page specific buttons
 		movePage = initComboWithLabel(editCombos, "Move page(s) to", SWT.DROP_DOWN | SWT.READ_ONLY);
 		movePage.setItems("Before first page","After last page","Select position");
+		movePage.setEnabled(false);
 			
 		Label deleteLabel = new Label(editCombos, SWT.CENTER);
 		deleteLabel.setText("Delete page(s)");
 		deletePage = new Button(editCombos, SWT.CENTER);
 		deletePage.setText("Delete");
+		deletePage.setEnabled(false);
 		
 		
 		Group imageGroup = new Group(docSashOptionImage, SWT.SHADOW_IN);
