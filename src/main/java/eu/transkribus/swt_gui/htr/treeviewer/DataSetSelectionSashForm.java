@@ -165,6 +165,7 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 
 		Group trainOverviewCont = new Group(this, SWT.NONE);
 		trainOverviewCont.setText("Overview");
+//		Composite trainOverviewCont = new Composite(this, SWT.NONE);
 		trainOverviewCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		trainOverviewCont.setLayout(new GridLayout(1, false));
 		
@@ -186,8 +187,12 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 
 		GridData tableGd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		GridLayout tableGl = new GridLayout(1, true);
+		
+		SashForm vertSf = new SashForm(trainOverviewCont, SWT.VERTICAL);
+		vertSf.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		vertSf.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		Group trainSetGrp = new Group(trainOverviewCont, SWT.NONE);
+		Group trainSetGrp = new Group(vertSf, SWT.NONE);
 		trainSetGrp.setText("Training Set");
 		trainSetGrp.setLayoutData(tableGd);
 		trainSetGrp.setLayout(tableGl);
@@ -201,7 +206,7 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 		removeFromTrainSetBtn.setImage(Images.CROSS);
 		removeFromTrainSetBtn.setText("Remove selected entries from training set");
 
-		Group valSetGrp = new Group(trainOverviewCont, SWT.NONE);
+		Group valSetGrp = new Group(vertSf, SWT.NONE);
 		valSetGrp.setText("Validation Set");
 		valSetGrp.setLayoutData(tableGd);
 		valSetGrp.setLayout(tableGl);
@@ -213,7 +218,8 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 		removeFromValSetBtn.setLayoutData(buttonGd);
 		removeFromValSetBtn.setImage(Images.CROSS);
 		removeFromValSetBtn.setText("Remove selected entries from validation set");
-
+		
+		vertSf.setWeights(new int[] { 1, 1 });
 		this.setWeights(new int[] { 45, 10, 45 });
 		dataTabFolder.setSelection(documentsTabItem);
 		

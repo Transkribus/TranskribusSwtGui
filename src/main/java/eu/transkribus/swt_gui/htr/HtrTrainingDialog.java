@@ -184,7 +184,7 @@ public class HtrTrainingDialog extends Dialog {
 		treeViewerSelector = new DataSetSelectionSashForm(sash, SWT.HORIZONTAL, colId, htrList, docList);
 		treeViewerSelector.enableDebugDialog(this.enableDebugDialog);
 		
-		sash.setWeights(new int[] { 45, 55 });
+		sash.setWeights(new int[] { 35, 65 });
 		
 		updateUI();
 		
