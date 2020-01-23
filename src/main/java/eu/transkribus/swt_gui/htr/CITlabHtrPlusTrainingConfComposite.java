@@ -20,7 +20,6 @@ import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
-import eu.transkribus.swt.util.LabeledText;
 
 public class CITlabHtrPlusTrainingConfComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(CITlabHtrPlusTrainingConfComposite.class);
@@ -32,9 +31,8 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 //	private Combo scriptType;
 	private HtrModelChooserButton baseModelBtn;
 	
-	// FIXME as soon as update to CITlabModule 2.0.2 is done, this can be removed. 2.0.1 sets "-1" which would use the whole set in each epoch.
-	public final static int DEFAULT_TRAIN_SIZE_PER_EPOCH = 8192;
-	public final static int DEFAULT_NUM_EPOCHS = 200;	
+	public final static int DEFAULT_NUM_EPOCHS = 50;
+	public final static int MAX_NUM_EPOCHS = 1000;
 
 //	private CitlabNoiseParamCombo noiseCmb;
 //	private Text trainSizeTxt, learningRateTxt;
@@ -147,6 +145,8 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 		}
 		if (!StringUtils.isNumeric(numEpochsTxt.getText())) {
 			errorList.add("Number of Epochs must contain a number!");
+		} else if (Integer.parseInt(numEpochsTxt.getText()) > MAX_NUM_EPOCHS) {
+			errorList.add("Number of Epochs must not exceed " + MAX_NUM_EPOCHS);
 		}
 		if (earlyStoppingTxt!=null) {
 			if (!StringUtils.isEmpty(earlyStoppingTxt.getText()) && !StringUtils.isNumeric(earlyStoppingTxt.getText())) {

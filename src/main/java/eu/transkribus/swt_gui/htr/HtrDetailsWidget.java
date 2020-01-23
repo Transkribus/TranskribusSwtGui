@@ -2,11 +2,14 @@ package eu.transkribus.swt_gui.htr;
 
 import java.awt.BasicStroke;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.ClientErrorException;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -14,6 +17,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
@@ -35,14 +39,21 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
+import eu.transkribus.core.model.beans.PyLaiaCreateModelPars;
+import eu.transkribus.core.model.beans.PyLaiaTrainCtcPars;
+import eu.transkribus.core.model.beans.ReleaseLevel;
+import eu.transkribus.core.model.beans.TextFeatsCfg;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.DataSetType;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
+import eu.transkribus.core.util.HtrPyLaiaUtils;
 import eu.transkribus.core.util.StrUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.MetadataTextFieldValidator;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.CharSetViewerDialog;
 import eu.transkribus.swt_gui.dialogs.DocImgViewerDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -54,14 +65,15 @@ public class HtrDetailsWidget extends SashForm {
 
 	private static final String[] CITLAB_TRAIN_PARAMS = { CitLabHtrTrainConfig.NUM_EPOCHS_KEY, 
 			CitLabHtrTrainConfig.LEARNING_RATE_KEY, CitLabHtrTrainConfig.NOISE_KEY, CitLabHtrTrainConfig.TRAIN_SIZE_KEY,
-			CitLabHtrTrainConfig.BASE_MODEL_ID_KEY, CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY, CitLabHtrTrainConfig.EARLY_STOPPING_KEY };
+			CitLabHtrTrainConfig.BASE_MODEL_ID_KEY, CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY};
 
 	private static final String CER_TRAIN_KEY = "CER Train";
 	private static final String CER_VAL_KEY = "CER Validation";
 	
 	Text nameTxt, langTxt, descTxt, nrOfLinesTxt, nrOfWordsTxt, finalTrainCerTxt, finalValCerTxt;
+	Combo publishStateCombo;
 	Table paramTable;
-	Button updateMetadataBtn, showTrainSetBtn, showValSetBtn, showCharSetBtn;
+	Button updateMetadataBtn, showTrainSetBtn, showValSetBtn, showCharSetBtn, showAdvancedParsBtn;
 	ChartComposite jFreeChartComp;
 	JFreeChart chart = null;
 	DocImgViewerDialog trainDocViewer, valDocViewer = null;
@@ -73,6 +85,7 @@ public class HtrDetailsWidget extends SashForm {
 	
 	public HtrDetailsWidget(Composite parent, int style) {
 		super(parent, style);
+		store = Storage.getInstance();
 		validator = new MetadataTextFieldValidator<>();
 		
 		// a composite for the HTR metadata
@@ -102,13 +115,22 @@ public class HtrDetailsWidget extends SashForm {
 		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		validator.attach("Description", descTxt, 1, 2048, h -> h.getDescription());
 		
-		paramTable = new Table(mdComp, SWT.BORDER | SWT.V_SCROLL);
+		Composite paramsContainer = new Composite(mdComp, 0);
+		paramsContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		paramsContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		paramTable = new Table(paramsContainer, SWT.BORDER | SWT.V_SCROLL);
 		paramTable.setHeaderVisible(false);
 		TableColumn paramCol = new TableColumn(paramTable, SWT.NONE);
 		paramCol.setText("Parameter");
 		TableColumn valueCol = new TableColumn(paramTable, SWT.NONE);
 		valueCol.setText("Value");
 		paramTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		showAdvancedParsBtn = new Button(paramsContainer, 0);
+		showAdvancedParsBtn.setText("Show advanced parameters...");
+//		showAdvancedParsBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		showAdvancedParsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		Label nrOfWordsLbl = new Label(mdComp, SWT.NONE);
 		nrOfWordsLbl.setText("Nr. of Words:");
@@ -120,30 +142,38 @@ public class HtrDetailsWidget extends SashForm {
 		nrOfLinesTxt = new Text(mdComp, SWT.BORDER | SWT.READ_ONLY);
 		nrOfLinesTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 
+		//publishing models is restricted to admins for now
+		if(store.isAdminLoggedIn()) {	
+			createPublishStateComposite(mdComp);
+		}
+
 		Composite btnComp = new Composite(mdComp, SWT.NONE);
 		btnComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
 		//save, trainSet, valSet, charSet buttons
 		final int numButtons = 4;
 		btnComp.setLayout(new GridLayout(numButtons, true));
-
+		GridData btnGridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+		
 		updateMetadataBtn = new Button(btnComp, SWT.PUSH);
 		updateMetadataBtn.setText("Save");
 		updateMetadataBtn.setImage(Images.DISK);
-		updateMetadataBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		updateMetadataBtn.setLayoutData(btnGridData);
 		
 		showTrainSetBtn = new Button(btnComp, SWT.PUSH);
 		showTrainSetBtn.setText("Show Train Set");
-		showTrainSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		showTrainSetBtn.setLayoutData(btnGridData);
 		
 		showValSetBtn = new Button(btnComp, SWT.PUSH);
 		showValSetBtn.setText("Show Validation Set");
-		showValSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		showValSetBtn.setLayoutData(btnGridData);
 		
 		showCharSetBtn = new Button(btnComp, SWT.PUSH);
 		showCharSetBtn.setText("Show Characters");
-		showCharSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		showCharSetBtn.setLayoutData(btnGridData);
 
+		mdComp.pack();
+		
 		// a composite for the CER stuff
 		Composite cerComp = new Composite(this, SWT.BORDER);
 		cerComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -166,8 +196,11 @@ public class HtrDetailsWidget extends SashForm {
 		finalValCerTxt = new Text(cerComp, SWT.BORDER | SWT.READ_ONLY);
 		finalValCerTxt.setLayoutData(gd);
 		
+		if(publishStateCombo != null) {
+			this.setWeights(new int[] { 58, 42 });
+		}
+		
 		this.htr = null;
-		store = Storage.getInstance();
 		
 		//init with no HTR selected, i.e. disable controls
 		updateDetails(null);
@@ -175,9 +208,37 @@ public class HtrDetailsWidget extends SashForm {
 		addListeners();
 	}
 
+	private void createPublishStateComposite(Composite mdComp) {
+		Composite publishComp = new Composite(mdComp, SWT.NONE);
+		publishComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 4, 1));
+		GridLayout publishCompLayout = new GridLayout(2, false);
+		publishCompLayout.marginHeight = publishCompLayout.marginWidth = 0;
+		publishComp.setLayout(publishCompLayout);
+		
+		Label publishStateLabel = new Label(publishComp, SWT.NONE);
+		publishStateLabel.setText("Visibility:");
+		publishStateCombo = new Combo(publishComp, SWT.READ_ONLY);
+		publishStateCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		
+		List<Pair<String, ReleaseLevel>> publishStates = new ArrayList<>(3);
+		publishStates.add(Pair.of("Private Model", ReleaseLevel.None));
+		publishStates.add(Pair.of("Public model with private data sets", ReleaseLevel.UndisclosedDataSet));
+		publishStates.add(Pair.of("Public model with public data sets", ReleaseLevel.DisclosedDataSet));
+		
+		for(Pair<String, ReleaseLevel> e : publishStates) {
+			publishStateCombo.add(e.getKey());
+			publishStateCombo.setData(e.getKey(), e.getValue());
+		}
+		validator.attach("Visibility", publishStateCombo, -1, -1, h -> "" + h.getReleaseLevel());
+	}
+
 	void updateDetails(TrpHtr htr) {		
 		this.htr = htr;
 		validator.setOriginalObject(htr);
+		
+		if(publishStateCombo != null) {
+			publishStateCombo.setEnabled(htr != null);
+		}
 		
 		nameTxt.setEnabled(htr != null);
 		descTxt.setEnabled(htr != null);
@@ -196,9 +257,13 @@ public class HtrDetailsWidget extends SashForm {
 			paramTable.clearAll();
 			nrOfLinesTxt.setText("");
 			nrOfWordsTxt.setText("");
+			if(publishStateCombo != null) {
+				publishStateCombo.select(0);
+			}
 			showCharSetBtn.setEnabled(false);
 			showValSetBtn.setEnabled(false);
 			showTrainSetBtn.setEnabled(false);
+			showAdvancedParsBtn.setEnabled(false);
 			updateParamTable(null);
 			updateChart(null);
 			return;
@@ -210,12 +275,25 @@ public class HtrDetailsWidget extends SashForm {
 		nrOfWordsTxt.setText(htr.getNrOfWords() > 0 ? "" + htr.getNrOfWords() : NOT_AVAILABLE);
 		nrOfLinesTxt.setText(htr.getNrOfLines() > 0 ? "" + htr.getNrOfLines() : NOT_AVAILABLE);
 
+		if(publishStateCombo != null) {
+			for(int i = 0; i < publishStateCombo.getItemCount(); i++) {
+				if(publishStateCombo.getData(publishStateCombo.getItem(i)).equals(htr.getReleaseLevel())) {
+					publishStateCombo.select(i);
+					break;
+				}
+			}
+		}
+		
+		showAdvancedParsBtn.setEnabled(htr.getProvider().equals(HtrPyLaiaUtils.PROVIDER_PYLAIA));
+		
 		updateParamTable(htr.getParamsProps());
 
 		showCharSetBtn.setEnabled(htr.getCharSetList() != null && !htr.getCharSetList().isEmpty());
 
-		showTrainSetBtn.setEnabled(htr.hasTrainGt());
-		showValSetBtn.setEnabled(htr.hasValidationGt());
+		final boolean isGtAccessible = store.isGtDataAccessible(htr);
+		
+		showTrainSetBtn.setEnabled(isGtAccessible);
+		showValSetBtn.setEnabled(isGtAccessible);
 		
 		updateChart(htr);
 		
@@ -233,19 +311,71 @@ public class HtrDetailsWidget extends SashForm {
 			t.setEditable(enabled);
 		}
 	}
-
+	
+	private TableItem addTableItem(Table paramTable, String key, String value) {
+		TableItem item = new TableItem(paramTable, SWT.NONE);
+		item.setText(0, key);
+		item.setText(1, value);
+		return item;
+	}
+	
 	private void updateParamTable(Properties paramsProps) {
 		paramTable.removeAll();
+		if (htr == null) {
+			return;
+		}
+		
 		if (paramsProps == null || paramsProps.isEmpty()) {
-			TableItem item = new TableItem(paramTable, SWT.NONE);
-			item.setText(0, NOT_AVAILABLE);
-			item.setText(1, NOT_AVAILABLE);
+			addTableItem(paramTable, NOT_AVAILABLE, NOT_AVAILABLE);
 		} else {
-			for (String s : CITLAB_TRAIN_PARAMS) {
-				if (paramsProps.containsKey(s)) {
-					TableItem item = new TableItem(paramTable, SWT.NONE);
-					item.setText(0, s + " ");
-					item.setText(1, paramsProps.getProperty(s));
+			if (htr.getProvider().equals(HtrPyLaiaUtils.PROVIDER_PYLAIA)) {
+				TextFeatsCfg textFeatsCfg = TextFeatsCfg.fromConfigString2(paramsProps.getProperty("textFeatsCfg"));
+				PyLaiaCreateModelPars createModelPars = PyLaiaCreateModelPars.fromSingleLineString2(paramsProps.getProperty("createModelPars"));
+				PyLaiaTrainCtcPars trainCtcPars = PyLaiaTrainCtcPars.fromSingleLineString2(paramsProps.getProperty("trainCtcPars"));
+
+				// add fixed pars:
+				if (trainCtcPars!=null) {
+					addTableItem(paramTable, "Max epochs", trainCtcPars.getParameterValue("--max_epochs"));
+					addTableItem(paramTable, "Early stopping", trainCtcPars.getParameterValue("--max_nondecreasing_epochs"));
+					if (htr.getCerLog()!=null) {
+						addTableItem(paramTable, "Epochs trained", ""+htr.getCerLog().length);	
+					}
+					
+					String lrStr = trainCtcPars.getParameterValue("--learning_rate");
+					try {
+						addTableItem(paramTable, "Learning rate", CoreUtils.formatDoubleNonScientific(Double.valueOf(lrStr)));
+					} catch (Exception e) {
+						addTableItem(paramTable, "Learning rate", lrStr);
+					}
+					addTableItem(paramTable, "Batch size", trainCtcPars.getParameterValue("--batch_size"));			
+				}
+				
+				if (textFeatsCfg!=null) {
+					addTableItem(paramTable, "Normalized height", ""+textFeatsCfg.getNormheight());
+				}
+				
+				// TODO: how to show all pars? --> advanced pars dialog --> via showAdvancedParsBtn!!
+				
+//				for (Object key : paramsProps.keySet()) {
+//					TableItem item = new TableItem(paramTable, SWT.NONE);
+//					String keyStr = ""+key;
+//					String value = paramsProps.getProperty(keyStr);
+//					if (StringUtils.equals(keyStr, TEXT_FEATS_CFG_KEY)) {
+//						keyStr = "preprocessing";
+//						value = value.replaceAll("\\{", "").replaceAll("\\}", "")
+//								.replaceAll("\\:",  "")
+//								.replaceAll("TextFeatExtractor", "")
+////								.replaceAll("\\;", "")
+//								.trim();
+//					}
+//					item.setText(0, keyStr + " ");
+//					item.setText(1, value);					
+//				}
+			} else {
+				for (String s : CITLAB_TRAIN_PARAMS) {
+					if (paramsProps.containsKey(s)) {
+						addTableItem(paramTable, s + " ", paramsProps.getProperty(s));
+					}
 				}
 			}
 		}
@@ -280,44 +410,38 @@ public class HtrDetailsWidget extends SashForm {
 		rangeAxis.setNumberFormatOverride(pctFormat);
 		rangeAxis.setRange(0.0, 1.0);
 		
-		int storedNetEpoch = -1;
-		XYLineAnnotation lineAnnot = null;
 		if(referenceSeries != null && referenceSeries.length > 0) {
-			//determine location of best net annotation line and final CER values to show in text fields
-			double min = Double.MAX_VALUE;
-			if(htr.isBestNetStored()) {
-				//if best net is stored then seach reference CER series for the minimum value
-				for (int i = 0; i < referenceSeries.length; i++) {
-					final double val = referenceSeries[i];
-					//HTR+ always stores best net. If validation CER does not change, the first net with this CER is kept
-					if (val < min) {
-						min = val;
-						storedNetEpoch = i + 1;
-					}
-				}
-			} else {
-				//set last epoch as minimum
+			
+			int storedNetEpoch;
+			if(HtrCITlabUtils.PROVIDER_CITLAB_PLUS.equals(htr.getProvider())) {
+				//HTR+ always uses model from last training iteration
 				storedNetEpoch = referenceSeries.length;
+			} else {
+				//legacy routine, working for HTR and PyLaia but not HTR+! Find min value in referenceSeries
+				storedNetEpoch = getMinCerEpoch(htr, referenceSeries);
 			}
-			logger.debug("best net stored after epoch {}", storedNetEpoch);
-			int seriesIndex = 0;
-			if(htr.hasCerLog()) {
-				double storedHtrTrainCer = htr.getCerLog()[storedNetEpoch - 1];
-				storedHtrTrainCerStr = HtrCITlabUtils.formatCerVal(storedHtrTrainCer);
-				plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.BLUE);
+
+			if(storedNetEpoch > 0) {
+				logger.debug("best net stored after epoch {}", storedNetEpoch);
+				int seriesIndex = 0;
+				if(htr.hasCerLog()) {
+					double storedHtrTrainCer = htr.getCerLog()[storedNetEpoch - 1];
+					storedHtrTrainCerStr = HtrCITlabUtils.formatCerVal(storedHtrTrainCer);
+					plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.BLUE);
+				}
+				
+				if (htr.hasCerTestLog()) {
+					double storedHtrValCer = htr.getCerTestLog()[storedNetEpoch - 1];
+					storedHtrValCerStr = HtrCITlabUtils.formatCerVal(storedHtrValCer);
+					plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.RED);
+				}
+				
+				//annotate storedNetEpoch in the chart
+				XYLineAnnotation lineAnnot = new XYLineAnnotation(storedNetEpoch, 0.0, storedNetEpoch, 100.0,
+						new BasicStroke(), java.awt.Color.GREEN);
+				lineAnnot.setToolTipText("Stored HTR");
+				plot.addAnnotation(lineAnnot);
 			}
-			
-			if (htr.hasCerTestLog()) {
-				double storedHtrValCer = htr.getCerTestLog()[storedNetEpoch - 1];
-				storedHtrValCerStr = HtrCITlabUtils.formatCerVal(storedHtrValCer);
-				plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.RED);
-			}
-			
-			//annotate storedNetEpoch in the chart
-			lineAnnot = new XYLineAnnotation(storedNetEpoch, 0.0, storedNetEpoch, 100.0,
-					new BasicStroke(), java.awt.Color.GREEN);
-			lineAnnot.setToolTipText("Stored HTR");
-			plot.addAnnotation(lineAnnot);
 		} else {
 			plot.setNoDataMessage("No data available");
 		}
@@ -327,6 +451,26 @@ public class HtrDetailsWidget extends SashForm {
 
 		finalTrainCerTxt.setText(storedHtrTrainCerStr);
 		finalValCerTxt.setText(storedHtrValCerStr);
+	}
+	
+	private int getMinCerEpoch(TrpHtr htr, double[] referenceSeries) {
+		double min = Double.MAX_VALUE;
+		int minCerEpoch = -1;
+		if(htr.isBestNetStored()) {
+			//if best net is stored then seach reference CER series for the minimum value
+			for (int i = 0; i < referenceSeries.length; i++) {
+				final double val = referenceSeries[i];
+				//HTR+ always stores best net. If validation CER does not change, the first net with this CER is kept
+				if (val < min) {
+					min = val;
+					minCerEpoch = i + 1;
+				}
+			}
+		} else {
+			//set last epoch as minimum
+			minCerEpoch = referenceSeries.length;
+		}
+		return minCerEpoch;
 	}
 	
 	void triggerChartUpdate() {
@@ -348,6 +492,20 @@ public class HtrDetailsWidget extends SashForm {
 	
 	
 	private void addListeners() {
+		SWTUtil.onSelectionEvent(showAdvancedParsBtn, e -> {
+			if(htr == null || !htr.getProvider().equals(HtrPyLaiaUtils.PROVIDER_PYLAIA)) {
+				return;
+			}
+			
+			Properties paramsProps = htr.getParamsProps();
+			TextFeatsCfg textFeatsCfg = TextFeatsCfg.fromConfigString2(paramsProps.getProperty("textFeatsCfg"));
+			PyLaiaCreateModelPars createModelPars = PyLaiaCreateModelPars.fromSingleLineString2(paramsProps.getProperty("createModelPars"));
+			PyLaiaTrainCtcPars trainCtcPars = PyLaiaTrainCtcPars.fromSingleLineString2(paramsProps.getProperty("trainCtcPars"));
+			
+			PyLaiaAdvancedConfDialog d = new PyLaiaAdvancedConfDialog(getShell(), textFeatsCfg, createModelPars, trainCtcPars);
+			d.open();
+		});
+		
 		this.showTrainSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -436,6 +594,26 @@ public class HtrDetailsWidget extends SashForm {
 		htrToStore.setName(nameTxt.getText());
 		htrToStore.setDescription(descTxt.getText());
 		htrToStore.setLanguage(langTxt.getText());
+		
+		if(publishStateCombo != null) {
+			Object publishStateData = publishStateCombo.getData(publishStateCombo.getText());
+			ReleaseLevel releaseLevel = (ReleaseLevel) publishStateData;
+			
+			//check if there is a change that would publish a private data set
+			if(!ReleaseLevel.isPrivateDataSet(releaseLevel) 
+					&& ReleaseLevel.isPrivateDataSet(htrToStore.getReleaseLevel())) {
+				final int answer = DialogUtil.showYesNoDialog(getShell(), "Are you sure you want to publish your data?", 
+						"The new visibility setting will allow other users to access the data sets used to train this model!\n\n"
+						+ "Are you sure you want to save this change?", SWT.ICON_WARNING);
+				if(answer == SWT.NO) {
+					logger.debug("User denied publishing the data.");
+					return;
+				}
+			}
+			
+			htrToStore.setReleaseLevel((ReleaseLevel) publishStateData);
+		}
+		
 		try {
 			store.updateHtrMetadata(htrToStore);
 			//reset the text fields to new values

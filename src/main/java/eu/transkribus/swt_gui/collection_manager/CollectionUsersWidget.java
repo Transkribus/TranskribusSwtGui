@@ -97,7 +97,7 @@ public class CollectionUsersWidget extends Composite {
 		docName = "Collection_"+store.getCollId()+"_UserInfo";
 		
 		tabFolder = new CTabFolder(this, SWT.BORDER | SWT.FLAT);
-		tabFolder.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
+		tabFolder.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
 		
 		createCollectionUsersTabItem();
 		createUserInfoTabItem();

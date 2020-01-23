@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -22,12 +23,15 @@ import org.eclipse.swt.widgets.Shell;
 
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.rest.JobConst;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.LaCITlabUtils;
 import eu.transkribus.core.util.LaCITlabUtils.RotScheme;
 import eu.transkribus.core.util.LaCITlabUtils.SepScheme;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 
@@ -71,6 +75,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 	private Button rotSchemeDef, rotSchemeHom, rotSchemeHet, sepSchemeDef, sepSchemeAlways, sepSchemeNever;
 	private Group settingsGroup, rotGroup, sepGroup;
 	private Button helpButton;
+//	private Button deleteTextCheck;
 	
 	private List<LaModel> modelList;
 	
@@ -100,6 +105,11 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		settingsGroup.setText("Settings");
 		settingsGroup.setLayout(new GridLayout(1, false));
 		settingsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 2));
+		
+//		deleteTextCheck = new Button(settingsGroup, SWT.CHECK);
+//		deleteTextCheck.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		deleteTextCheck.setText("Delete existing text");
+//		deleteTextCheck.setToolTipText("If checked, existing text in the transcription will be deleted during layout analysis");
 		
 		rotGroup = new Group(settingsGroup, SWT.NONE);
 		rotGroup.setLayout(new GridLayout(3, false));
@@ -169,6 +179,11 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		parameters = new ParameterMap();
 		LaModel m = getSelectedNet();
 		
+//		if (deleteTextCheck.getSelection()) {
+//			parameters.addParameter(LaCITlabUtils.LA_DELETE_SCHEME_KEY, "all");
+//		}
+		parameters.addParameter(LaCITlabUtils.LA_DELETE_SCHEME_KEY, null); // del-scheme gets set in job at server
+		
 		SepScheme sep = null;
 		if(sepSchemeAlways.getSelection()) {
 			sep = SepScheme.always;
@@ -201,7 +216,15 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 	protected void applyParameterMapToDialog() {
 		LaModel model = resolveSelectedNetFromParameters();
 		setSelectedNet(model);
-				
+		
+//		String delScheme = parameters.getParameterValue(LaCITlabUtils.LA_DELETE_SCHEME_KEY);
+//		if (StringUtils.equals(delScheme, "all")) {
+//			deleteTextCheck.setSelection(true);
+//		}
+//		else {
+//			deleteTextCheck.setSelection(false);
+//		}
+		
 		final String rotScheme = parameters.getParameterValue(LaCITlabUtils.ROT_SCHEME_KEY);
 		if(RotScheme.het.toString().equals(rotScheme)) {
 			rotSchemeHet.setSelection(true);
@@ -232,6 +255,14 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		String infoStr = "";
 		LaModel model = resolveSelectedNetFromParameters();
 		infoStr += NEURAL_NET_LBL + " " + (model == null ? "Preset" : model.getLabel());
+		
+//		String delScheme = parameters.getParameterValue(LaCITlabUtils.LA_DELETE_SCHEME_KEY);
+//		if (StringUtils.equals(delScheme, "all")) {
+//			infoStr += "\nDeleting existing transcriptions";
+//		}
+//		else {
+//			infoStr += "\nKeeping existing transcriptions";
+//		}
 		
 		infoStr +=  "\n" + ROT_SCHEME_LBL + ": ";
 		final String rotScheme = parameters.getParameterValue(LaCITlabUtils.ROT_SCHEME_KEY);
@@ -377,12 +408,15 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		private final static String konzilsProtNetName = "LA_alvermann1.pb";
 		protected final static String postcardNetLabel = "Postcards";
 		private final static String postcardNetName = "postcards_aru_c3.pb";
-		//old newspaper LA net
+		//hebrew newspaper LA net
 		private final static String newspaperV1NetLabel = "Newspapers";
 		private final static String newspaperV1NetName = "LA_ara_news_aru_mix_90_ema.pb";
-		//new newspaper LA net
-		private final static String newspaperV2NetLabel = "Newspapers (NewsEye)";
-		private final static String newspaperV2NetName = "LA_news_onb_att_newseye.pb";
+		//2019-07 newseye newspaper LA net
+		private final static String newspaperV2NetLabel = "Newspapers (NewsEye) July 2019";
+		private final static String newspaperV2NetName = "LA_news_onb_att_newseye_2019-7.pb";
+		//2019-08 newseye newspaper LA net
+		private final static String newspaperV3NetLabel = "Newspapers (NewsEye)";
+		private final static String newspaperV3NetName = "LA_news_onb_att_newseye.pb";
 		private LaDataProvider() {}
 		public static List<LaModel> getModels() {
 			final List<LaModel> nets = new ArrayList<>(1);
@@ -390,10 +424,15 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 			LaModel postcards = new LaModel(postcardNetLabel, postcardNetName);
 			LaModel newspaperV1 = new LaModel(newspaperV1NetLabel, newspaperV1NetName);
 			LaModel newspaperV2 = new LaModel(newspaperV2NetLabel, newspaperV2NetName);
+			LaModel newspaperV3 = new LaModel(newspaperV3NetLabel, newspaperV3NetName);
 			nets.add(konzilsProt);
 			nets.add(postcards);
 			nets.add(newspaperV1);
-			nets.add(newspaperV2);
+			if(Storage.getInstance().isAdminLoggedIn()) {
+				//only admins may access outdated newseye net
+				nets.add(newspaperV2);
+			}
+			nets.add(newspaperV3);
 			return nets;
 		}
 	}

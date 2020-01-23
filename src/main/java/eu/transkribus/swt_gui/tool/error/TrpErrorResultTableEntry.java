@@ -11,6 +11,7 @@ import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.util.JaxbUtils;
+import eu.transkribus.core.util.JobDataUtils;
 import eu.transkribus.swt_gui.search.kws.AJobResultTableEntry;
 
 public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>{
@@ -44,24 +45,36 @@ public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>
 			params = result.getParams();
 		}
 		if(params == null) {
-			return "Page(s) : "+props.getOrDefault("parameters.1.value", "Page-Query missing") +" | Option : "+option +" | Ref: "+props.getOrDefault("parameters.0.value", "latest GT")+" | Hyp : "+props.getOrDefault("parameters.4.value", "latest Version") ;
+			ParameterMap paramMap = JobDataUtils.getParameterMap(props.getProperties(), JobConst.PROP_PARAMETERS);
+			
+			String hyp = paramMap.getParameterValue("hyp");
+			String gt = paramMap.getParameterValue("ref");
+			String pages = paramMap.getParameterValue("pages");
+			option = getOption(paramMap.getParameterValue("option"));
+			
+			return "Page(s) : "+pages +" | Option : "+option +" | Ref: "+gt+" | Hyp : "+hyp ;
 		}
 		if(params.getParameterValue("option") != null) {
-			switch(params.getParameterValue("option")) {
-			case "-1":
-				option = "Quick Compare";
-				break;
-			case "0": 
-				option = "case-sensitive";
-				break;
-			case "1":
-				option = "case-insensitive";
-				break;
-			}
+			option = getOption(params.getParameterValue("option"));
 		}
 			
 		return "Page(s) : "+params.getParameterValue("pages") +" | Option : "+option +" | Ref: "+params.getParameterValue("ref")+" | Hyp : "+params.getParameterValue("hyp") ;
 		
 	} 
+	
+	String getOption (String option) {
+		switch(option) {
+		case "-1":
+			option = "Quick Compare";
+			break;
+		case "0": 
+			option = "case-sensitive";
+			break;
+		case "1":
+			option = "case-insensitive";
+			break;
+		}
+		return option;
+	}
 
 }

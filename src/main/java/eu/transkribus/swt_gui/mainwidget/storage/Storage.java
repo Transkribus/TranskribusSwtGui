@@ -62,12 +62,15 @@ import eu.transkribus.core.io.UnsupportedFormatException;
 import eu.transkribus.core.io.util.ExtensionFileFilter;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
+import eu.transkribus.core.model.beans.DocSelection;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
 import eu.transkribus.core.model.beans.EdFeature;
 import eu.transkribus.core.model.beans.EdOption;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.PageLock;
+import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
+import eu.transkribus.core.model.beans.ReleaseLevel;
 import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpCrowdProject;
@@ -80,7 +83,6 @@ import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpEvent;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
-import eu.transkribus.core.model.beans.TrpHtr.ReleaseLevel;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.TrpUpload;
@@ -1654,9 +1656,23 @@ public class Storage {
 	 * UndisclosedDataSet = only show children if current user is curator OR the model is linked to this collection.<br>
 	 */
 	public boolean isUserAllowedToViewDataSets(TrpHtr h) {
+		return isUserAllowedToViewDataSets(this.getCollId(), h);
+	}
+	
+	/**
+	 * ReleaseLevel of the HTR may imply that the dataset is not visible to current user.<br>
+	 * None = model is obviously linked to collection. Otherwise it wouldn't be visible.<br>
+	 * DisclosedDataSet = Handle like "None".<br>
+	 * UndisclosedDataSet = only show children if current user is curator OR the model is linked to this collection.<br>
+	 */
+	public boolean isUserAllowedToViewDataSets(int colId, TrpHtr h) {
 		if(h == null) {
 			logger.warn("HTR argument is null!");
 			return false;
+		}
+		if(isAdminLoggedIn()) {
+			logger.debug("Admin is allowed to view datasets of HTR '{}'", h.getName());
+			return true;
 		}
 		logger.debug("Checking HTR ReleaseLevel: {}", h.toShortString());
 		
@@ -1665,7 +1681,7 @@ public class Storage {
 		logger.debug("isAllowed based on release level: {}", isAllowed);
 		
 		//check for direct collection link which will allow the user to see the set
-		isAllowed |=  h.getCollectionIdLink() != null && h.getCollectionIdLink() == this.getCollId();
+		isAllowed |=  h.getCollectionIdLink() != null && h.getCollectionIdLink() == colId;
 		logger.debug("isAllowed based on collectionIdLink: {}", isAllowed);
 		
 		//curator may always see the sets even if no explicit link is set to this collection
@@ -2600,6 +2616,17 @@ public class Storage {
 		return null;
 	}
 	
+	public TrpJobStatus createSamplePages(Map<TrpDocMetadata, List<TrpPage>> sampleDocMap, int nrOfPages, String sampleName, String sampleDescription, String option) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+		List<DocumentSelectionDescriptor> descList = null;
+		try {
+			descList = DescriptorUtils.buildCompleteSelectionDescriptorList(sampleDocMap, null);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Could not build selection descriptor list");
+		}
+		conn.createSamplePagesJob(collId, descList, nrOfPages, sampleName, sampleDescription, option);
+		return null;
+	}
+	
 	public TrpJobStatus computeSampleRate(int docId, ParameterMap params) throws TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
 		return conn.computeSampleJob(docId,params);
 	}
@@ -2875,7 +2902,11 @@ public class Storage {
 					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), 
 					config.isDoStoreConfMats(), config.getStructures());
 		case UPVLC:
-			return null;
+			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), getDocId(), pages, 
+					config.getHtrId(), config.getDictionary(),
+					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(),
+					config.getBatchSize(),
+					config.getStructures());			
 		default:
 			return null;
 		}
@@ -2890,7 +2921,11 @@ public class Storage {
 					config.isDoStoreConfMats(), config.getStructures()
 					);
 		case UPVLC:
-			return null;
+			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), descriptor, config.getHtrId(), config.getDictionary(), 
+					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(),
+					config.getBatchSize(),
+					config.getStructures()
+					);		
 		default:
 			return null;
 		}
@@ -2903,7 +2938,11 @@ public class Storage {
 			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), docId, pages, 
 					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), config.isDoStoreConfMats(), config.getStructures());
 		case UPVLC:
-			return null;
+			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), docId, pages, 
+					config.getHtrId(), config.getDictionary(), 
+					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(),
+					config.getBatchSize(),
+					config.getStructures());
 		default:
 			return null;
 		}
@@ -2915,6 +2954,13 @@ public class Storage {
 		}
 		return conn.runCitLabHtrTraining(config);
 	}
+	
+	public String runPyLaiaTraining(PyLaiaHtrTrainConfig config) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+		if(config == null) {
+			throw new IllegalArgumentException("Config is null!");
+		}
+		return conn.getPyLaiaCalls().runPyLaiaTraining(config);
+	}	
 	
 	public String runCitLabText2Image(CitLabSemiSupervisedHtrTrainConfig config) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
 		if(config == null) {
@@ -3404,6 +3450,36 @@ public class Storage {
 		final Predicate<JobImpl> htrTrainingJobImplFilter = j -> j.getTask().equals(JobTask.HtrTraining);
 		List<JobImpl> list = getConnection().getJobImplAcl(htrTrainingJobImplFilter);
 		return list.toArray(new JobImpl[list.size()]);
+	}
+
+	public boolean isGtDataAccessible(TrpHtr htr) {
+		if(isAdminLoggedIn()) {
+			return true;
+		}
+		//is model unpublished and linked to this collection?
+		if(ReleaseLevel.None.equals(htr.getReleaseLevel()) 
+				&& htr.getCollectionIdLink() == getCollId()) {
+			return true;
+		}
+		//is model published including the data sets?
+		if(!ReleaseLevel.isPrivateDataSet(htr.getReleaseLevel())) {
+			return true;
+		}
+		return false;
+	}
+	
+	public DocumentSelectionDescriptor getDocumentSelectionDescriptor(int colId, DocSelection docSel) throws TrpServerErrorException, TrpClientErrorException, SessionExpiredException, StorageException {
+		checkLoggedIn();
+		
+		DocumentSelectionDescriptor dsd = new DocumentSelectionDescriptor(docSel.getDocId());
+		if (!StringUtils.isEmpty(docSel.getPages())) {
+			List<Integer> pids = conn.getPageIdsByPagesStr(colId, docSel.getDocId(), docSel.getPages());
+			dsd.addPages(pids);					
+		}
+		else {
+			logger.debug("pagesStr is empty for DocSelection -> leaving pages empty s.t. all pages get processed!");
+		}
+		return dsd;
 	}
 	
 //	public void reloadP2PaLAModels() {

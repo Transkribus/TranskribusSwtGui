@@ -9,6 +9,7 @@ import org.eclipse.swt.graphics.Image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.ReleaseLevel;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.swt.util.Fonts;
@@ -45,9 +46,9 @@ public class HtrGroundTruthTableLabelAndFontProvider extends CellLabelProvider i
 			return Images.FOLDER;
 		} else if (element instanceof TrpHtr) {
 			if(((TrpHtr)element).getReleaseLevelValue() > 0) {
-				return Images.CHART_LINE_LINK;
+				return Images.MODEL_SHARED_ICON;
 			}
-			return Images.CHART_LINE;
+			return Images.MODEL_ICON;
 		}
 		return null;
 	}
@@ -65,7 +66,8 @@ public class HtrGroundTruthTableLabelAndFontProvider extends CellLabelProvider i
 			} else if (element instanceof HtrGtDataSet) {
 				HtrGtDataSet set = (HtrGtDataSet) element;
 				String suffix = "";
-				if(!store.isUserAllowedToViewDataSets(set.getModel())) {
+				if(set.getModel().getReleaseLevelValue() > 0 
+						&& ReleaseLevel.isPrivateDataSet(set.getModel().getReleaseLevel())) {
 					suffix = " (private)";
 				}
 				return set.getDataSetType().getLabel() + suffix;

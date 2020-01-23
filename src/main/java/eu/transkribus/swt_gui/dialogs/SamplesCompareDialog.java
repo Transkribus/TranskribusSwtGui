@@ -274,7 +274,7 @@ public class SamplesCompareDialog extends Dialog {
 		removeFromSampleSetBtn = new Button(sampleSetGrp, SWT.PUSH);
 		removeFromSampleSetBtn.setLayoutData(buttonGd);
 		removeFromSampleSetBtn.setImage(Images.CROSS);
-		removeFromSampleSetBtn.setText("Remove selected entries from train set");
+		removeFromSampleSetBtn.setText("Remove selected entries from sample set");
 		
 		createSampleButton = new Button(sampleSetGrp, SWT.PUSH);
 		createSampleButton.setLayoutData(buttonGd);
@@ -811,6 +811,7 @@ public class SamplesCompareDialog extends Dialog {
 	
 	private void drawChartJob(TrpJobStatus job) {
 		if(job.isFinished()) {
+			rl.setStopped();
 			TrpProperties props = job.getJobDataProps();
 			final String xmlStr = props.getString(JobConst.PROP_RESULT);
 			TrpComputeSample res = new TrpComputeSample();
@@ -876,6 +877,7 @@ public class SamplesCompareDialog extends Dialog {
 			}
 			for(TrpJobStatus job : jobs) {
 				if(job.isFinished()) {
+					rl.setStopped();
 					TrpProperties props = job.getJobDataProps();
 					final String xmlStr = props.getString(JobConst.PROP_RESULT);
 					TrpComputeSample res = new TrpComputeSample();
@@ -1004,11 +1006,11 @@ public class SamplesCompareDialog extends Dialog {
 		}
 		
 		Display.getDefault().asyncExec(() -> { 
-			AJobResultTableEntry<?> e = resultTable.getSelectedEntry();
+			AJobResultTableEntry<?> e = resultTableError.getSelectedEntry();
 			if(resultTableError != null && !resultTableError.isDisposed()) {
 				resultTableError.getTableViewer().setInput(errorList);
 			}
-			if(e != null) {
+			if(e != null ) {
 				TrpErrorResultTableEntry o = (TrpErrorResultTableEntry)e;
 				int index = errorList.indexOf(o);
 				resultTableError.getTableViewer().getTable().select(index);

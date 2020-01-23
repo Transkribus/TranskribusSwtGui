@@ -92,6 +92,7 @@ import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.io.util.ImgFileFilter;
 import eu.transkribus.core.io.util.ImgPriority;
+import eu.transkribus.core.model.beans.GroundTruthSelectionDescriptor;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
@@ -114,7 +115,6 @@ import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
-import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TableCellType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
@@ -129,7 +129,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
-import eu.transkribus.core.model.beans.rest.P2PaLATrainJobPars;
 import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.ExportCache;
 import eu.transkribus.core.model.builder.ExportUtils;
@@ -192,14 +191,12 @@ import eu.transkribus.swt_gui.dialogs.CommonExportDialog;
 import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
 import eu.transkribus.swt_gui.dialogs.InstallSpecificVersionDialog;
 import eu.transkribus.swt_gui.dialogs.JavaVersionDialog;
-import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog;
 import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
 import eu.transkribus.swt_gui.dialogs.TrpLoginDialog;
 import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
-import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog.P2PaLATrainUiConf;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
@@ -6505,4 +6502,23 @@ public class TrpMainWidget {
 			DialogUtil.showBalloonToolTip(mw.getUi().getJobsButton(), null, title, msg);
 		}
 	}
+
+	public void duplicateGtToDocument(TrpCollection col, GroundTruthSelectionDescriptor desc, String title) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+		List<GroundTruthSelectionDescriptor> descList = new ArrayList<>(1);
+		descList.add(desc);
+		String jobId = storage.getConnection().duplicateGtToDocument(col.getColId(), descList, title, null);
+		registerJobStatusUpdateAndShowSuccessMessage(jobId);
+	}
+	
+	public List<String> getSelectedRegionIds() {
+		List<String> rids = new ArrayList<>();
+		for (ICanvasShape s : canvas.getScene().getSelectedAsNewArray()) {
+			ITrpShapeType st = GuiUtil.getTrpShape(s);
+			if (st == null || !(st instanceof TrpTextRegionType)) {
+				continue;
+			}
+			rids.add(st.getId());
+		}
+		return rids;
+	}	
 }

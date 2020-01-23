@@ -2,7 +2,9 @@ package eu.transkribus.swt_gui.dialogs;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.swt.SWT;
@@ -142,6 +144,7 @@ public class CharSetViewerDialog extends Dialog {
 			this.charSet = new ArrayList<>(0);
 		} else {
 			this.charSet = new ArrayList<>(charSet);
+			this.charSet = this.charSet.stream().filter(s -> !StringUtils.equals(s, "<ctc>") /*&& !StringUtils.equals(s, "<space>")*/).map(s -> "<space>".equals(s) ? " " : s).sorted().collect(Collectors.toList());
 		}
 	}
 

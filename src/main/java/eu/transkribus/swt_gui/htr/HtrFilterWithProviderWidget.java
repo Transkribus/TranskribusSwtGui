@@ -8,6 +8,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 public class HtrFilterWithProviderWidget extends HtrFilterWidget {
@@ -31,9 +32,16 @@ public class HtrFilterWithProviderWidget extends HtrFilterWidget {
 			//lock the combo as no choice is allowed
 			providerCombo.setEnabled(false);
 		}
-				
+		
+		//filtering by provider is done in Storage and that's why the listener is attached in the outer Composite
 		providerCombo.select(0);
 		providerCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));		
+	}
+	
+	@Override
+	public void addListener(int eventType, Listener listener) {
+		super.addListener(eventType, listener);
+		providerCombo.addListener(eventType, listener);
 	}
 	
 	/**
@@ -41,7 +49,7 @@ public class HtrFilterWithProviderWidget extends HtrFilterWidget {
 	 */
 	@Override
 	protected Layout createLayout() {
-		return new GridLayout(4, false);
+		return new GridLayout(5, false);
 	}
 	
 	private void addProviderFilter(Combo providerCombo, String label, String data) {

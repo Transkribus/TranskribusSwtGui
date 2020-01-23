@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.ws.rs.ClientErrorException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -17,7 +18,9 @@ import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
+import eu.transkribus.core.model.beans.DocSelection;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
+import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpP2PaLA;
@@ -105,17 +108,17 @@ public class ToolsWidgetListener implements SelectionListener {
 		});
 	}
 
-	List<String> getSelectedRegionIds() {
-		List<String> rids = new ArrayList<>();
-		for (ICanvasShape s : canvas.getScene().getSelectedAsNewArray()) {
-			ITrpShapeType st = GuiUtil.getTrpShape(s);
-			if (st == null || !(st instanceof TrpTextRegionType)) {
-				continue;
-			}
-			rids.add(st.getId());
-		}
-		return rids;
-	}
+//	List<String> getSelectedRegionIds() {
+//		List<String> rids = new ArrayList<>();
+//		for (ICanvasShape s : canvas.getScene().getSelectedAsNewArray()) {
+//			ITrpShapeType st = GuiUtil.getTrpShape(s);
+//			if (st == null || !(st instanceof TrpTextRegionType)) {
+//				continue;
+//			}
+//			rids.add(st.getId());
+//		}
+//		return rids;
+//	}
 
 	boolean isLayoutAnalysis(Object s) {
 		return s == tw.startLaBtn || s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn || s==tw.p2palaBtn || s==tw.p2palaTrainBtn || s==tw.t2iBtn;
@@ -157,6 +160,10 @@ public class ToolsWidgetListener implements SelectionListener {
 					} else if (htd.getCitlabT2IConfig() != null) {
 						CitLabSemiSupervisedHtrTrainConfig config = htd.getCitlabT2IConfig();
 						jobId = store.runCitLabText2Image(config);
+						showSuccessMessage(jobId);
+					} else if (htd.getPyLaiaConfig() != null) {
+						PyLaiaHtrTrainConfig conf = htd.getPyLaiaConfig();
+						jobId = store.runPyLaiaTraining(conf);
 						showSuccessMessage(jobId);
 					}
 				}
@@ -266,10 +273,14 @@ public class ToolsWidgetListener implements SelectionListener {
 				
 				String msg = (tw.laComp.isDocsSelection() && tw.laComp.getDocs() != null && Storage.getInstance().isAdminLoggedIn()) ? "Do you really want to start the LA for "+ tw.laComp.getDocs().size() + " docs in this collection?" : "Do you really want to start the LA for page(s) " + pageStr + "  ?";
 				
+				List<String> rids = mw.getSelectedRegionIds();
 				String configInfoStr = null;
 				//get information on config for configurable methods
 				if(JobImpl.CITlabAdvancedLaJob.equals(tw.laComp.getJobImpl())) {
 					configInfoStr = new CITlabAdvancedLaConfigDialog(mw.getShell(), tw.laComp.getParameters()).getConfigInfoString();
+				}
+				if (tw.laComp.isCurrentTranscript() && !CoreUtils.isEmpty(rids)) {
+					configInfoStr+="\nSelected regions: "+rids;
 				}
 				
 				if(configInfoStr != null) {
@@ -281,22 +292,38 @@ public class ToolsWidgetListener implements SelectionListener {
 				}
 				
 				if (tw.laComp.isDocsSelection() && tw.laComp.getDocs() != null && Storage.getInstance().isAdminLoggedIn()){
-					/*
-					 * ToDo: we could start LA for all docs at once in a single job instead of starting it for each doc separately
-					 * this way the jobs are parallelized automatically, results will be finsished earlier
-					 * but job list will be much longer
-					 */
-					for (DocumentSelectionDescriptor docDescr : tw.laComp.getDocs()){
-						logger.debug("start LA for docs: " + docDescr.getDocId());
+					// NEW: use DocSelection objects
+					for (DocSelection docSel : tw.laComp.getDocs()){
+						logger.debug("start LA for docs: " + docSel.getDocId());
 						List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
-						dsds.add(docDescr);
+						// as LA call does not support specifying a docId & pagesStr (TODO!) we have to get the pageIds from the server to construct a DSD object
+						DocumentSelectionDescriptor dsd = store.getDocumentSelectionDescriptor(colId, docSel);
+						logger.debug("nr of pages in la descriptor: "+dsd.getPages().size());
+						dsds.add(dsd);
 						List<String> tmp = store.analyzeLayoutOnDocumentSelectionDescriptor(
 								dsds, tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), 
 								false, false, tw.laComp.getJobImpl().toString(), tw.laComp.getParameters()
 								);
 						jobIds.addAll(tmp);
-						
-					}
+					}					
+					
+					// OLD
+//					/*
+//					 * ToDo: we could start LA for all docs at once in a single job instead of starting it for each doc separately
+//					 * this way the jobs are parallelized automatically, results will be finsished earlier
+//					 * but job list will be much longer
+//					 */
+//					for (DocumentSelectionDescriptor docDescr : tw.laComp.getDocs()){
+//						logger.debug("start LA for docs: " + docDescr.getDocId());
+//						List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
+//						dsds.add(docDescr);
+//						List<String> tmp = store.analyzeLayoutOnDocumentSelectionDescriptor(
+//								dsds, tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), 
+//								false, false, tw.laComp.getJobImpl().toString(), tw.laComp.getParameters()
+//								);
+//						jobIds.addAll(tmp);
+//						
+//					}
 				}
 
 				else if (!tw.laComp.isCurrentTranscript()) {
@@ -305,7 +332,6 @@ public class ToolsWidgetListener implements SelectionListener {
 							tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, false,
 							tw.laComp.getJobImpl().toString(), tw.laComp.getParameters());
 				} else {
-					List<String> rids = getSelectedRegionIds();
 					logger.debug("running la on current transcript and selected rids: " + CoreUtils.join(rids));
 					jobIds = store.analyzeLayoutOnCurrentTranscript(rids, tw.laComp.isDoBlockSeg(),
 							tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, false,
@@ -323,7 +349,7 @@ public class ToolsWidgetListener implements SelectionListener {
 							false, false, false, isPolygon2Baseline, !isPolygon2Baseline, jobImpl, null);
 				} else {
 					logger.debug(btnName + " on current transcript");
-					List<String> rids = getSelectedRegionIds();
+					List<String> rids = mw.getSelectedRegionIds();
 
 					jobIds = store.analyzeLayoutOnCurrentTranscript(rids, false, false, false, isPolygon2Baseline,
 							!isPolygon2Baseline, jobImpl, null);
@@ -375,13 +401,25 @@ public class ToolsWidgetListener implements SelectionListener {
 						pm.addParameter(JobConstP2PaLA.RECTIFY_REGIONS_PAR, conf.rectifyRegions);
 						
 						if (diag.isDocsSelected() && diag.getDocs() != null && Storage.getInstance().isAdminLoggedIn()){
-							for (DocumentSelectionDescriptor docDescr : diag.getDocs()){
-								logger.debug("start p2pala for doc: " + docDescr.getDocId());
+							// NEW
+							for (DocSelection docSel : diag.getDocs()){
+								logger.debug("start p2pala for doc: " + docSel.getDocId());
 								List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
-								dsds.add(docDescr);
+								// as LA call does not support specifying a docId & pagesStr (TODO!) we have to get the pageIds from the server to construct a DSD object
+								DocumentSelectionDescriptor dsd = store.getDocumentSelectionDescriptor(colId, docSel);
+								logger.debug("nr of pages in p2pala descriptor: "+dsd.getPages().size());
+								dsds.add(dsd);
 								List<String> tmp = store.analyzeLayoutOnDocumentSelectionDescriptor(dsds, true, true, false, false, false, jobImpl, pm);
-								jobIds.addAll(tmp);								
-							}
+								jobIds.addAll(tmp);							
+							}							
+							// OLD
+//							for (DocumentSelectionDescriptor docDescr : diag.getDocs()) {
+//								logger.debug("start p2pala for doc: " + docDescr.getDocId());
+//								List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
+//								dsds.add(docDescr);
+//								List<String> tmp = store.analyzeLayoutOnDocumentSelectionDescriptor(dsds, true, true, false, false, false, jobImpl, pm);
+//								jobIds.addAll(tmp);								
+//							}
 						}
 						else if (!conf.currentTranscript) {
 							logger.debug("p2palaBtn on pages: " + tw.otherToolsPagesSelector.getPagesStr());
@@ -454,6 +492,10 @@ public class ToolsWidgetListener implements SelectionListener {
 					if (conf.jump_bl!=null) {
 						logger.debug("setting jump_bl = "+conf.jump_bl);
 						pm.addDoubleParam(JobConst.PROP_T2I_JUMP_BASELINE, conf.jump_bl);
+					}
+					if (conf.hyphen!=null) {
+						logger.debug("setting hyphen = "+conf.hyphen);
+						pm.addDoubleParam(JobConst.PROP_T2I_HYPHEN, conf.hyphen);						
 					}
 					if (conf.editStatus!=null) {
 						pm.addParameter(JobConst.PROP_EDIT_STATUS, conf.editStatus.getStr());
@@ -602,17 +644,18 @@ public class ToolsWidgetListener implements SelectionListener {
 							}
 
 							if (isDocsSelection){
-								/*
-								 * ToDo: we could start LA for all docs at once in a single job instead of starting it for each doc separately
-								 * this way the jobs are parallelized automatically, results will be finsished earlier
-								 * but job list will be much longer
-								 */
-								for (DocumentSelectionDescriptor docDescr : trd2.getDocs()){
-									logger.debug("start HTR for all pages with docId = {}", docDescr.getDocId());
-
-									String tmp = store.runHtr(docDescr, config);
-									jobIds.add(tmp);
+								// NEW: use DocSelection here, as they contain the pages string for each doc:
+								for (DocSelection docSel : trd2.getDocs()) {
+									String jobId = store.runHtr(docSel.getDocId(), docSel.getPages(), config);
+									jobIds.add(jobId);
 								}
+								// OLD: use DocumentSelectionDescriptor which do *not* contain individual pages
+//								for (DocumentSelectionDescriptor docDescr : trd2.getDocs()){
+//									logger.debug("start HTR for all pages with docId = {}", docDescr.getDocId());
+//
+//									String tmp = store.runHtr(docDescr, config);
+//									jobIds.add(tmp);
+//								}
 							} else {
 								String jobId = store.runHtr(pages, config);
 								jobIds.add(jobId);

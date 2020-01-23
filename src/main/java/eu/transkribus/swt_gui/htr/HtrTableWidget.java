@@ -17,6 +17,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
+import eu.transkribus.core.util.HtrPyLaiaUtils;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
@@ -32,7 +34,7 @@ import eu.transkribus.swt.util.Images;
 public class HtrTableWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(HtrTableWidget.class);
 	
-	public final static String[] providerValues = { HtrCITlabUtils.PROVIDER_CITLAB, HtrCITlabUtils.PROVIDER_CITLAB_PLUS };	
+	public final static String[] providerValues = { HtrCITlabUtils.PROVIDER_CITLAB, HtrCITlabUtils.PROVIDER_CITLAB_PLUS, HtrPyLaiaUtils.PROVIDER_PYLAIA };	
 	
 	public class HtrLazyContentProvider implements ILazyContentProvider {
 		private MyTableViewer viewer;
@@ -82,8 +84,8 @@ public class HtrTableWidget extends Composite {
 	public static final String HTR_DATE_COL = "Created";
 	public static final String HTR_ID_COL = "ID";
 	
-	private MyTableViewer htrTv;	
-	private HtrTableLabelProvider labelProvider;
+	MyTableViewer htrTv;	
+	HtrTableLabelProvider labelProvider;
 	
 	// filter:
 	Composite filterAndReloadComp;
@@ -103,7 +105,7 @@ public class HtrTableWidget extends Composite {
 		new ColumnConfig(HTR_ID_COL, 50, true, DefaultTableColumnViewerSorter.ASC),
 	};
 	
-	public static boolean USE_LAZY_LOADING = true;
+	private final static boolean USE_LAZY_LOADING = true;
 	
 	public HtrTableWidget(Composite parent, int style, String providerFilter) {
 		super(parent, style);
@@ -150,6 +152,12 @@ public class HtrTableWidget extends Composite {
 		addFilter();
 	}
 	
+	@Override
+	public void addListener(int eventType, Listener listener) {
+		super.addListener(eventType, listener);
+		filterComposite.addListener(eventType, listener);
+	}
+	
 	private void addFilter() {
 		filterAndReloadComp = new Composite(this, SWT.NONE);
 		filterAndReloadComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -186,17 +194,14 @@ public class HtrTableWidget extends Composite {
 	void resetProviderFilter() {
 		filterComposite.resetProviderFilter();
 	}
-	
-	public Combo getProviderCombo() {
-		return filterComposite.getProviderCombo();
-	}
 
 	public Button getReloadButton() {
 		return reloadBtn;
 	}
 	
 	public String getProviderComboValue() {
-		return (String)getProviderCombo().getData(getProviderCombo().getText());
+		Combo providerCombo = filterComposite.getProviderCombo();
+		return (String) providerCombo.getData(providerCombo.getText());
 	}
 	
 	public TrpHtr getSelectedHtr() {

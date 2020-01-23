@@ -2,6 +2,7 @@ package eu.transkribus.util;
 
 import java.util.List;
 
+import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.swt_gui.htr.HtrDictionaryComposite;
 
 public class TextRecognitionConfig {
@@ -19,6 +20,8 @@ public class TextRecognitionConfig {
 	private boolean doLinePolygonSimplification = true;
 	private boolean keepOriginalLinePolygons = false;
 	private boolean doStoreConfMats = true;
+	private boolean clearLines = true;
+	private int batchSize = 10;
 	
 	public TextRecognitionConfig(Mode mode) {
 		this.mode = mode;
@@ -27,8 +30,6 @@ public class TextRecognitionConfig {
 	public boolean isDoLinePolygonSimplification() {
 		return doLinePolygonSimplification;
 	}
-
-
 
 	public void setDoLinePolygonSimplification(boolean doLinePolygonSimplification) {
 		this.doLinePolygonSimplification = doLinePolygonSimplification;
@@ -52,6 +53,22 @@ public class TextRecognitionConfig {
 	
 	public void setDoStoreConfMats(boolean doStoreConfMats) {
 		this.doStoreConfMats = doStoreConfMats;
+	}
+	
+	public boolean isClearLines() {
+		return clearLines;
+	}
+
+	public void setClearLines(boolean clearLines) {
+		this.clearLines = clearLines;
+	}
+	
+	public void setBatchSize(int batchSize) {
+		this.batchSize = batchSize;
+	}
+	
+	public int getBatchSize() {
+		return batchSize;
 	}
 
 	public Mode getMode() {
@@ -117,12 +134,16 @@ public class TextRecognitionConfig {
 		String s = "";
 		
 		switch(mode) {
-		case CITlab:
-			s = "CITlab RNN HTR\nNet Name: " + htrName + "\nLanguage: " + language + "\nDictionary: " 
-					+ (dictionary == null ? HtrDictionaryComposite.NO_DICTIONARY : dictionary);
+		case CITlab:			
+			s = "CITlab HTR\n"
+					+ "Net Name: " + htrName + "\n"
+					+ "Language: " + language + "\n"
+					+ getDictLabel(dictionary);
 			break;
 		case UPVLC:
-			s = "This mode is not implemented.";
+//			s = "PyLaia HTR\nNet Name: " + htrName + "\nLanguage: " + language+ "\nDictionary: " 
+//					+ (dictionary == null ? HtrDictionaryComposite.NO_DICTIONARY : dictionary);
+			s = "PyLaia HTR\nNet Name: " + htrName + "\nLanguage: " + language; // note: dictionaries currently not supported in PyLaia decoding!			
 			break;
 		default:
 			s = "Could not load configuration!";
@@ -130,6 +151,20 @@ public class TextRecognitionConfig {
 		}
 		
 		return s;
+	}
+	
+	private String getDictLabel(String dictionary) {
+		String dictLabel;
+		if(dictionary == null) {
+			dictLabel = HtrDictionaryComposite.NO_DICTIONARY;
+		} else if (JobConst.PROP_TRAIN_DATA_DICT_VALUE.equals(dictionary)) {
+			dictLabel = HtrDictionaryComposite.INTEGRATED_DICTIONARY;
+		} else if (JobConst.PROP_TRAIN_DATA_LM_VALUE.equals(dictionary)) {
+			dictLabel = HtrDictionaryComposite.INTEGRATED_LM;
+		} else {
+			dictLabel = "Dictionary: " + dictionary;
+		}
+		return dictLabel;
 	}
 
 	public enum Mode {

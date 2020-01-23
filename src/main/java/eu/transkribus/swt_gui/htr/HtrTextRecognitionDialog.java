@@ -2,15 +2,12 @@ package eu.transkribus.swt_gui.htr;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
@@ -26,10 +23,10 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.DocSelection;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.MultiCheckSelectionCombo;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ToolBox;
@@ -37,6 +34,7 @@ import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrDocPagesOrCollectionSelector;
 import eu.transkribus.util.TextRecognitionConfig;
+import eu.transkribus.util.TextRecognitionConfig.Mode;
 
 public class HtrTextRecognitionDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(HtrTextRecognitionDialog.class);
@@ -46,21 +44,27 @@ public class HtrTextRecognitionDialog extends Dialog {
 	private Button thisPageBtn, severalPagesBtn;
 	private CurrentTranscriptOrDocPagesOrCollectionSelector dps;
 	private boolean docsSelected = false;
-	private List<DocumentSelectionDescriptor> selectedDocDescriptors;
+//	private List<DocumentSelectionDescriptor> selectedDocDescriptors;
+	private List<DocSelection> selectedDocSelections;
 	
-	private Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn, doStoreConfMatsBtn;
+//	private Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn, doStoreConfMatsBtn, clearLinesBtn;
 	private MultiCheckSelectionCombo multiCombo;
+	ToolBar structureBar;
+	ToolItem structureItem;
+	ToolBox structureBox;
+	List<String> selectionArray = new ArrayList<>();
+	
+	PyLaiaRecognitionConfComposite pylaiaConfComp;
+	CitlabRecognitionConfComposite citlabConfComp;
 	
 	private Storage store = Storage.getInstance();
 	
 	private TextRecognitionConfig config;
 	private String pages;
 	
-	ToolBar structureBar;
-	ToolItem structureItem;
-	ToolBox structureBox;
-	
-	List<String> selectionArray = new ArrayList<>();
+	private Composite container;
+	private Text configTxt;
+	private Button configBtn;
 	
 	public HtrTextRecognitionDialog(Shell parent) {
 		super(parent);
@@ -77,10 +81,18 @@ public class HtrTextRecognitionDialog extends Dialog {
 		Composite cont = (Composite) super.createDialogArea(parent);
 		cont.setLayout(new GridLayout(3, false));
 		
+		container = cont;
+		
 		//FIXME the document selection is not initialized before the selection dialog is opened once
 		//with this selector jobs can be started for complete collections
-		dps = new CurrentTranscriptOrDocPagesOrCollectionSelector(cont, SWT.NONE, true,true);		
+		dps = new CurrentTranscriptOrDocPagesOrCollectionSelector(cont, SWT.NONE, true, true, true);		
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 3, 1));
+		
+		citlabConfComp = new CitlabRecognitionConfComposite(cont);
+		citlabConfComp.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 3, 1));
+		
+		pylaiaConfComp = new PyLaiaRecognitionConfComposite(SWTUtil.dummyShell);
+		pylaiaConfComp.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 3, 1));		
 		
 //		thisPageBtn = new Button(cont, SWT.RADIO);
 //		thisPageBtn.setText("On this page");
@@ -102,73 +114,40 @@ public class HtrTextRecognitionDialog extends Dialog {
 //			}
 //		});
 		
-		doLinePolygonSimplificationBtn = new Button(cont, SWT.CHECK);
-		doLinePolygonSimplificationBtn.setText("Do polygon simplification");
-		doLinePolygonSimplificationBtn.setToolTipText("Perform a line polygon simplification after the recognition process to reduce the number of output points and thus the size of the file");
-		doLinePolygonSimplificationBtn.setSelection(true);
-		doLinePolygonSimplificationBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
-		keepOriginalLinePolygonsBtn = new Button(cont, SWT.CHECK);
-		keepOriginalLinePolygonsBtn.setText("Keep original line polygons");
-		keepOriginalLinePolygonsBtn.setToolTipText("Keep the original line polygons after the recognition process, e.g. if they have been already corrected");
-		keepOriginalLinePolygonsBtn.setSelection(false);
-		keepOriginalLinePolygonsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		
-		doStoreConfMatsBtn = new Button(cont, SWT.CHECK);
-		doStoreConfMatsBtn.setText("Enable Keyword Spotting");
-		doStoreConfMatsBtn.setToolTipText("The internal recognition result respresentation, needed for keyword spotting, will be stored in addition to the transcription.");
-		doStoreConfMatsBtn.setSelection(true);
-		doStoreConfMatsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		
-		List<StructCustomTagSpec> tags = new ArrayList<>();
-		tags = store.getStructCustomTagSpecs();
-		
-//		multiCombo = new MultiCheckSelectionCombo(cont, SWT.FILL,"Restrict on structure tags", 1, 200, 300 );
-//		multiCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));		
+//		doLinePolygonSimplificationBtn = new Button(cont, SWT.CHECK);
+//		doLinePolygonSimplificationBtn.setText("Do polygon simplification");
+//		doLinePolygonSimplificationBtn.setToolTipText("Perform a line polygon simplification after the recognition process to reduce the number of points");
+//		doLinePolygonSimplificationBtn.setSelection(true);
+//		doLinePolygonSimplificationBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 //		
-//		for(StructCustomTagSpec tag : tags) {
-//			int itemCount = multiCombo.getItemCount();
-//			List<String> items = new ArrayList<>();
-//			for(int i = 0; i < itemCount; i++) {
-//				items.add(multiCombo.getItem(i));
-//			}	
-//			if(!items.contains(tag.getCustomTag().getType())) {
-//				multiCombo.add(tag.getCustomTag().getType());
-//			}	
-//		}
-		
-		structureBar = new ToolBar(cont, SWT.FILL);
-		
-		structureItem = new ToolItem(structureBar, SWT.CHECK);
-		structureItem.setToolTipText("Choose structures...");
-		structureItem.setText("Restrict on structure tags");
-		
-		structureBox = new ToolBox(getShell(), true, "Structures");
-		structureBox.addTriggerWidget(structureItem);
-		
-		for(StructCustomTagSpec tag : tags) {
-			Button button = structureBox.addButton(tag.getCustomTag().getType(), null, SWT.CHECK);
-			button.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					if(selectionArray.contains(tag.getCustomTag().getType())) {
-						selectionArray.remove(tag.getCustomTag().getType());
-					}else {
-						selectionArray.add(tag.getCustomTag().getType());
-					}
-			      }
-			});
-			
-		}
-		
-		SWTUtil.onSelectionEvent(keepOriginalLinePolygonsBtn, e -> {
-			doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());
-		});
-		doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());
-		
-		Text configTxt = new Text(cont, SWT.MULTI | SWT.READ_ONLY | SWT.BORDER);
+//		clearLinesBtn = new Button(cont, SWT.CHECK);
+//		clearLinesBtn.setText("Clear lines");
+//		clearLinesBtn.setToolTipText("Clear existing transcriptions before recognition");
+//		clearLinesBtn.setSelection(true);
+//		clearLinesBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));		
+//		
+//		keepOriginalLinePolygonsBtn = new Button(cont, SWT.CHECK);
+//		keepOriginalLinePolygonsBtn.setText("Keep original line polygons");
+//		keepOriginalLinePolygonsBtn.setToolTipText("Keep the original line polygons after the recognition process, e.g. if they have been already corrected");
+//		keepOriginalLinePolygonsBtn.setSelection(false);
+//		keepOriginalLinePolygonsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+//		
+//		doStoreConfMatsBtn = new Button(cont, SWT.CHECK);
+//		doStoreConfMatsBtn.setText("Enable Keyword Spotting");
+//		doStoreConfMatsBtn.setToolTipText("The internal recognition result respresentation, needed for keyword spotting, will be stored in addition to the transcription.");
+//		doStoreConfMatsBtn.setSelection(true);
+//		doStoreConfMatsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+//		
+//		SWTUtil.onSelectionEvent(keepOriginalLinePolygonsBtn, e -> {
+//			doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());
+//		});
+//		doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());		
+//				
+		configTxt = new Text(cont, SWT.MULTI | SWT.READ_ONLY | SWT.BORDER);
 		configTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 6));
 				
-		Button configBtn = new Button(cont, SWT.PUSH);
+		configBtn = new Button(cont, SWT.PUSH);
 		configBtn.setText("Select HTR model...");
 		configBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
@@ -182,6 +161,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 						config = trcd.getConfig();
 						configTxt.setText(config.toString());
 						store.saveTextRecognitionConfig(config);
+						updateUi();
 					}
 					trcd = null;
 				} else {
@@ -195,6 +175,8 @@ public class HtrTextRecognitionDialog extends Dialog {
 		if(config != null) {
 			configTxt.setText(config.toString());
 		}
+		
+		updateUi();
 		return cont;
 	}
 	
@@ -202,8 +184,12 @@ public class HtrTextRecognitionDialog extends Dialog {
 		return docsSelected;
 	}
 	
-	public List<DocumentSelectionDescriptor> getDocs(){
-		return selectedDocDescriptors;
+//	public List<DocumentSelectionDescriptor> getDocs(){
+//		return selectedDocDescriptors;
+//	}
+	
+	public List<DocSelection> getDocs() {
+		return selectedDocSelections;
 	}
 	
 	@Override
@@ -226,8 +212,9 @@ public class HtrTextRecognitionDialog extends Dialog {
 			}
 		} else {
 			docsSelected = dps.isDocsSelection();
-			selectedDocDescriptors = dps.getDocumentsSelected();
-			if(CollectionUtils.isEmpty(selectedDocDescriptors)) {
+//			selectedDocDescriptors = dps.getDocumentsSelected();
+			selectedDocSelections = dps.getDocSelections();
+			if(CollectionUtils.isEmpty(selectedDocSelections)) {
 				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "No documents selected for recognition.");
 				return;
 			}
@@ -238,12 +225,59 @@ public class HtrTextRecognitionDialog extends Dialog {
 			return;
 		}
 		
+		boolean isCitlab = config!=null && config.getMode()==Mode.CITlab;
+		
+		if (isCitlab) {
+			config.setStructures(citlabConfComp.selectionArray);
+			config.setKeepOriginalLinePolygons(citlabConfComp.keepOriginalLinePolygonsBtn.getSelection());
+			config.setDoLinePolygonSimplification(citlabConfComp.doLinePolygonSimplificationBtn.getSelection());
+			
+			config.setDoStoreConfMats(citlabConfComp.doStoreConfMatsBtn.getSelection());			
+		}
+		else {
+			config.setDoLinePolygonSimplification(pylaiaConfComp.doLinePolygonSimplificationBtn.getSelection());
+			config.setClearLines(pylaiaConfComp.clearLinesBtn.getSelection());
+			
+			try {
+				int batchSize = Integer.parseInt(pylaiaConfComp.batchSizeText.getText());
+				config.setBatchSize(batchSize);
+			}
+			catch (Exception e) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error parsing batch size", "Invalid batch size: "+pylaiaConfComp.batchSizeText.getText());
+				return;
+			}
+		}
+		
 		config.setStructures(selectionArray);
-		config.setKeepOriginalLinePolygons(keepOriginalLinePolygonsBtn.getSelection());
-		config.setDoLinePolygonSimplification(doLinePolygonSimplificationBtn.getSelection());
-		config.setDoStoreConfMats(doStoreConfMatsBtn.getSelection());
+//		config.setKeepOriginalLinePolygons(keepOriginalLinePolygonsBtn.getSelection());
+//		config.setDoLinePolygonSimplification(doLinePolygonSimplificationBtn.getSelection());
+//		config.setClearLines(clearLinesBtn.getSelection());
+//		config.setDoStoreConfMats(doStoreConfMatsBtn.getSelection());
 		
 		super.okPressed();
+	}
+	
+	private void updateUi() {
+		boolean isCitlab = config!=null && config.getMode()==Mode.CITlab;
+		
+		if (isCitlab) {
+			citlabConfComp.setParent(container);
+			citlabConfComp.moveAbove(configTxt);
+			pylaiaConfComp.setParent(SWTUtil.dummyShell);
+			container.layout();
+		}
+		else {
+			pylaiaConfComp.setParent(container);
+			pylaiaConfComp.moveAbove(configTxt);
+			citlabConfComp.setParent(SWTUtil.dummyShell);
+			container.layout();
+		}
+		
+//		doLinePolygonSimplificationBtn.setVisible(true);
+//		boolean isCitlab = config!=null && config.getMode()==Mode.CITlab;
+//		clearLinesBtn.setVisible(!isCitlab);
+//		keepOriginalLinePolygonsBtn.setVisible(isCitlab);
+//		doStoreConfMatsBtn.setVisible(isCitlab);
 	}
 
 	@Override
@@ -259,7 +293,6 @@ public class HtrTextRecognitionDialog extends Dialog {
 
 	@Override
 	protected Point getInitialSize() {
-//		return new Point(300, 400);
 		return SWTUtil.getPreferredOrMinSize(getShell(), 300, 400);
 	}
 

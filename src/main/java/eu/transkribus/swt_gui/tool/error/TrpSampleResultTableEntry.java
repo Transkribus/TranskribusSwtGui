@@ -8,8 +8,10 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.io.util.TrpProperties;
 import eu.transkribus.core.model.beans.TrpComputeSample;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.util.JaxbUtils;
+import eu.transkribus.core.util.JobDataUtils;
 import eu.transkribus.swt_gui.search.kws.AJobResultTableEntry;
 
 public class TrpSampleResultTableEntry extends AJobResultTableEntry<TrpComputeSample>{
@@ -43,8 +45,11 @@ public class TrpSampleResultTableEntry extends AJobResultTableEntry<TrpComputeSa
 	@Override
 	protected String extractQueries(TrpProperties props, TrpComputeSample result) {
 		
+		ParameterMap paramMap = JobDataUtils.getParameterMap(props.getProperties(), JobConst.PROP_PARAMETERS);
+		String hyp = paramMap.getParameterValue("hyp");
+		String gt = paramMap.getParameterValue("ref");
+		return "Ref: "+gt+" | Hyp : "+hyp ;
 		
-		return "Ref: "+props.getOrDefault("parameters.0.value", "latest GT")+" | Hyp : "+props.getOrDefault("parameters.3.value", "latest Version") ;
 	} 
 
 }
