@@ -268,7 +268,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				String deleteHypPageString = null;
 					try {
 						// create new pagestring, take only pages with chosen toolname
-						TrpDoc doc = store.getConnection().getTrpDoc(store.getCollId(), store.getDocId(), 10);
+						TrpDoc doc = store.getConnection().getTrpDoc(store.getCollId(), store.getDocId(), -1);
 						Set<Integer> pageIndices = CoreUtils.parseRangeListStr(dps.getPagesStr(), store.getDoc().getNPages());
 						Set<Integer> newPageIndices = new HashSet<Integer>();
 						Set<Integer> delGTIndices = new HashSet<Integer>();
