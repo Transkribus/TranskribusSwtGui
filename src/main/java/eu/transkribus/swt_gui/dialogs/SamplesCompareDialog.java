@@ -519,7 +519,7 @@ public class SamplesCompareDialog extends Dialog {
 							if (result == SWT.YES) {
 								try {
 									TrpJobStatus status =  store.computeSampleRate(docId,params);
-									TrpJobStatus statusCER = store.getConnection().computeErrorRateWithJob(docId, "1-"+docMd.getNrOfPages(), params);
+									TrpJobStatus statusCER = store.getConnection().computeErrorRateWithJob(docId, newPageString, params);
 									rl = new ResultLoader();
 									rl.start();
 									if(status != null &&  status.isFinished()) {			
