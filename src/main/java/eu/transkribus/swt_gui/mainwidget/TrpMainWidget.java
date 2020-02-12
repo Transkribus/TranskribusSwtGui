@@ -2903,6 +2903,10 @@ public class TrpMainWidget {
 			logger.warn("Session expired!");
 			loginDialog("Session expired!");
 		} else {
+			if (th instanceof NullPointerException && StringUtils.isEmpty(message)) {
+				message = "NullPointerException";
+			}
+			
 			SWTLog.logError(logger, getShell(), title, message, th, logStackTrace);
 
 			if (!showBalloonTooltip) {
@@ -2911,6 +2915,12 @@ public class TrpMainWidget {
 				}
 			} else
 				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, title, message, 2, true);
+		}
+	}
+	
+	public static void onErrorStatic(String title, String message, Throwable th) {
+		if (mw != null) {
+			mw.onError(title, message, th, true, false);
 		}
 	}
 

@@ -101,6 +101,22 @@ public class DialogUtil {
 	        return response;		
 	}
 	
+	/**
+	 * If specified exception is a RuntimeException, show a detailed error message box, a regular one instead
+	 */
+	public static int showErrorMessageBox2(Shell shell, String title, String message, Throwable e) {
+		if (e instanceof RuntimeException) {
+			String msg = e.getMessage();
+			if (e instanceof NullPointerException) {
+				msg = "NullPointerException";
+			}
+			return DialogUtil.showDetailedErrorMessageBox(shell, title, msg, e);
+		}
+		else {
+			return DialogUtil.showErrorMessageBox(shell, title, e.getMessage());
+		}
+	}
+	
 	public static int showErrorMessageBox(Shell shell, String title, String message) {
 		return showMessageBox(shell, title, message, SWT.ICON_ERROR);
 	}

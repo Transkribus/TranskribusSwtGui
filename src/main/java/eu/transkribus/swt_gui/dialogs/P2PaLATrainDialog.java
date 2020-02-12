@@ -26,6 +26,7 @@ import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.DocSelection;
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpP2PaLA;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.enums.EditStatus;
@@ -44,6 +45,7 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DocsSelectorBtn;
 
@@ -360,11 +362,21 @@ public class P2PaLATrainDialog extends Dialog {
 						MonitorUtil.subTask(monitor, (i+1)+"/"+docs.size());
 						
 						try {
-							List<TrpPage> pagesForDocs = store.getConnection().getTrpPagesByPagesStr(store.getCollId(), 
-									ds.getDocId(), ds.getPages(), editStatus, skipPagesWithMissingStatus);
-							logger.debug("got "+pagesForDocs.size()+" pages for doc "+ds.getDocId());
-							pages.addAll(pagesForDocs);
-						} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e) {
+							if (true) {
+								// NEW CODE
+								logger.debug("getting doc "+ds.getDocId()+"pagesStr = "+ds.getPages()+", editStatus = "+editStatus+", skipPagesWithMissingStatus = "+skipPagesWithMissingStatus);
+								TrpDoc doc = store.getConnection().getTrpDoc(store.getCollId(), ds.getDocId(), -1);
+								doc.filterPagesByPagesStrAndEditStatus(ds.getPages(), editStatus, skipPagesWithMissingStatus);
+								pages.addAll(doc.getPages());
+							}
+							else {
+								// OLD CODE
+								List<TrpPage> pagesForDocs = store.getConnection().getTrpPagesByPagesStr(store.getCollId(), 
+										ds.getDocId(), ds.getPages(), editStatus, skipPagesWithMissingStatus);
+								logger.debug("got "+pagesForDocs.size()+" pages for doc "+ds.getDocId());
+								pages.addAll(pagesForDocs);
+							}
+						} catch (Exception e) {
 							throw new InvocationTargetException(e);
 						}
 						
@@ -389,7 +401,7 @@ public class P2PaLATrainDialog extends Dialog {
 			return null;
 		}
 		catch (Throwable e) {
-			DialogUtil.showErrorMessageBox(getShell(), "Error", e.getMessage());
+			DialogUtil.showErrorMessageBox2(getShell(), "Error", e.getMessage(), e);
 			logger.error(e.getMessage(), e);
 			return null;
 		}
