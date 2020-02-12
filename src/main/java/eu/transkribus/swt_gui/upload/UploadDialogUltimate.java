@@ -187,7 +187,7 @@ public class UploadDialogUltimate extends Dialog {
 		createUrlGroup(metsUrlGroup,"METS URL:",false);
 		
 		iiifUrlGroup = new Group(SWTUtil.dummyShell, 0);
-		iiifUrlGroup.setText("Document upload via IIIF manifest");
+		iiifUrlGroup.setText("Document upload via IIIF manifest (API Version 2.1)");
 		iiifUrlGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		iiifUrlGroup.setLayout(new GridLayout(3, false));
 		createUrlGroup(iiifUrlGroup,"IIIF manifest URL:",true);
