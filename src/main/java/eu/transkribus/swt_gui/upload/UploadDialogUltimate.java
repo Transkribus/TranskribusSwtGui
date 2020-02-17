@@ -75,11 +75,11 @@ public class UploadDialogUltimate extends Dialog {
 	Group ftpGroup, singleGroup, metsUrlGroup,iiifUrlGroup, pdfGroup;
 	
 	Text folderText; //, pdfFolderText;
-	Text titleText, urlText;
+	Text titleText, metsUrlText, iiifUrlText, iiifTitleText, metsTitleText;
 	Text fileText;
 	
 //	String dirName;
-	String file, folder, /*pdffolder, */ title, url;
+	String file, folder, title, /*pdffolder, */ metsTitle, metsUrl, iiifTitle, iiifUrl;
 	
 	boolean isSingleDocUpload=true, isMetsUrlUpload=false, isPdfUpload=false , isIiifUpload = false;
 	
@@ -184,13 +184,13 @@ public class UploadDialogUltimate extends Dialog {
 		metsUrlGroup.setText("Document upload via METS");
 		metsUrlGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		metsUrlGroup.setLayout(new GridLayout(3, false));
-		createUrlGroup(metsUrlGroup,"METS URL:",false);
+		createMetsUrlGroup(metsUrlGroup,"METS URL:");
 		
 		iiifUrlGroup = new Group(SWTUtil.dummyShell, 0);
 		iiifUrlGroup.setText("Document upload via IIIF manifest (API Version 2.1)");
 		iiifUrlGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		iiifUrlGroup.setLayout(new GridLayout(3, false));
-		createUrlGroup(iiifUrlGroup,"IIIF manifest URL:",true);
+		createIiifUrlGroup(iiifUrlGroup,"IIIF manifest URL:");
 		
 		pdfGroup = new Group(SWTUtil.dummyShell, 0);
 		pdfGroup.setText("Extract images from pdf (locally) and upload");
@@ -310,28 +310,39 @@ public class UploadDialogUltimate extends Dialog {
 		lblInfo.setEnabled(false);
 	}
 	
-	private void createUrlGroup(Composite container, String lable, boolean iiif) {
+	private void createMetsUrlGroup(Composite container, String lable) {
 		Label lblNewLabel = new Label(container, SWT.NONE);
 		lblNewLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
 		lblNewLabel.setText(lable);
 
-		urlText = new Text(container, SWT.BORDER);
-		urlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		metsUrlText = new Text(container, SWT.BORDER);
+		metsUrlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
-		if (!iiif) {
-			Label lblTitle = new Label(container, SWT.NONE);
-			lblTitle.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-			lblTitle.setText("Title on server:");
-		}
+		Label lblTitle = new Label(container, SWT.NONE);
+		lblTitle.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+		lblTitle.setText("Title on server:");		
 		
-
-		if(titleText == null)
-			titleText = new Text(container, SWT.BORDER);
-		titleText.setToolTipText("The title of the uploaded document - leave blank to generate a default title");
-		titleText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		if(metsTitleText == null)
+			metsTitleText = new Text(container, SWT.BORDER);
+		metsTitleText.setToolTipText("The title of the uploaded document - leave blank to generate a default title");
+		metsTitleText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		new Label(container, SWT.NONE);
-		
 	}
+	
+	private void createIiifUrlGroup(Composite container, String lable) {
+		Label lblNewLabel = new Label(container, SWT.NONE);
+		lblNewLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+		lblNewLabel.setText(lable);
+
+		iiifUrlText = new Text(container, SWT.BORDER);
+		iiifUrlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		
+		if(iiifTitleText == null)
+			iiifTitleText = new Text(container, SWT.BORDER);
+		iiifTitleText.setToolTipText("The title of the uploaded document - leave blank to generate a default title");
+		iiifTitleText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		new Label(container, SWT.NONE);
+	}	
 	
 	private String getUsernameEncoded() {
 		if (Storage.getInstance().isLoggedIn()) {
@@ -616,9 +627,12 @@ public class UploadDialogUltimate extends Dialog {
 		if (isSingleDocUpload && StringUtils.isEmpty(folder) ) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please specify a valid input folder!");
 		}
-		else if((isMetsUrlUpload || isIiifUpload) && StringUtils.isEmpty(url)){
+		else if((isMetsUrlUpload) && StringUtils.isEmpty(metsUrl)){
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please copy a valid url into the text field!");
 		}
+		else if((isIiifUpload) && StringUtils.isEmpty(iiifUrl)){
+			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please copy a valid url into the text field!");
+		}		
 		else if(!isSingleDocUpload && !isMetsUrlUpload && !isPdfUpload && !isIiifUpload) {
 			// this is Upload from private FTP
 			if(selDocDirs == null || selDocDirs.isEmpty()) {
@@ -700,10 +714,16 @@ public class UploadDialogUltimate extends Dialog {
 		
 		this.folder = folderText.getText();
 //		this.pdffolder = pdfFolderText.getText();
-		this.url = urlText.getText();
-		this.file = fileText.getText();
+		
+		this.metsUrl = metsUrlText.getText();
+		this.metsTitle = metsTitleText.getText();
+		
+		this.iiifUrl = iiifUrlText.getText();
+		this.iiifTitle = iiifTitleText.getText();
 		
 		this.title = titleText.getText();
+		
+		this.file = fileText.getText();
 	}
 	
 	public TrpCollection getCollection() {
@@ -718,6 +738,22 @@ public class UploadDialogUltimate extends Dialog {
 		return title;
 	}
 	
+	public String getMetsTitle() {
+		return metsTitle;
+	}
+
+	public void setMetsTitle(String metsTitle) {
+		this.metsTitle = metsTitle;
+	}
+
+	public String getIiifTitle() {
+		return iiifTitle;
+	}
+
+	public void setIiifTitle(String iiifTitle) {
+		this.iiifTitle = iiifTitle;
+	}
+
 	public String getFolder() {
 		return folder;
 	}
@@ -759,11 +795,11 @@ public class UploadDialogUltimate extends Dialog {
 	}
 
 	public String getMetsUrl() {
-		return url;
+		return metsUrl;
 	}
 	
 	public String getIiifUrl() {
-		return url;
+		return iiifUrl;
 	}
 	
 	
