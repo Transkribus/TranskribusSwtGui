@@ -3217,7 +3217,7 @@ public class TrpMainWidget {
 					}
 				}, "Uploading via HTTPS", true);
 			} else if (ud.isMetsUrlUpload()) {
-				logger.debug("uploading title: " + ud.getMetsTitle() + " to collection: " + cId);
+				logger.debug("uploading mets from url " + ud.getMetsUrl() + " to collection: " + cId);
 				//test url: http://rosdok.uni-rostock.de/file/rosdok_document_0000007322/rosdok_derivate_0000026952/ppn778418405.dv.mets.xml
 				int h = DialogUtil.showInfoMessageBox(getShell(), "Upload Information",
 						"Upload document!\nNote: the document will be ready after document processing on the server is finished - this takes a while - reload the document list occasionally");
@@ -3255,7 +3255,7 @@ public class TrpMainWidget {
 							+ "Note: IIIF manifest could not be fetched and therefore cannot be parsed.", e.getMessage());
 				}
 				if(valid) {
-					logger.debug("uploading title: " + ud.getIiifTitle() + " to collection: " + cId);
+					logger.debug("uploading iiif from url " + ud.getIiifUrl() + " to collection: " + cId);
 					int h = DialogUtil.showInfoMessageBox(getShell(), "Upload Information",
 							"Upload document from IIIF manifest!\nNote: the document will be ready after document processing on the server is finished - this takes a while - reload the document list occasionally");
 					storage.uploadDocumentFromIiifUrl(cId, ud.getIiifUrl());
