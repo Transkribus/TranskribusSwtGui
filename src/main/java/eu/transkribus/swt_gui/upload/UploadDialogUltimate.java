@@ -75,11 +75,11 @@ public class UploadDialogUltimate extends Dialog {
 	Group ftpGroup, singleGroup, metsUrlGroup,iiifUrlGroup, pdfGroup;
 	
 	Text folderText; //, pdfFolderText;
-	Text titleText, metsUrlText, iiifUrlText, iiifTitleText, metsTitleText;
+	Text titleText, metsUrlText, iiifUrlText/*, iiifTitleText, metsTitleText*/;
 	Text fileText;
 	
 //	String dirName;
-	String file, folder, title, /*pdffolder, */ metsTitle, metsUrl, iiifTitle, iiifUrl;
+	String file, folder, title, /*pdffolder, */ /*metsTitle,*/ metsUrl, /*iiifTitle,*/ iiifUrl;
 	
 	boolean isSingleDocUpload=true, isMetsUrlUpload=false, isPdfUpload=false , isIiifUpload = false;
 	
@@ -318,15 +318,15 @@ public class UploadDialogUltimate extends Dialog {
 		metsUrlText = new Text(container, SWT.BORDER);
 		metsUrlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
-		Label lblTitle = new Label(container, SWT.NONE);
-		lblTitle.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		lblTitle.setText("Title on server:");		
-		
-		if(metsTitleText == null)
-			metsTitleText = new Text(container, SWT.BORDER);
-		metsTitleText.setToolTipText("The title of the uploaded document - leave blank to generate a default title");
-		metsTitleText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		new Label(container, SWT.NONE);
+//		Label lblTitle = new Label(container, SWT.NONE);
+//		lblTitle.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+//		lblTitle.setText("Title on server:");		
+//		
+//		if(metsTitleText == null)
+//			metsTitleText = new Text(container, SWT.BORDER);
+//		metsTitleText.setToolTipText("The title of the uploaded document - leave blank to generate a default title");
+//		metsTitleText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+//		new Label(container, SWT.NONE);
 	}
 	
 	private void createIiifUrlGroup(Composite container, String lable) {
@@ -337,11 +337,11 @@ public class UploadDialogUltimate extends Dialog {
 		iiifUrlText = new Text(container, SWT.BORDER);
 		iiifUrlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
-		if(iiifTitleText == null)
-			iiifTitleText = new Text(container, SWT.BORDER);
-		iiifTitleText.setToolTipText("The title of the uploaded document - leave blank to generate a default title");
-		iiifTitleText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		new Label(container, SWT.NONE);
+//		if(iiifTitleText == null)
+//			iiifTitleText = new Text(container, SWT.BORDER);
+//		iiifTitleText.setToolTipText("The title of the uploaded document - leave blank to generate a default title");
+//		iiifTitleText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+//		new Label(container, SWT.NONE);
 	}	
 	
 	private String getUsernameEncoded() {
@@ -716,10 +716,10 @@ public class UploadDialogUltimate extends Dialog {
 //		this.pdffolder = pdfFolderText.getText();
 		
 		this.metsUrl = metsUrlText.getText();
-		this.metsTitle = metsTitleText.getText();
+//		this.metsTitle = metsTitleText.getText();
 		
 		this.iiifUrl = iiifUrlText.getText();
-		this.iiifTitle = iiifTitleText.getText();
+//		this.iiifTitle = iiifTitleText.getText();
 		
 		this.title = titleText.getText();
 		
@@ -738,21 +738,21 @@ public class UploadDialogUltimate extends Dialog {
 		return title;
 	}
 	
-	public String getMetsTitle() {
-		return metsTitle;
-	}
+//	public String getMetsTitle() {
+//		return metsTitle;
+//	}
 
-	public void setMetsTitle(String metsTitle) {
-		this.metsTitle = metsTitle;
-	}
+//	public void setMetsTitle(String metsTitle) {
+//		this.metsTitle = metsTitle;
+//	}
 
-	public String getIiifTitle() {
-		return iiifTitle;
-	}
+//	public String getIiifTitle() {
+//		return iiifTitle;
+//	}
 
-	public void setIiifTitle(String iiifTitle) {
-		this.iiifTitle = iiifTitle;
-	}
+//	public void setIiifTitle(String iiifTitle) {
+//		this.iiifTitle = iiifTitle;
+//	}
 
 	public String getFolder() {
 		return folder;
