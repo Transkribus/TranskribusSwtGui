@@ -110,8 +110,9 @@ public class DocumentManager extends Dialog {
 	protected GalleryItem group;
 
 	protected Button reload, showOrigFn, createThumbs, startLA, statisticButton, addPage, addTrans,
-						revert, sort, deletePage , addToSampleSetBtn, removeFromSampleSetBtn, createSampleButton;
-	protected Button collectionImageBtn, documentImageBtn;
+						revert, deletePage , addToSampleSetBtn, removeFromSampleSetBtn, createSampleButton;
+	protected Button sort;
+	//protected Button collectionImageBtn, documentImageBtn;
 	protected Button showCollectionImageBtn, showDocumentImageBtn;
 
 	protected List<URL> urls;
@@ -202,6 +203,7 @@ public class DocumentManager extends Dialog {
 
 	private void expandCurrentDocument() {
 		for (TreeItem ti : tv.getTree().getItems()) {
+			
 			TrpDocMetadata md = (TrpDocMetadata) ti.getData();
 			// logger.debug("md " + md);
 			// logger.debug("current Doc " +
@@ -456,11 +458,14 @@ public class DocumentManager extends Dialog {
 		revert.setImage(Images.ADD);
 		revert.setEnabled(false);
 		
-		Label sortLabel = new Label(editCombos, SWT.CENTER);
-		sortLabel.setText("Sort pages by filename list..");
-		sort = new Button(editCombos, SWT.CENTER);
-		sort.setImage(Images.ADD);
-		sort.setEnabled(false);
+		/*
+		 * no listener and method implemented right now
+		 */
+//		Label sortLabel = new Label(editCombos, SWT.CENTER);
+//		sortLabel.setText("Sort pages by filename list..");
+//		sort = new Button(editCombos, SWT.CENTER);
+//		sort.setImage(Images.ADD);
+//		sort.setEnabled(false);
 		
 		// Page specific buttons
 		movePage = initComboWithLabel(editCombos, "Move page(s) to", SWT.DROP_DOWN | SWT.READ_ONLY);
@@ -598,9 +603,20 @@ public class DocumentManager extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				logger.debug(statusCombo.getText());
 				mw.changeVersionStatus(statusCombo.getText(), getPageList());
-				reload();
+				
+				totalReload(colId);
 
-				tv.getTree().redraw();
+//				tv.getTree().update();
+//				try {
+//					store.reloadDocWithAllTranscripts();
+//				} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e1) {
+//					// TODO Auto-generated catch block
+//					e1.printStackTrace();
+//				}
+//				contentProv.inputChanged(null, null, store.getDocList());
+//				expandCurrentDocument();
+//
+//				tv.getTree().redraw();
 			}
 		});
 		
@@ -645,81 +661,93 @@ public class DocumentManager extends Dialog {
 		
 		movePage.addSelectionListener(new SelectionAdapter() {
 			 public void widgetSelected(SelectionEvent e) {
-				 if(movePage.getText().equals("Before first page")) {
-					 logger.debug("Moved to 1st place");
-					 try {
-
-							movePages(getPageList(), 1);
-							Storage.getInstance().reloadCurrentDocument(colId);
-							reload();
-							mw.getUi().getThumbnailWidget().reload();
-							tv.getTree().redraw();
-
-						} catch (Exception e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-					 
-				 }else if(movePage.getText().equals("After last page")) {
-					 logger.debug("Moved to last place");
-					 int NPages = Storage.getInstance().getDoc().getNPages();
-
-						// TODO for moving take care that only for one document at a
-						// time moving is allowed
-						try {
-							movePages(getPageList(), NPages);
-							Storage.getInstance().reloadCurrentDocument(colId);
-							reload();
-							mw.getUi().getThumbnailWidget().reload();
-							tv.getTree().redraw();
-
-						} catch (Exception e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-					 
-				 }else if(movePage.getText().equals("Select position")) {
-					 logger.debug("Moved selection place");
-					 Shell shell = new Shell(Display.getCurrent());
-						shell.setLayout(new GridLayout(2, false));
-						Text inputText = new Text(shell, SWT.BORDER);
-						inputText.setText("");
-						Button apply = new Button(shell, SWT.PUSH);
-						apply.setText("Apply");
-						shell.setLocation(Display.getCurrent().getCursorLocation());
-
-						shell.pack();
-						shell.open();
-
-						apply.addListener(SWT.Selection, new Listener() {
-
-							@Override
-							public void handleEvent(Event event) {
-								if (inputText.getText().isEmpty())
-									return;
-
-								int targetPage;
-								targetPage = Integer.parseInt(inputText.getText());
-								if (targetPage > Storage.getInstance().getDoc().getNPages() || targetPage < 1) {
-									DialogUtil.showErrorMessageBox(getShell(), "Error", "Invalid position");
-								}
-								try {
-									movePages(getPageList(), targetPage);
-									Storage.getInstance().reloadCurrentDocument(colId);
-									reload();
-									mw.getUi().getThumbnailWidget().reload();
-									tv.getTree().redraw();
-								} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-										| IllegalArgumentException | NoConnectionException | IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-
-							}
-
-						});
-					 
+				 try {
+					 if(movePage.getText().equals("Before first page")) {
+						 
+						 logger.debug("Moved to 1st place");
+						 movePages(getPageList(), 1);
+						 
+					 }else if(movePage.getText().equals("After last page")) {
+						 logger.debug("Moved to last place");
+						 int NPages = Storage.getInstance().getDoc().getNPages();
+							
+						 movePages(getPageList(), NPages);
+	//							Storage.getInstance().reloadCurrentDocument(colId);
+	//							reload();
+	//							mw.getUi().getThumbnailWidget().reload();
+	//							tv.getTree().redraw();
+	
+	
+						 
+					 }else if(movePage.getText().equals("Select position")) {
+						logger.debug("Moved selection place");
+						
+						Double pos = DialogUtil.showDoubleInputDialog(getShell(), "Select position", "To which position do you want to move the page(s)", -1);
+						movePages(getPageList(), pos.intValue());
+						
+//						Shell shell4Text = new Shell(getShell().getDisplay());
+//						shell4Text.setLayout(new GridLayout(2, false));
+//						Text inputText = new Text(shell4Text, SWT.BORDER);
+//						inputText.setText("");
+//						inputText.setSelection(inputText.getText().length());
+//						//inputText.setSelection(inputText.getText().length());
+//						//inputText.setCursor(Display.getCurrent().getSystemCursor(0));
+//						Button apply = new Button(shell4Text, SWT.PUSH);
+//						apply.setText("Apply");
+//						
+//						//shell4Text.setLocation(Display.getCurrent().getCursorLocation());
+//						
+//						shell4Text.pack();
+//						shell4Text.open();
+//						
+//						apply.addListener(SWT.Selection, new Listener() {
+//						
+//							@Override
+//							public void handleEvent(Event event) {
+//								if (inputText.getText().isEmpty()){
+//									inputText.setText("position");
+//									return;
+//								}
+//						
+//								try {
+//									int targetPage;
+//									targetPage = Integer.parseInt(inputText.getText());
+//									logger.debug("target page is " + targetPage);
+//									if (targetPage > Storage.getInstance().getDoc().getNPages() || targetPage < 1) {
+//										DialogUtil.showErrorMessageBox(getShell(), "Error", "Invalid position");
+//									}
+//								
+//									movePages(getPageList(), targetPage);
+////									Storage.getInstance().reloadCurrentDocument(colId);
+////									reload();
+////									mw.getUi().getThumbnailWidget().reload();
+////									tv.getTree().redraw();
+//								} catch (NumberFormatException nfe){
+//									inputText.setText("invalidNr");
+//									return;
+//								} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+//										| IllegalArgumentException | NoConnectionException | IOException e) {
+//									// TODO Auto-generated catch block
+//									e.printStackTrace();
+//								} finally{
+//									shell4Text.close();
+//									totalReload(colId);
+//								}
+//						
+//							}
+//						
+//						});
+						 
+					 }
+				 } catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				 }finally{
+					 totalReload(colId);
 				 }
+				 
+					//mw.getUi().getThumbnailWidget().reload();
+					//tv.getTree().redraw();
 			 }
 		});
 		
@@ -753,12 +781,12 @@ public class DocumentManager extends Dialog {
 					}
 					deletePages(selection);
 					try {
-						Storage.getInstance().reloadCurrentDocument(colId);
+						//Storage.getInstance().reloadCurrentDocument(colId);
 						// TODO: next method must be adapted to tree
 						// tv.setDoc(Storage.getInstance().getDoc(), false);
-						reload();
-						mw.getUi().getThumbnailWidget().reload();
-					} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException e1) {
+						totalReload(colId);;
+						//mw.getUi().getThumbnailWidget().reload();
+					} catch (IllegalArgumentException e1) {
 						e1.printStackTrace();
 					}
 
@@ -1605,22 +1633,27 @@ public class DocumentManager extends Dialog {
 	public void totalReload(int colId) {
 		this.colId = colId;
 
-		Storage store = Storage.getInstance();
 		if(store != null && store.getUser() != null && store.getUser().getRoleInCollection() != null){
 			canManage = (store.getRoleOfUserInCurrentCollection().canManage() || store.isAdminLoggedIn()) ? true : false;
+		}
+		
+		try {
+			store.reloadCurrentDocument(colId);
+		} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 
 		docList = store.getDocList();
 		tv.setInput(docList);
-		
-		
+	
 		expandCurrentDocument();
 		
 		updateSymbolicImgLabels();
 		updateColors();
 
-		documentImageBtn.setEnabled(canManage);
-		showDocumentImageBtn.setEnabled(canManage);
+		//documentImageBtn.setEnabled(canManage);
+		//showDocumentImageBtn.setEnabled(canManage);
 		
 		tv.refresh(true);
 
@@ -1705,7 +1738,7 @@ public class DocumentManager extends Dialog {
 		statusCombo.setEnabled(enable);
 		addPage.setEnabled(enable);
 		addTrans.setEnabled(enable);
-		sort.setEnabled(enable);
+		//sort.setEnabled(enable);
 		revert.setEnabled(enable);
 		movePage.setEnabled(false);
 		deletePage.setEnabled(false);
@@ -1718,7 +1751,7 @@ public class DocumentManager extends Dialog {
 		deletePage.setEnabled(enable);
 		addPage.setEnabled(false);
 		addTrans.setEnabled(false);
-		sort.setEnabled(false);
+		//sort.setEnabled(false);
 		revert.setEnabled(false);
 
 	}

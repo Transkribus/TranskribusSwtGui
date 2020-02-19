@@ -441,7 +441,7 @@ public class DialogUtil {
 	}
 	
 	public static Double showDoubleInputDialog(Shell parentShell, String dialogTitle, String dialogMessage, double initialValue) {
-		InputDialog d = new InputDialog(parentShell, dialogTitle, dialogMessage, ""+initialValue, new IInputValidator() {
+		InputDialog d = new InputDialog(parentShell, dialogTitle, dialogMessage, initialValue != -1? ""+initialValue : "", new IInputValidator() {
 			@Override
 			public String isValid(String newText) {
 				try {
