@@ -1,6 +1,7 @@
 package eu.transkribus.swt.util;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,7 +18,9 @@ import javax.mail.Store;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -72,12 +75,14 @@ import eu.transkribus.core.io.UnsupportedFormatException;
 import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
+import eu.transkribus.core.model.beans.TrpDocDir;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTotalTranscriptStatistics;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
+import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProviderExtended;
 import eu.transkribus.swt_gui.htr.DataSetMetadata;
@@ -195,7 +200,7 @@ public class DocumentManager extends Dialog {
 				}
 			}
 		} else {
-			logger.debug("Sehll is null????????");
+			logger.debug("Shell is null????????");
 		}
 
 		return null;
@@ -682,6 +687,9 @@ public class DocumentManager extends Dialog {
 					 }else if(movePage.getText().equals("Select position")) {
 						logger.debug("Moved selection place");
 						
+						/*
+						 * using this is much faster then using the extra created shell4Text
+						 */
 						Double pos = DialogUtil.showDoubleInputDialog(getShell(), "Select position", "To which position do you want to move the page(s)", -1);
 						movePages(getPageList(), pos.intValue());
 						
@@ -784,7 +792,7 @@ public class DocumentManager extends Dialog {
 						//Storage.getInstance().reloadCurrentDocument(colId);
 						// TODO: next method must be adapted to tree
 						// tv.setDoc(Storage.getInstance().getDoc(), false);
-						totalReload(colId);;
+						totalReload(colId);
 						//mw.getUi().getThumbnailWidget().reload();
 					} catch (IllegalArgumentException e1) {
 						e1.printStackTrace();
@@ -1097,10 +1105,34 @@ public class DocumentManager extends Dialog {
 				return o1.getPageNr() - o2.getPageNr();
 			}
 		});
-
+		
 		Collections.reverse(selection);
-		for (TrpPage page : selection) {
-			deletePage(page);
+//		for (TrpPage page : selection) {
+//			deletePage(page);
+//		}
+		
+		ProgressBarDialog pbd = new ProgressBarDialog(getShell());
+		IRunnableWithProgress r = new IRunnableWithProgress() {
+			@Override
+			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				monitor.beginTask("Delete page(s): ", selection.size());
+				int a = 0;
+				for (TrpPage page : selection) {
+
+					monitor.setTaskName("Delete page: " + ++a);
+					deletePage(page);
+					monitor.worked(a);
+				}
+
+				logger.debug("Finished deleting page(s)");
+			}
+		};
+		
+		try {
+			pbd.open(r, "Deleting page(s) from this document", true);
+		} catch (Throwable e) {
+			DialogUtil.showErrorMessageBox(getShell(), "Error", e.getMessage());
+			logger.error("Error in ProgressMonitorDialog", e);
 		}
 
 	}
@@ -1120,22 +1152,42 @@ public class DocumentManager extends Dialog {
 			logger.debug("move pages called with null argument");
 			return;
 		}
+		
+		ProgressBarDialog pbd = new ProgressBarDialog(getShell());
+		IRunnableWithProgress r = new IRunnableWithProgress() {
+			@Override
+			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				monitor.beginTask("Move page(s): ", selection.size());
+				int a = 0;
+				if (selection.get(0).getPageNr() > toPageNr) {
+					int j = 0;
+					for (int i = selection.size() - 1; i >= 0; i--) {
+						monitor.setTaskName("Move page: " + ++a);
+						movePage(selection.get(i).getPageNr() + j, toPageNr);
+						j++;
+						monitor.worked(a);
+					}
 
-		if (selection.get(0).getPageNr() > toPageNr) {
+				} else if (selection.get(0).getPageNr() < toPageNr) {
+					int i = 0;
+					for (TrpPage page : selection) {
+						monitor.setTaskName("Move page: " + ++a);
+						movePage(page.getPageNr() - i, toPageNr);
+						i++;
+						monitor.worked(a);
+					}
+				}
 
-			int j = 0;
-			for (int i = selection.size() - 1; i >= 0; i--) {
-				movePage(selection.get(i).getPageNr() + j, toPageNr);
-				j++;
-
+				logger.debug("Finished moving page(s)");
 			}
-
-		} else if (selection.get(0).getPageNr() < toPageNr) {
-			int i = 0;
-			for (TrpPage page : selection) {
-				movePage(page.getPageNr() - i, toPageNr);
-				i++;
-			}
+		};
+		
+		
+		try {
+			pbd.open(r, "Checking remote directories...", false);
+		} catch (Throwable e) {
+			DialogUtil.showErrorMessageBox(getShell(), "Error", e.getMessage());
+			logger.error("Error in ProgressMonitorDialog", e);
 		}
 
 	}
@@ -1654,6 +1706,9 @@ public class DocumentManager extends Dialog {
 
 		//documentImageBtn.setEnabled(canManage);
 		//showDocumentImageBtn.setEnabled(canManage);
+		
+		enableEditsDoc(false);
+		enableEditsPage(false);
 		
 		tv.refresh(true);
 
