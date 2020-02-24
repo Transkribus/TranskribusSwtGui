@@ -118,7 +118,11 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 		switch (mode) {
 		case CITlab:
 			htrModelsComp.setSelection(config.getHtrId());
-			htrDictComp.updateUi(false, htrModelsComp.getSelectedHtr().isLanguageModelExists());
+			
+			TrpHtr selHtr = htrModelsComp.getSelectedHtr();
+			boolean showLangModOption = selHtr != null && selHtr.isLanguageModelExists();
+			htrDictComp.updateUi(false, showLangModOption);
+			
 			htrDictComp.updateSelection(config.getDictionary());
 			break;
 		case UPVLC:
