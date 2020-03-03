@@ -40,6 +40,7 @@ public class PyLaiaAdvancedConfComposite extends Composite {
 	Button fcontourCheck;
 	LabeledText fcontour_dilateText;
 	LabeledText paddingText;
+	LabeledText maxwidthText;
 	
 	Group modelParsGroup;
 	Text modelParsText;
@@ -114,6 +115,7 @@ public class PyLaiaAdvancedConfComposite extends Composite {
 		
 		textFeatsCfg.setFcontour_dilate(fcontour_dilateText.toIntVal(textFeatsCfg.getFcontour_dilate()));
 		textFeatsCfg.setPadding(paddingText.toIntVal(textFeatsCfg.getPadding()));
+		textFeatsCfg.setMaxwidth(maxwidthText.toIntVal(textFeatsCfg.getMaxwidth()));
 		
 		return textFeatsCfg;
 	}
@@ -156,6 +158,7 @@ public class PyLaiaAdvancedConfComposite extends Composite {
 		fcontourCheck.setSelection(textFeatsCfg.isFcontour());
 		fcontour_dilateText.setText(""+textFeatsCfg.getFcontour_dilate());
 		paddingText.setText(""+textFeatsCfg.getPadding());
+		maxwidthText.setText(""+textFeatsCfg.getMaxwidth());
 		
 		// model pars:
 		modelParsText.setText(modelPars.toSimpleStringLineByLine());
@@ -257,6 +260,10 @@ public class PyLaiaAdvancedConfComposite extends Composite {
 		
 		paddingText = new LabeledText(preprocGroup, "Left/right padding: ");
 		paddingText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		maxwidthText = new LabeledText(preprocGroup, "Max width: ");
+		maxwidthText.setToolTipText("Maximum width of the output line - warning: exceeding pixels are cut off on the right side!");
+		maxwidthText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));		
 	}
 
 }
