@@ -685,4 +685,6 @@ CHANGES AND BUGFIXES
 	
 1.10.1:
 	-> P2PaLA train dialog - "Analyze structure types" fixes
+	-> HTR configuration dialog bugfix: did not load when stored configuration contained a deleted model
+	-> fix a memory leak in CanvasImage
 	
