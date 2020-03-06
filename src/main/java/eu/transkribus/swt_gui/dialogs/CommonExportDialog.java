@@ -382,9 +382,9 @@ public class CommonExportDialog extends Dialog {
 	    final Button b30 = new Button(group1, SWT.CHECK);
 	    b30.setText("Simple TXT");
 	    final Button b4 = new Button(group1, SWT.CHECK);
-	    b4.setText("Tag Export (Excel)");
-	    final Button b40 = new Button(group1, SWT.CHECK);
-	    b40.setText("Tag Export (IOB)");
+	    b4.setText("Tag Export (Excel and IOB)");
+//	    final Button b40 = new Button(group1, SWT.CHECK);
+//	    b40.setText("Tag Export (IOB)");
 	    final Button b41 = new Button(group1, SWT.CHECK);
 	    b41.setText("Table Export into Excel");
 	    // Create a horizontal separator
@@ -592,6 +592,7 @@ public class CommonExportDialog extends Dialog {
 	        public void widgetSelected(SelectionEvent event) {
 	            Button btn = (Button) event.getSource();
             	setTagXlsxExport(btn.getSelection());
+            	setTagIOBExport(true);
 	            showPageChoice();
 	            showTagChoice();
 	            shell.layout();
@@ -599,18 +600,18 @@ public class CommonExportDialog extends Dialog {
 	        }
 	    });
 	    
-	    b40.addSelectionListener(new SelectionAdapter() {
-
-	        @Override
-	        public void widgetSelected(SelectionEvent event) {
-	            Button btn = (Button) event.getSource();
-	            setTagIOBExport(btn.getSelection());
-	            showPageChoice();
-	            showTagChoice();
-	            shell.layout();
-	            
-	        }
-	    });
+//	    b40.addSelectionListener(new SelectionAdapter() {
+//
+//	        @Override
+//	        public void widgetSelected(SelectionEvent event) {
+//	            Button btn = (Button) event.getSource();
+//	            setTagIOBExport(btn.getSelection());
+//	            showPageChoice();
+//	            showTagChoice();
+//	            shell.layout();
+//	            
+//	        }
+//	    });
 	    
 	    b41.addSelectionListener(new SelectionAdapter() {
 
@@ -641,8 +642,8 @@ public class CommonExportDialog extends Dialog {
 	            b30.notifyListeners(SWT.Selection, new Event());
 	            b4.setSelection(btn.getSelection());
 	            b4.notifyListeners(SWT.Selection, new Event());
-	            b40.setSelection(btn.getSelection());
-	            b40.notifyListeners(SWT.Selection, new Event());
+//	            b40.setSelection(btn.getSelection());
+//	            b40.notifyListeners(SWT.Selection, new Event());
 	            b41.setSelection(btn.getSelection());
 	            b41.notifyListeners(SWT.Selection, new Event());
 
