@@ -1477,8 +1477,12 @@ public class SWTUtil {
     }
         
     public static void dispose(Image img) {
+    	logger.debug("Disposing SWT image: {}", img);
     	if (img != null && !img.isDisposed()) {
     		img.dispose();
+    		logger.debug("Image disposed: {}", img);
+    	} else {
+    		logger.trace("Image is null or already disposed: {}", img);
     	}
     }
     

@@ -116,6 +116,7 @@ final public class CanvasImage {
 	
 	private void setOrig(Image image) {
 		if (image != null && !image.isDisposed()) {
+			logger.debug("Trying to dispose imgOrig: {}", imgOrig);
 			SWTUtil.dispose(imgOrig);
 			this.imgOrig = new Image(image.getDevice(), image, SWT.IMAGE_COPY);
 		}
@@ -123,6 +124,7 @@ final public class CanvasImage {
 	
 	private void backup(Image image) {
 		if (image != null && !image.isDisposed()) {
+			logger.debug("Trying to dispose imgBackup: {}", imgBackup);
 			SWTUtil.dispose(imgBackup);
 			this.imgBackup = new Image(image.getDevice(), image, SWT.IMAGE_COPY);
 		}
@@ -168,11 +170,12 @@ final public class CanvasImage {
 	}
 	
 	public void dispose() {
+		logger.debug("Trying to dispose CanvasImage img: {}", img);
 		SWTUtil.dispose(img);
-//		SWTUtil.dispose(imgBackup);
-		
-//		if (img!=null && !img.isDisposed())
-//			img.dispose();
+		logger.debug("Trying to dispose imgOrig: {}", imgOrig);
+		SWTUtil.dispose(imgOrig);
+		logger.debug("Trying to dispose imgBackup: {}", imgBackup);
+		SWTUtil.dispose(imgBackup);
 	}
 	
 	public boolean isDisposed() {
