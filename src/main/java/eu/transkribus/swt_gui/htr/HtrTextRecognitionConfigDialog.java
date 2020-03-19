@@ -96,8 +96,7 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 			return;
 		}
 		final String provider = htrModelsComp.getSelectedHtr().getProvider();
-		if (!HtrPyLaiaUtils.doesDecodingSupportDicts() 
-				&& provider.equals(HtrPyLaiaUtils.PROVIDER_PYLAIA)) {
+		if (provider.equals(HtrPyLaiaUtils.PROVIDER_PYLAIA)) {
 //			sash.setWeights(new int[] { 100, 0 });
 //			htrDictComp.updateUi(false, htrModelsComp.getSelectedHtr().isLanguageModelExists(), false);
 			htrDictComp.updateUi(false, true, false);

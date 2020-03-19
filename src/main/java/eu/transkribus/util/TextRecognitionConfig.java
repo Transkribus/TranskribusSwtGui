@@ -135,15 +135,17 @@ public class TextRecognitionConfig {
 		
 		switch(mode) {
 		case CITlab:			
-			s = "CITlab HTR\n"
-					+ "Net Name: " + htrName + "\n"
-					+ "Language: " + language + "\n"
-					+ getDictLabel(dictionary);
+			s = "CITlab HTR "+htrId+"\n"
+					+ "\t- Net Name: " + htrName + "\n"
+					+ "\t- Language: " + language + "\n"
+					+ "\t- " + getDictLabel(dictionary);
 			break;
 		case UPVLC:
-//			s = "PyLaia HTR\nNet Name: " + htrName + "\nLanguage: " + language+ "\nDictionary: " 
-//					+ (dictionary == null ? HtrDictionaryComposite.NO_DICTIONARY : dictionary);
-			s = "PyLaia HTR\nNet Name: " + htrName + "\nLanguage: " + language; // note: dictionaries currently not supported in PyLaia decoding!			
+			s = "PyLaia HTR "+htrId+"\n"
+					+ "\t- Name: " + htrName + "\n"
+					+ "\t- Language: " + language+ "\n" 
+					+ "\t- " + getDictLabel(dictionary);
+//			s = "PyLaia HTR\nNet Name: " + htrName + "\nLanguage: " + language;			
 			break;
 		default:
 			s = "Could not load configuration!";
@@ -156,7 +158,7 @@ public class TextRecognitionConfig {
 	private String getDictLabel(String dictionary) {
 		String dictLabel;
 		if(dictionary == null) {
-			dictLabel = HtrDictionaryComposite.NO_DICTIONARY;
+			dictLabel = "Language Model: "+HtrDictionaryComposite.NO_DICTIONARY;
 		} else if (JobConst.PROP_TRAIN_DATA_DICT_VALUE.equals(dictionary)) {
 			dictLabel = HtrDictionaryComposite.INTEGRATED_DICTIONARY;
 		} else if (JobConst.PROP_TRAIN_DATA_LM_VALUE.equals(dictionary)) {
