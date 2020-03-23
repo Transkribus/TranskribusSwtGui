@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.htr;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
@@ -18,8 +19,12 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.model.beans.customtags.GapTag;
+import eu.transkribus.core.model.beans.customtags.UnclearTag;
+import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
+import eu.transkribus.core.util.JobDataUtils;
 
 public class CITlabHtrPlusTrainingConfComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(CITlabHtrPlusTrainingConfComposite.class);
@@ -30,6 +35,7 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 //	private MultiCheckSelectionCombo langSelection;
 //	private Combo scriptType;
 	private HtrModelChooserButton baseModelBtn;
+	private Button gapTagBtn, unclearTagBtn;
 	
 	public final static int DEFAULT_NUM_EPOCHS = 50;
 	public final static int MAX_NUM_EPOCHS = 1000;
@@ -72,6 +78,21 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 		} else {
 			baseModelBtn = null;
 		}
+		
+		Label omitLinesByTagLabel = new Label(this, SWT.NONE);
+		omitLinesByTagLabel.setText("Omit lines by tag:");
+		Composite omitLinesByTagComp = new Composite(this, SWT.NONE);
+		omitLinesByTagComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		GridLayout omitLinesCompLayout = new GridLayout(2, false);
+		omitLinesCompLayout.marginHeight = omitLinesCompLayout.marginWidth = 0;
+		omitLinesByTagComp.setLayout(omitLinesCompLayout);
+		gapTagBtn = new Button(omitLinesByTagComp, SWT.CHECK);
+		gapTagBtn.setText(GapTag.TAG_NAME);
+		gapTagBtn.setLayoutData(new GridData(GridData.BEGINNING));
+		unclearTagBtn = new Button(omitLinesByTagComp, SWT.CHECK);
+		unclearTagBtn.setText(UnclearTag.TAG_NAME);
+		unclearTagBtn.setLayoutData(new GridData(GridData.BEGINNING));
+
 		
 //		Label scriptLbl = new Label(this, SWT.NONE);
 //		scriptLbl.setText("Script Type");
@@ -137,6 +158,9 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 		if(baseModelBtn != null) {
 			baseModelBtn.setModel(null);
 		}
+		
+		unclearTagBtn.setSelection(false);
+		gapTagBtn.setSelection(false);
 	}
 	
 	public List<String> validateParameters(List<String> errorList) {
@@ -181,7 +205,27 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 				logger.debug("No base HTR selected.");
 			}
 		}
+		
+		setOmitLinesByTagParam(citlabTrainConf);
+		
+		logger.debug("Train config = {}", citlabTrainConf);
 		return citlabTrainConf;
+	}
+
+	private void setOmitLinesByTagParam(CitLabHtrTrainConfig citlabTrainConf) {
+		List<String> omitLinesByTag = new ArrayList<>();
+		if(gapTagBtn.getSelection()) {
+			omitLinesByTag.add(GapTag.TAG_NAME);
+		}
+		if(unclearTagBtn.getSelection()) {
+			omitLinesByTag.add(UnclearTag.TAG_NAME);
+		}
+		if(!omitLinesByTag.isEmpty()) {
+			//This construct is necessary as custom tags may contain spaces and commas
+			Map<String, String> tagProps = JobDataUtils.setStringListToMap(null, 
+					JobConst.PROP_HTR_OMIT_LINES_BY_TAG, omitLinesByTag);
+			citlabTrainConf.getCustomParams().addAll(tagProps);
+		}
 	}
 
 	public String getProvider() {
