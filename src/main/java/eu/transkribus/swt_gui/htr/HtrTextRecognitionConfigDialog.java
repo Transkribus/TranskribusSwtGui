@@ -124,12 +124,11 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 			TrpHtr selHtr = htrModelsComp.getSelectedHtr();
 			boolean showLangModOption = selHtr != null && selHtr.isLanguageModelExists();
 			htrDictComp.updateUi(false, showLangModOption, true);
-			
 			htrDictComp.updateSelection(config.getDictionary());
 			break;
 		case UPVLC:
 			htrModelsComp.setSelection(config.getHtrId());
-			htrDictComp.updateSelection(config.getDictionary());
+			htrDictComp.updateSelection(config.getLanguageModel());
 			break;
 		default:
 			break;
@@ -164,7 +163,13 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 			return;
 		}
 		config = new TextRecognitionConfig(mode);
-		config.setDictionary(htrDictComp.getDictionarySetting());
+		
+		if (mode == Mode.CITlab) { // FIXME: set language model here once ready for CITlab recognition
+			config.setDictionary(htrDictComp.getDictionarySetting());
+		}
+		else { // for PyLaia, only language model setting is relevant!
+			config.setLanguageModel(htrDictComp.getLanguageModelSetting());	
+		}
 		
 		if (htr == null) {
 			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please select a HTR.");
