@@ -65,7 +65,8 @@ public class HtrDetailsWidget extends SashForm {
 
 	private static final String[] CITLAB_TRAIN_PARAMS = { CitLabHtrTrainConfig.NUM_EPOCHS_KEY, 
 			CitLabHtrTrainConfig.LEARNING_RATE_KEY, CitLabHtrTrainConfig.NOISE_KEY, CitLabHtrTrainConfig.TRAIN_SIZE_KEY,
-			CitLabHtrTrainConfig.BASE_MODEL_ID_KEY, CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY};
+			CitLabHtrTrainConfig.BASE_MODEL_ID_KEY, CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY, 
+			CitLabHtrTrainConfig.OMITTED_TAGS_KEY };
 
 	private static final String CER_TRAIN_KEY = "CER Train";
 	private static final String CER_VAL_KEY = "CER Validation";
