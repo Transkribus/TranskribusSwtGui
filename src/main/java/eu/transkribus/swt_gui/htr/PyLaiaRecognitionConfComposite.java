@@ -10,7 +10,9 @@ import eu.transkribus.swt.util.SWTUtil;
 
 public class PyLaiaRecognitionConfComposite extends Composite {
 	
-	Button doLinePolygonSimplificationBtn, clearLinesBtn;
+	Button doLinePolygonSimplificationBtn;
+//	Button clearLinesBtn;
+	Button doWordSegBtn;
 	LabeledText batchSizeText;
 
 	public PyLaiaRecognitionConfComposite(Composite parent) {
@@ -23,11 +25,17 @@ public class PyLaiaRecognitionConfComposite extends Composite {
 		doLinePolygonSimplificationBtn.setSelection(true);
 		doLinePolygonSimplificationBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		clearLinesBtn = new Button(this, SWT.CHECK);
-		clearLinesBtn.setText("Clear lines");
-		clearLinesBtn.setToolTipText("Clear existing transcriptions before recognition");
-		clearLinesBtn.setSelection(true);
-		clearLinesBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));	
+//		clearLinesBtn = new Button(this, SWT.CHECK);
+//		clearLinesBtn.setText("Clear lines");
+//		clearLinesBtn.setToolTipText("Clear existing transcriptions before recognition");
+//		clearLinesBtn.setSelection(true);
+//		clearLinesBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));	
+		
+		doWordSegBtn = new Button(this, SWT.CHECK);
+		doWordSegBtn.setText("Add word segmentations");
+		doWordSegBtn.setToolTipText("Adds approximate(!) bounding boxes for recognized words");
+		doWordSegBtn.setSelection(true);
+		doWordSegBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));	
 		
 		batchSizeText = new LabeledText(this, "Batch size: ");
 		batchSizeText.setText(""+10);
