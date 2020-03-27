@@ -22,6 +22,7 @@ public class TextRecognitionConfig {
 	private boolean keepOriginalLinePolygons = false;
 	private boolean doStoreConfMats = true;
 	private boolean clearLines = true;
+	private boolean doWordSeg = true;
 	private int batchSize = 10;
 	
 	public TextRecognitionConfig(Mode mode) {
@@ -64,6 +65,14 @@ public class TextRecognitionConfig {
 		this.clearLines = clearLines;
 	}
 	
+	public boolean isDoWordSeg() {
+		return doWordSeg;
+	}
+
+	public void setDoWordSeg(boolean doWordSeg) {
+		this.doWordSeg = doWordSeg;
+	}
+
 	public void setBatchSize(int batchSize) {
 		this.batchSize = batchSize;
 	}
