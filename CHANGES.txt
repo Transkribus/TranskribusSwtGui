@@ -687,4 +687,5 @@ CHANGES AND BUGFIXES
 	-> P2PaLA train dialog - "Analyze structure types" fixes
 	-> HTR configuration dialog bugfix: did not load when stored configuration contained a deleted model
 	-> fix a memory leak in CanvasImage
+	-> xlsx export: concat continued tags
 	
