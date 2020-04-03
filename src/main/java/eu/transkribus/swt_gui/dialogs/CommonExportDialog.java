@@ -120,6 +120,8 @@ public class CommonExportDialog extends Dialog {
 	
 	Button btnTei;
 	
+	Button b40_iobBtn;
+	
 	Button lineTagsRadio, lineBreaksRadio;
 	
 	CommonExportPars commonPars;
@@ -320,6 +322,11 @@ public class CommonExportDialog extends Dialog {
 				boolean isServerTabSelected = exportTypeTabFolder.getSelection() == serverExportItem;
 				//logger.debug("setting server type export: "+isServerTabSelected);
 				setDoServerExport(isServerTabSelected);
+				//iob export only on server possible
+				if (b40_iobBtn.getSelection()){
+					b40_iobBtn.setSelection(isServerTabSelected);
+				}
+				b40_iobBtn.setEnabled(isServerTabSelected);
 
 //				if (!isDoServerExport() && btnTei.getSelection()){
 //					btnTei.setSelection(false); 
@@ -382,9 +389,9 @@ public class CommonExportDialog extends Dialog {
 	    final Button b30 = new Button(group1, SWT.CHECK);
 	    b30.setText("Simple TXT");
 	    final Button b4 = new Button(group1, SWT.CHECK);
-	    b4.setText("Tag Export (Excel and IOB)");
-//	    final Button b40 = new Button(group1, SWT.CHECK);
-//	    b40.setText("Tag Export (IOB)");
+	    b4.setText("Tag Export (Excel)");
+	    b40_iobBtn = new Button(group1, SWT.CHECK);
+	    b40_iobBtn.setText("Tag Export (IOB)");
 	    final Button b41 = new Button(group1, SWT.CHECK);
 	    b41.setText("Table Export into Excel");
 	    // Create a horizontal separator
@@ -592,7 +599,7 @@ public class CommonExportDialog extends Dialog {
 	        public void widgetSelected(SelectionEvent event) {
 	            Button btn = (Button) event.getSource();
             	setTagXlsxExport(btn.getSelection());
-            	setTagIOBExport(true);
+            	//setTagIOBExport(true);
 	            showPageChoice();
 	            showTagChoice();
 	            shell.layout();
@@ -600,18 +607,18 @@ public class CommonExportDialog extends Dialog {
 	        }
 	    });
 	    
-//	    b40.addSelectionListener(new SelectionAdapter() {
-//
-//	        @Override
-//	        public void widgetSelected(SelectionEvent event) {
-//	            Button btn = (Button) event.getSource();
-//	            setTagIOBExport(btn.getSelection());
-//	            showPageChoice();
-//	            showTagChoice();
-//	            shell.layout();
-//	            
-//	        }
-//	    });
+	    b40_iobBtn.addSelectionListener(new SelectionAdapter() {
+
+	        @Override
+	        public void widgetSelected(SelectionEvent event) {
+	            Button btn = (Button) event.getSource();
+	            setTagIOBExport(btn.getSelection());
+	            showPageChoice();
+	            showTagChoice();
+	            shell.layout();
+	            
+	        }
+	    });
 	    
 	    b41.addSelectionListener(new SelectionAdapter() {
 
@@ -1568,7 +1575,9 @@ public class CommonExportDialog extends Dialog {
 		updateAltoPars();
 		if (!isDoServerExport()){
 			updateTeiPars();
+			
 		}
+		b40_iobBtn.setEnabled(isDoServerExport());
 		updatePdfPars();
 		updateDocxPars();
 	}
