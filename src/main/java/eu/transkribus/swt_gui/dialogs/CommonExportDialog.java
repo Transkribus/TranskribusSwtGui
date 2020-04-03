@@ -1577,7 +1577,6 @@ public class CommonExportDialog extends Dialog {
 			updateTeiPars();
 			
 		}
-		b40_iobBtn.setEnabled(isDoServerExport());
 		updatePdfPars();
 		updateDocxPars();
 	}
