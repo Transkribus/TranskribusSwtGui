@@ -409,7 +409,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		protected final static String postcardNetLabel = "Postcards";
 		private final static String postcardNetName = "postcards_aru_c3.pb";
 		//hebrew newspaper LA net
-		private final static String newspaperV1NetLabel = "Newspapers";
+		private final static String newspaperV1NetLabel = "Newspapers (Hebrew)";
 		private final static String newspaperV1NetName = "LA_ara_news_aru_mix_90_ema.pb";
 		//2019-07 newseye newspaper LA net
 		private final static String newspaperV2NetLabel = "Newspapers (NewsEye) July 2019";
@@ -423,15 +423,15 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 			LaModel konzilsProt = new LaModel(konzilsProtNetLabel, konzilsProtNetName);
 			LaModel postcards = new LaModel(postcardNetLabel, postcardNetName);
 			LaModel newspaperV1 = new LaModel(newspaperV1NetLabel, newspaperV1NetName);
-			LaModel newspaperV2 = new LaModel(newspaperV2NetLabel, newspaperV2NetName);
+			//LaModel newspaperV2 = new LaModel(newspaperV2NetLabel, newspaperV2NetName);
 			LaModel newspaperV3 = new LaModel(newspaperV3NetLabel, newspaperV3NetName);
 			nets.add(konzilsProt);
 			nets.add(postcards);
 			nets.add(newspaperV1);
-			if(Storage.getInstance().isAdminLoggedIn()) {
-				//only admins may access outdated newseye net
-				nets.add(newspaperV2);
-			}
+//			if(Storage.getInstance().isAdminLoggedIn()) {
+//				//only admins may access outdated newseye net
+//				nets.add(newspaperV2);
+//			}
 			nets.add(newspaperV3);
 			return nets;
 		}
