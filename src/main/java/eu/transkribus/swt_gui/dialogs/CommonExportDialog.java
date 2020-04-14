@@ -178,6 +178,7 @@ public class CommonExportDialog extends Dialog {
 	
 	Combo imgQualityCmb = null;
 	Combo fontDropDown = null;
+	Combo statusCombo = null;
 	String font = "";
 	/*
 	 * TODO add image quality choice to PDF export too
@@ -327,6 +328,21 @@ public class CommonExportDialog extends Dialog {
 					b40_iobBtn.setSelection(isServerTabSelected);
 				}
 				b40_iobBtn.setEnabled(isServerTabSelected);
+				
+				/*
+				 * on server 'the currently loaded page' cannot be exported!
+				 * hence we remove this combo entry in that case
+				 */
+				if (isServerTabSelected){
+					if (versionStatus.equals(statusCombo.getItem(1))){
+						statusCombo.select(0);
+					}
+					statusCombo.remove(1);
+				}
+				else{
+					statusCombo.add("Loaded version (for current page)",1);
+				}
+				
 
 //				if (!isDoServerExport() && btnTei.getSelection()){
 //					btnTei.setSelection(false); 
@@ -826,17 +842,17 @@ public class CommonExportDialog extends Dialog {
 	    group2.setText("Version status");
 	    group2.setLayout(new GridLayout(1, false));
 	    
-	    final Combo statusCombo = new Combo(group2, SWT.DROP_DOWN | SWT.READ_ONLY);
+	    statusCombo = new Combo(group2, SWT.DROP_DOWN | SWT.READ_ONLY);
 
 	    int size = EnumUtils.stringsArray(EditStatus.class).length + 2;
 	    
 	    //String items[] = new String[size];
 	    //String[] items = statusCombo.getItems();
-	    
-	    statusCombo.add("Latest version",0);
+	    int a = 0;
+	    statusCombo.add("Latest version",a++);
 	    setVersionStatus(statusCombo.getItem(0));
-	    statusCombo.add("Loaded version (for current page)",1);
-	    int a = 2;
+	    //statusCombo.add("Loaded version (for current page)",a++);
+	    
 
 	    for (String s : EnumUtils.stringsArray(EditStatus.class)){
 	    	statusCombo.add(s,a++);
