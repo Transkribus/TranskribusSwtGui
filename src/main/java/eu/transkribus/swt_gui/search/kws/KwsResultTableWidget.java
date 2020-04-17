@@ -126,14 +126,16 @@ public class KwsResultTableWidget extends Composite {
 		if (sel.getFirstElement() == null) {
 			return null;
 		}
-		if(sel.getFirstElement() instanceof TrpKwsResultTableEntry) {
-			return (TrpKwsResultTableEntry) sel.getFirstElement();
-		} else if(sel.getFirstElement() instanceof TrpErrorResultTableEntry) {
-			return (TrpErrorResultTableEntry) sel.getFirstElement();
-		} else if (sel.getFirstElement() instanceof TrpSampleResultTableEntry) {
-			return (TrpSampleResultTableEntry) sel.getFirstElement();
-		}
-		return null;
+		return (AJobResultTableEntry<?>) sel.getFirstElement();
+		
+//		if(sel.getFirstElement() instanceof TrpKwsResultTableEntry) {
+//			return (TrpKwsResultTableEntry) sel.getFirstElement();
+//		} else if(sel.getFirstElement() instanceof TrpErrorResultTableEntry) {
+//			return (TrpErrorResultTableEntry) sel.getFirstElement();
+//		} else if (sel.getFirstElement() instanceof TrpSampleResultTableEntry) {
+//			return (TrpSampleResultTableEntry) sel.getFirstElement();
+//		}
+//		return null;
 	}
 //	public void setSelection(int htrId) {
 //		List<TrpHtr> htrs = (List<TrpHtr>)kwsResTv.getInput();

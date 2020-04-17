@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
+import eu.transkribus.core.model.beans.TrpBaselineErrorRate;
 import eu.transkribus.core.model.beans.TrpBaselineErrorRateListEntry;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
@@ -424,21 +425,25 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		resultTable.getTableViewer().addDoubleClickListener(new IDoubleClickListener(){
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
-				if (resultTable.getSelectedEntry() instanceof TrpErrorResultTableEntry) {
-					TrpErrorResultTableEntry entry = (TrpErrorResultTableEntry) resultTable.getSelectedEntry();
-					if(entry != null && entry.getStatus().equals("Completed") ) {
-						int docId = store.getDocId();
-						String query = entry.getQuery();
-						TrpErrorRate result = entry.getResult();
-						ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), result,docId,query);
+				AJobResultTableEntry<?> entry = resultTable.getSelectedEntry();
+				logger.debug("entry = "+entry);
+				if(entry != null && entry.getStatus().equals("Completed") ) {
+					int docId = store.getDocId();
+					String query = entry.getQuery();
+					if (entry instanceof TrpErrorResultTableEntry) {
+						TrpErrorRate result = (TrpErrorRate) entry.getResult();
+						ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), result, docId, query);
 						stats.open();
-						}
 					}
-				else if (resultTable.getSelectedEntry() instanceof TrpBaselineErrorResultTableEntry) {
-					// TODO
+					else if (entry instanceof TrpBaselineErrorResultTableEntry) {
+						logger.debug("here!");
+						TrpBaselineErrorRate result = (TrpBaselineErrorRate) entry.getResult();
+						BaselineErrorRateStatsDiag d = new BaselineErrorRateStatsDiag(getShell(), result, docId, query);
+						d.open();
+					}
 				}
 			}
-			});
+		});
 	}
 	
 	public TrpCollection getCurrentCollection() {
