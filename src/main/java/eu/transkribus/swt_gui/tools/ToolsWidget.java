@@ -588,15 +588,15 @@ public class ToolsWidget extends Composite {
 		
 		computeAdvancedBtn = new Button(werGroup,SWT.PUSH);
 		computeAdvancedBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
-		computeAdvancedBtn.setText("Compare");
+		computeAdvancedBtn.setText("Compare...");
 		
 		compareSamplesBtn = new Button(werGroup, SWT.PUSH);
-		compareSamplesBtn.setText("Compare Samples");
+		compareSamplesBtn.setText("Compare Samples...");
 		compareSamplesBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
 		compareSamplesBtn.setToolTipText("Shows the difference of the two selected versions");
 		
 		werExp.setClient(werGroup);
-		werExp.setText("Compute Accuracy");
+		werExp.setText("Compute Accuracy...");
 		Fonts.setBoldFont(werExp);
 		werExp.setExpanded(true);
 		werExp.addExpansionListener(new ExpansionAdapter() {
