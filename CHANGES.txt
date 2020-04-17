@@ -689,3 +689,6 @@ CHANGES AND BUGFIXES
 	-> fix a memory leak in CanvasImage
 	-> xlsx export: concat continued tags
 	
+1.11.0:
+	-> integrate baseline error rate tool
+	
