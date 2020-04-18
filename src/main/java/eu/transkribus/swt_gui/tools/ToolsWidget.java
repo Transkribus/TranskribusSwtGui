@@ -577,7 +577,7 @@ public class ToolsWidget extends Composite {
 //		computeWerBtn.pack();
 		
 		compareVersionsBtn = new Button(werGroup, SWT.PUSH);
-		compareVersionsBtn.setText("Compare Text Versions");
+		compareVersionsBtn.setText("Compare Text Versions...");
 		compareVersionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
 		compareVersionsBtn.setToolTipText("Shows the difference of the two selected versions");
 		

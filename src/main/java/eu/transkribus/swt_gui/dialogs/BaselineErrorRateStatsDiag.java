@@ -33,6 +33,7 @@ public class BaselineErrorRateStatsDiag extends Dialog {
 	public BaselineErrorRateStatsDiag(Shell parentShell, TrpBaselineErrorRate err, int docId, String query) {
 		super(parentShell);
 		this.err = err;
+		this.docId = docId;
 		this.query = query;
 	}
 	
@@ -68,7 +69,7 @@ public class BaselineErrorRateStatsDiag extends Dialog {
 //		int txtStyle = SWT.BORDER | SWT.SINGLE | SWT.READ_ONLY;
 		int txtStyle = SWT.SINGLE | SWT.READ_ONLY;
 		
-		doc = new LabeledText(c, "Doc: ", makeColsEqual, txtStyle);
+		doc = new LabeledText(c, "Doc-ID: ", makeColsEqual, txtStyle);
 		Fonts.setBoldFont(doc.getLabel());
 		doc.setText(""+docId);
 		doc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

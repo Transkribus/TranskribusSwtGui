@@ -87,6 +87,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	private Group resultGroup;
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
 	private LabeledCombo type, options;
+	private Button blHelpBtn;
 	private Button compare, wikiOptions, tableCheck;
 	private ParameterMap params = new ParameterMap();
 	ResultLoader rl;
@@ -179,6 +180,15 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		type.combo.setItems("HTR", "Baselines");
 		type.combo.select(0);
 		
+		blHelpBtn = new Button(config, 0);
+		blHelpBtn.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
+		blHelpBtn.setText("");
+		blHelpBtn.setImage(Images.HELP);
+		SWTUtil.onSelectionEvent(blHelpBtn, e -> {
+			DesktopUtil.browse("https://github.com/Transkribus/TranskribusBaseLineEvaluationScheme", "Baseline evaluation code used",
+					getParentShell());
+		});
+		
 		dps = new CurrentTranscriptOrCurrentDocPagesSelector(config, SWT.NONE, true,false);
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 2, 1));
 
@@ -186,14 +196,19 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		options.combo.setItems("default (case sensitive) ","case insensitive");
 		options.combo.select(0);
 		
-		options.setEnabled(type.combo.getSelectionIndex()==0);
+		updateConfigUi();
 		SWTUtil.onSelectionEvent(type.combo, e -> {
-			options.setEnabled(type.combo.getSelectionIndex()==0);
+			updateConfigUi();
 		});
 		
 //		tableCheck = new Button(config, SWT.CHECK);
 //		tableCheck.setText("Exclude tables");
 	
+	}
+	
+	private void updateConfigUi() {
+		options.setEnabled(type.combo.getSelectionIndex()==0);
+		blHelpBtn.setVisible(type.combo.getSelectionIndex()==1);
 	}
 	
 	public void refAndHypChooser() {
@@ -237,6 +252,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		compare = new Button(comp,SWT.PUSH);
 		compare.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 4, 4));
 		compare.setText("Compare");
+		compare.setImage(Images.ARROW_RIGHT);
 		
 		if(comboHyp.getItemCount() != 0) {
 			comboHyp.select(0);
@@ -467,6 +483,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				
 		computeWerBtn = new Button(werGroup, SWT.PUSH);
 		computeWerBtn.setText("Compare");
+		computeWerBtn.setImage(Images.ARROW_RIGHT);
 		computeWerBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 0, 1));
 		computeWerBtn.setToolTipText("Compares the two selected transcripts and computes word error rate and character error rate.");
 		
