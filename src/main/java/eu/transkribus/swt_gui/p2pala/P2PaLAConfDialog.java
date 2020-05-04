@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.dialogs;
+package eu.transkribus.swt_gui.p2pala;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,10 +48,10 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog.P2PaLATrainUiConf;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.models.ModelFilterComposite;
+import eu.transkribus.swt_gui.p2pala.P2PaLATrainDialog.P2PaLATrainUiConf;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrDocPagesOrCollectionSelector;
 
 public class P2PaLAConfDialog extends Dialog {

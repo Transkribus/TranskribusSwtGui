@@ -1,13 +1,17 @@
-package eu.transkribus.swt_gui.dialogs;
+package eu.transkribus.swt_gui.p2pala;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
@@ -21,9 +25,6 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.client.util.TrpClientErrorException;
-import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.DocSelection;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
@@ -45,7 +46,6 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DocsSelectorBtn;
 
@@ -67,6 +67,59 @@ public class P2PaLATrainDialog extends Dialog {
 		public List<DocSelection> trainDocs=new ArrayList<>(), valDocs=new ArrayList<>(), testDocs=new ArrayList<>();
 //		public double[] fracs;
 		public String fracs;
+		
+		public void setStructTypes(String text) {
+			if (!StringUtils.isEmpty(text)) {
+				this.structTypes = StringUtils.join(Arrays.asList(text.split("\\s+")).stream().distinct().sorted().collect(Collectors.toList()), " ");
+			}
+		}
+		
+		public boolean isStruct(String s) {
+			return StringUtils.isEmpty(structTypes) ? false : Arrays.asList(structTypes.split("\\s+")).contains(s);
+		}		
+		
+		public void setMergedStructTypes(String text) throws Exception {
+			if (StringUtils.isEmpty(text.trim())) {
+				mergedStructTypes = null;
+				return;
+			}
+			
+			mergedStructTypes = "";
+			for (String s : text.trim().split("\\s+")) {
+				logger.trace("s: "+s);
+				s = s.trim();
+				String[] s12 = s.split(":");
+				if (s12.length != 2) {
+					throw new Exception("Not a valid merged structure type specificiation: "+s);
+				}
+				for (int i=0; i<2; ++i) {
+					if (!isStruct(s12[i])) {
+						logger.debug("Invalid merged structure types - struct not specified: "+s12[i]);
+						throw new Exception("Invalid merged structure types - struct not specified: "+s12[i]);
+					}
+				}
+				if (StringUtils.equals(s12[0], s12[1])) {
+					throw new Exception("Cannot merge equal structures: '"+s+"'");
+				}
+				
+				if (!mergedStructTypes.contains(s)) {
+					mergedStructTypes += s+" ";
+				}
+			}
+			mergedStructTypes = mergedStructTypes.trim();
+		}
+		
+		public boolean withBaselines() {
+			return StringUtils.contains(outMode, "L");
+		}
+		
+		public boolean withRegions() {
+			return StringUtils.contains(outMode, "R");
+		}
+		
+		public String getTrainingModeVerbose() {
+			return StringUtils.removeEnd(((withBaselines() ? "Baselines, " : "") + (withRegions() ? "Regions" : "")).trim(), ",");
+		}
 		
 		public P2PaLATrainJobPars toP2PaLATrainJobPars() {
 			P2PaLATrainJobPars pars = new P2PaLATrainJobPars();
@@ -107,6 +160,8 @@ public class P2PaLATrainDialog extends Dialog {
 					+ skipPagesWithMissingStatus + ", trainDocs=" + trainDocs + ", valDocs=" + valDocs + ", testDocs="
 					+ testDocs + ", fracs=" + fracs + "]";
 		}
+
+
 	}
 	
 	LabeledText modelNameText, descriptionText, numEpochsText, structureTypesText, mergedStructureTypesText; 
@@ -137,7 +192,7 @@ public class P2PaLATrainDialog extends Dialog {
 	@Override
 	protected Point getInitialSize() {
 		int minY = getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
-		return new Point(500, minY+100);
+		return new Point(700, minY+100);
 //		return new Point(500, Math.min(getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).y, 700));
 	}
 	
@@ -200,19 +255,43 @@ public class P2PaLATrainDialog extends Dialog {
 		
 		Button addStructBtn = new Button(structsComp, 0);
 		addStructBtn.setImage(Images.ADD);
-		addStructBtn.setToolTipText("Add a structure type from tags specified in this collection");
+		addStructBtn.setToolTipText("Add a structure type");
 		SWTUtil.onSelectionEvent(addStructBtn, e -> {
 			String[] items = Storage.i().getStructCustomTagSpecsTypeStrings().toArray(new String[0]);
-			ComboInputDialog d = new ComboInputDialog(getShell(), "Select a structure: ", items, SWT.DROP_DOWN, true);
+			ComboInputDialog d = new ComboInputDialog(getShell(), "Specify a structure: ", items, SWT.DROP_DOWN, true);
+			d.setValidator(new IInputValidator() {
+				@Override public String isValid(String arg) {
+					if (StringUtils.containsWhitespace(arg)) {
+						return "No spaces allowed in structure types!";
+					}
+					return null;
+				}
+			});
 			if (d.open() == Dialog.OK) {
 				structureTypesText.setText((structureTypesText.getText()+" "+d.getSelectedText()).trim());
 			}
 		});
 		
-		mergedStructureTypesText = new LabeledText(cont, "Merged structures: (optional)");
+		Composite mergedStructsComp = new Composite(cont, 0);
+		mergedStructsComp.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
+		mergedStructsComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		mergedStructureTypesText = new LabeledText(mergedStructsComp, "Merged structures: (optional)");
 		mergedStructureTypesText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		mergedStructureTypesText.setToolTipText("A list of all structure types to be merged into others.\n"
-				+ "E.g.: 'footnote:footnote-continued,footer heading:header' means that 'footnote-continue' and 'footnote' are regarded as 'footnote' while 'header' is regarded as 'heading'");		
+				+ "E.g.: 'footnote:footnote-continued,footer heading:header' means that 'footnote-continue' and 'footnote' are regarded as 'footnote' while 'header' is regarded as 'heading'");
+		
+		Button addMergedStructBtn = new Button(mergedStructsComp, 0);
+		addMergedStructBtn.setImage(Images.ADD);
+		addMergedStructBtn.setToolTipText("Add a structure type to merge");
+		
+		SWTUtil.onSelectionEvent(addMergedStructBtn, e -> {
+			String[] types = getCurrentStructTypes();
+			P2PaLAAddMergedStructDiag d = new P2PaLAAddMergedStructDiag(getShell(), types);
+			if (d.open() == Dialog.OK) {
+				mergedStructureTypesText.setText((mergedStructureTypesText.getText()+" "+d.getConfig()).trim());
+			}
+		});		
 		
 		outModeCombo = new LabeledCombo(cont, "Training mode: ");
 		outModeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -274,10 +353,10 @@ public class P2PaLATrainDialog extends Dialog {
 		valFrac.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		valFrac.setToolTipText("Percentage of the data that is used as validation set");
 		
-		testFrac = new LabeledText(fractionsComp, "Test: ");
-		testFrac.setText("0");
-		testFrac.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		testFrac.setToolTipText("Percentage of the data that is used as test set");
+//		testFrac = new LabeledText(fractionsComp, "Test: ");
+//		testFrac.setText("0");
+//		testFrac.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		testFrac.setToolTipText("Percentage of the data that is used as test set");
 		
 		analStructTypesBtn = new Button(cont, 0);
 		analStructTypesBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -301,6 +380,10 @@ public class P2PaLATrainDialog extends Dialog {
 		updateUi();
 		
 		return cont;
+	}
+	
+	private String[] getCurrentStructTypes() {
+		return Arrays.asList(structureTypesText.getText().split("\\s+")).stream().distinct().sorted().toArray(String[]::new);
 	}
 	
 	private String parseOutMode() {
@@ -409,9 +492,9 @@ public class P2PaLATrainDialog extends Dialog {
 	
 	private void updateUi() {
 		fractionsComp.setEnabled(autoSplitTrainSetCheck.getSelection());
-		trainFrac.setEnabled(autoSplitTrainSetCheck.getSelection());
-		valFrac.setEnabled(autoSplitTrainSetCheck.getSelection());
-		testFrac.setEnabled(autoSplitTrainSetCheck.getSelection());
+		SWTUtil.setEnabled(trainFrac, autoSplitTrainSetCheck.getSelection());
+		SWTUtil.setEnabled(valFrac, autoSplitTrainSetCheck.getSelection());
+		SWTUtil.setEnabled(testFrac, autoSplitTrainSetCheck.getSelection());
 		
 		valSel.setEnabled(!autoSplitTrainSetCheck.getSelection());
 		testSel.setEnabled(!autoSplitTrainSetCheck.getSelection());
@@ -445,15 +528,13 @@ public class P2PaLATrainDialog extends Dialog {
 		conf.outMode = parseOutMode();
 		logger.debug("outMode = "+conf.outMode);
 		
-		conf.structTypes = structureTypesText.getText();
+		conf.setStructTypes(structureTypesText.getText().trim());
 		if (StringUtils.isEmpty(conf.structTypes) && !conf.outMode.equals(TrpP2PaLA.OUT_MODE_LINES_ONLY)) {
 			throw new Exception("No structure types provided for training with regions!");
 		}
 		
-		// TODO: parse validity of mergedStructTypes syntax, i.e. s1:s2,s3,s4 s5:s6
-		if (!mergedStructureTypesText.getText().isEmpty()) {
-			conf.mergedStructTypes = mergedStructureTypesText.getText();
-		}
+		// parse validity of mergedStructTypes syntax, i.e. s1:s2,s3,s4 s5:s6
+		conf.setMergedStructTypes(mergedStructureTypesText.getText());
 		
 		conf.trainDocs = trainSel.getDocSelection();
 		if (conf.trainDocs==null || conf.trainDocs.isEmpty()) {
@@ -469,7 +550,7 @@ public class P2PaLATrainDialog extends Dialog {
 				throw new NumberFormatException("Validation fraction must be greater 0!");
 			}
 			fracList.add(valFracD);
-			double testFracD = parseFraction(testFrac.getText());
+			double testFracD = testFrac == null ? 0 : parseFraction(testFrac.getText());
 			if (testFracD > 0) {
 				fracList.add(testFracD);
 			}
@@ -501,6 +582,15 @@ public class P2PaLATrainDialog extends Dialog {
 		logger.debug("conf = "+this.conf);
 	}	
 	
+	private List<String> splitOnWsSortedDistinct(String s) {
+		if (!StringUtils.isEmpty(s)) {
+			return Arrays.asList(s.split("\\s+")).stream().distinct().sorted().collect(Collectors.toList());
+		}
+		else {
+			return new ArrayList<>();
+		}
+	}
+	
 	@Override
 	protected void okPressed() {
 		try {
@@ -511,6 +601,13 @@ public class P2PaLATrainDialog extends Dialog {
 				
 				if (s!=null && s.getCollection(s.getCollId())!=null) {
 					TrpCollection c = s.getCollection(s.getCollId());
+					msgDetail+="\n\tTraining "+conf.getTrainingModeVerbose();
+					if (conf.withRegions()) {
+						msgDetail+="\n\tStruct types: "+CoreUtils.join(splitOnWsSortedDistinct(conf.structTypes), ", ", "'", "'");
+						if (!StringUtils.isEmpty(conf.mergedStructTypes)) {
+							msgDetail+="\n\tMerged structs: "+CoreUtils.join(splitOnWsSortedDistinct(conf.mergedStructTypes), ", ", "'", "'");	
+						}
+					}
 					msgDetail+="\n\tCollection: "+c.getColId()+", "+c.getColName();
 					msgDetail+="\n\tModel owner: "+s.getUserName();
 				}

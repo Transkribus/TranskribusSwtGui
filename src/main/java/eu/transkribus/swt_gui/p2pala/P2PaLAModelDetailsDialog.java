@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.dialogs;
+package eu.transkribus.swt_gui.p2pala;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +40,7 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TableLabelProvider;
+import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.models.EditModelDialog;
 import eu.transkribus.swt_gui.models.ModelFilterComposite;

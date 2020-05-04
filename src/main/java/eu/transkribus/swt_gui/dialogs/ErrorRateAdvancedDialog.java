@@ -185,7 +185,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		blHelpBtn.setText("");
 		blHelpBtn.setImage(Images.HELP);
 		SWTUtil.onSelectionEvent(blHelpBtn, e -> {
-			DesktopUtil.browse("https://github.com/Transkribus/TranskribusBaseLineEvaluationScheme", "Baseline evaluation code used",
+			DesktopUtil.browse("https://github.com/Transkribus/TranskribusBaseLineEvaluationScheme", "https://github.com/Transkribus/TranskribusBaseLineEvaluationScheme",
 					getParentShell());
 		});
 		
