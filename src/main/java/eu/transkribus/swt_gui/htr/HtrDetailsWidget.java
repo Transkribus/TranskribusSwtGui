@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.ClientErrorException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -352,6 +353,17 @@ public class HtrDetailsWidget extends SashForm {
 				
 				if (textFeatsCfg!=null) {
 					addTableItem(paramTable, "Normalized height", ""+textFeatsCfg.getNormheight());
+				}
+				
+				String baseModelStr = "";
+				if (paramsProps.containsKey(HtrPyLaiaUtils.BASE_MODEL_ID_KEY)) {
+					baseModelStr += paramsProps.getProperty(HtrPyLaiaUtils.BASE_MODEL_ID_KEY);
+				}
+				if (paramsProps.containsKey(HtrPyLaiaUtils.BASE_MODEL_NAME_KEY)) {
+					baseModelStr += (baseModelStr.isEmpty() ? "" : " / ") + paramsProps.getProperty(HtrPyLaiaUtils.BASE_MODEL_NAME_KEY);
+				}
+				if (!StringUtils.isEmpty(baseModelStr)) {
+					addTableItem(paramTable, "Base model", baseModelStr);
 				}
 				
 				// TODO: how to show all pars? --> advanced pars dialog --> via showAdvancedParsBtn!!

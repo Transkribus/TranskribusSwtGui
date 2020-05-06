@@ -82,6 +82,7 @@ public class PyLaiaAdvancedConfComposite extends Composite {
 		this.trainPars.remove("--show_progress_bar");
 		this.trainPars.remove("--delimiters");
 		this.trainPars.remove("--print_args");
+		this.trainPars.remove("--save_checkpoint_interval");
 		
 		createContent();
 	}
