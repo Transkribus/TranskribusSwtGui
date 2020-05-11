@@ -433,26 +433,30 @@ public class HtrDetailsWidget extends SashForm {
 				storedNetEpoch = getMinCerEpoch(htr, referenceSeries);
 			}
 
-			if(storedNetEpoch > 0) {
-				logger.debug("best net stored after epoch {}", storedNetEpoch);
-				int seriesIndex = 0;
-				if(htr.hasCerLog()) {
-					double storedHtrTrainCer = htr.getCerLog()[storedNetEpoch - 1];
-					storedHtrTrainCerStr = HtrCITlabUtils.formatCerVal(storedHtrTrainCer);
-					plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.BLUE);
+			try {
+				if(storedNetEpoch > 0) {
+					logger.debug("best net stored after epoch {}", storedNetEpoch);
+					int seriesIndex = 0;
+					if(htr.hasCerLog()) {
+						double storedHtrTrainCer = htr.getCerLog()[storedNetEpoch - 1];
+						storedHtrTrainCerStr = HtrCITlabUtils.formatCerVal(storedHtrTrainCer);
+						plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.BLUE);
+					}
+					
+					if (htr.hasCerTestLog()) {
+						double storedHtrValCer = htr.getCerTestLog()[storedNetEpoch - 1];
+						storedHtrValCerStr = HtrCITlabUtils.formatCerVal(storedHtrValCer);
+						plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.RED);
+					}
+					
+					//annotate storedNetEpoch in the chart
+					XYLineAnnotation lineAnnot = new XYLineAnnotation(storedNetEpoch, 0.0, storedNetEpoch, 100.0,
+							new BasicStroke(), java.awt.Color.GREEN);
+					lineAnnot.setToolTipText("Stored HTR");
+					plot.addAnnotation(lineAnnot);
 				}
-				
-				if (htr.hasCerTestLog()) {
-					double storedHtrValCer = htr.getCerTestLog()[storedNetEpoch - 1];
-					storedHtrValCerStr = HtrCITlabUtils.formatCerVal(storedHtrValCer);
-					plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.RED);
-				}
-				
-				//annotate storedNetEpoch in the chart
-				XYLineAnnotation lineAnnot = new XYLineAnnotation(storedNetEpoch, 0.0, storedNetEpoch, 100.0,
-						new BasicStroke(), java.awt.Color.GREEN);
-				lineAnnot.setToolTipText("Stored HTR");
-				plot.addAnnotation(lineAnnot);
+			} catch (Exception e) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "Cannot determine best net epoch: "+e.getMessage());
 			}
 		} else {
 			plot.setNoDataMessage("No data available");
