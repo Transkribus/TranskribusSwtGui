@@ -691,4 +691,5 @@ CHANGES AND BUGFIXES
 	
 1.11.0:
 	-> integrate baseline error rate tool
+	-> improve P2PaLA train dialog - check structures and merged-structures consistency
 	
