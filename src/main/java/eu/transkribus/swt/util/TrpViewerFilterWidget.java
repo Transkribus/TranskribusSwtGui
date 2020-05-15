@@ -2,6 +2,7 @@ package eu.transkribus.swt.util;
 
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -104,5 +105,9 @@ public class TrpViewerFilterWidget extends Composite {
 	
 	public void reset() {
 		filterTxt.setText("");
+	}
+	
+	public ViewerFilter getViewerFilter() {
+		return viewerFilter;
 	}
 }

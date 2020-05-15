@@ -55,8 +55,8 @@ public class GenericDialogTest {
 		try {
 			if (true) { // load Storage?
 				store = Storage.getInstance();
-				store.login(ATrpServerConn.TEST_SERVER_URI, args[0], args[1]);
-//				store.login(ATrpServerConn.PROD_SERVER_URI, args[0], args[1]);
+//				store.login(ATrpServerConn.TEST_SERVER_URI, args[0], args[1]);
+				store.login(ATrpServerConn.PROD_SERVER_URI, args[0], args[1]);
 //				Future<?> fut = store.reloadDocList(2); // reload doclist of a collection just that the collection id gets set!
 				store.reloadCollections();
 				Future<?> fut = store.reloadDocList(2815); // reload doclist of a collection just that the collection id gets set!
@@ -95,7 +95,7 @@ public class GenericDialogTest {
 							w.setDoc(store.getDoc());
 						}
 						
-						if (true) {
+						if (false) {
 							P2PaLATrainDialog d = new P2PaLATrainDialog(getShell());
 							if (d.open() == IDialogConstants.OK_ID) {
 								P2PaLATrainUiConf conf = d.getConf();
@@ -197,7 +197,7 @@ public class GenericDialogTest {
 	//						SWTUtil.centerShell(getShell());
 						}
 						
-						if (false) {
+						if (true) {
 						HtrModelsDialog diag = new HtrModelsDialog(getShell(), false);
 						if (diag.open() == Dialog.OK) {
 							System.out.println("selected model: "+diag.getSelectedHtr());
