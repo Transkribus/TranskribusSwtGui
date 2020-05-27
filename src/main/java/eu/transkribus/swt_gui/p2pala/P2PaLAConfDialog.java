@@ -19,16 +19,20 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
@@ -36,7 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.DocSelection;
-import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpP2PaLA;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.P2PaLATrainJobPars;
@@ -62,6 +65,9 @@ public class P2PaLAConfDialog extends Dialog {
 		
 		public boolean rectifyRegions=false;
 		public Double minArea=0.01d;
+		
+		public boolean enrichExistingTranscriptions=false;
+		public boolean labelRegions=true, labelLines=true, labelWords=false;
 	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(P2PaLAConfDialog.class);
@@ -78,6 +84,10 @@ public class P2PaLAConfDialog extends Dialog {
 	Button modelDetailsBtn;
 	ModelFilterComposite modelFilterComp;
 	Button rectifyRegionsBtn;
+	Button enrichRegions, enrichLines, enrichWords;
+	CTabFolder modeTabFolder;
+	CTabItem createNewLayoutItem, enrichExistingTranscriptionsItem;
+	
 	LabeledCombo minAreaCombo;
 	
 	Button simplifyRegionsCheck; // TODO
@@ -215,6 +225,8 @@ public class P2PaLAConfDialog extends Dialog {
 	
 	@Override
 	protected Control createDialogArea(Composite parent) {
+		P2PaLARecogUiConf defaultConf = new P2PaLARecogUiConf();
+		
 		Composite cont = (Composite) super.createDialogArea(parent);
 		cont.setLayout(new GridLayout(2, false));
 		
@@ -306,12 +318,29 @@ public class P2PaLAConfDialog extends Dialog {
 		
 		initModelFacetsCombo(cont);
 		
-		rectifyRegionsBtn = new Button(cont, SWT.CHECK);
+		Group parameterGroup = new Group(cont, 0);
+		parameterGroup.setText("Options");
+		parameterGroup.setLayout(new GridLayout(1, false));
+		parameterGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		
+		modeTabFolder = new CTabFolder(parameterGroup, 0);
+		modeTabFolder.setLayout(new GridLayout(1, false));
+		modeTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		modeTabFolder.setSelectionBackground(new Color[]{ getShell().getDisplay().getSystemColor(SWT.COLOR_TITLE_INACTIVE_BACKGROUND_GRADIENT), getShell().getDisplay().getSystemColor(SWT.COLOR_TITLE_BACKGROUND)}, new int[]{100}, true);
+		
+		createNewLayoutItem = new CTabItem(modeTabFolder, 0);
+		createNewLayoutItem.setText("Create new layout");
+		createNewLayoutItem.setToolTipText("A new version with a new layout is created - the existing layout will be lost!");
+		Composite createNewLayoutComposite = new Composite(modeTabFolder, 0);
+		createNewLayoutComposite.setLayout(new GridLayout(1, false));
+		createNewLayoutItem.setControl(createNewLayoutComposite);
+		
+		rectifyRegionsBtn = new Button(createNewLayoutComposite, SWT.CHECK);
 		rectifyRegionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		rectifyRegionsBtn.setText("Rectify regions");
 		rectifyRegionsBtn.setToolTipText("Convert all shapes to rectangles after recognition");
 		
-		minAreaCombo = new LabeledCombo(cont, "Min area: ", false, SWT.DROP_DOWN);
+		minAreaCombo = new LabeledCombo(createNewLayoutComposite, "Min area: ", false, SWT.DROP_DOWN);
 		minAreaCombo.setToolTipText("Shapes with an *area* smaller than this fraction of the image *width* will be removed");
 		minAreaCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		minAreaCombo.getCombo().add("0.01");
@@ -320,6 +349,29 @@ public class P2PaLAConfDialog extends Dialog {
 		minAreaCombo.getCombo().add("10");
 		minAreaCombo.getCombo().add("100");
 		minAreaCombo.getCombo().setText("0.01");
+		
+		enrichExistingTranscriptionsItem = new CTabItem(modeTabFolder, 0);
+		enrichExistingTranscriptionsItem.setText("Label existing transcription");
+		Composite enrichExistingTranscriptionsComposite = new Composite(modeTabFolder, 0);
+		enrichExistingTranscriptionsComposite.setLayout(new GridLayout(1, false));
+		enrichExistingTranscriptionsItem.setControl(enrichExistingTranscriptionsComposite);
+		enrichExistingTranscriptionsItem.setToolTipText("The existing layout of the latest transcript will be labelled according to it's overlap with the resulting regions");
+		
+		enrichRegions = new Button(enrichExistingTranscriptionsComposite, SWT.CHECK);
+		enrichRegions.setText("Regions");
+		enrichRegions.setToolTipText("Label existing regions with structure types");
+		enrichRegions.setSelection(defaultConf.labelRegions);
+		enrichLines = new Button(enrichExistingTranscriptionsComposite, SWT.CHECK);
+		enrichLines.setText("Lines");
+		enrichLines.setToolTipText("Label existing lines with structure types");
+		enrichLines.setSelection(defaultConf.labelLines);
+		enrichWords = new Button(enrichExistingTranscriptionsComposite, SWT.CHECK);
+		enrichWords.setText("Words");
+		enrichWords.setToolTipText("Label existing words with structure types");
+		enrichWords.setSelection(defaultConf.labelWords);
+		
+		modeTabFolder.setSelection(createNewLayoutItem);
+		SWTUtil.setTabFolderBoldOnItemSelection(modeTabFolder);
 		
 		reloadModels();
 		
@@ -408,14 +460,21 @@ public class P2PaLAConfDialog extends Dialog {
 			conf.currentTranscript = pagesSelector.isCurrentTranscript();
 			conf.pagesStr = pagesSelector.getPagesStr();
 			conf.model = model;
+			
+			// create new layout pars:
 			conf.rectifyRegions = rectifyRegionsBtn.getSelection();
-
 			try {
 				conf.minArea = Double.parseDouble(minAreaCombo.getCombo().getText());
 			} catch (Exception e) {
 				DialogUtil.showErrorMessageBox(getShell(), "Could not parse min-area parameter", e.getMessage());
 				return false;
 			}
+			
+			// enrich existing layout pars:
+			conf.enrichExistingTranscriptions = modeTabFolder.getSelection()==enrichExistingTranscriptionsItem;
+			conf.labelRegions = enrichRegions.getSelection();
+			conf.labelLines = enrichLines.getSelection();
+			conf.labelWords = enrichWords.getSelection();
 		}
 		else {
 			conf = null;
