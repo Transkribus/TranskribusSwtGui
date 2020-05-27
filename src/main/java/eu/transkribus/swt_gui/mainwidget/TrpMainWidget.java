@@ -3894,8 +3894,7 @@ public class TrpMainWidget {
 				FileUtils.forceMkdir(tempZipFileDir);
 
 				if (exportDiag.isMetsExport())
-					exportDocument(tempZipFileDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(),
-							exportDiag.isSplitUpWords(), wordBased, commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
+					exportDocument(tempZipFileDir, commonPars, cache);
 				if (exportDiag.isPdfExport())
 					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(),
 							exportDiag.isExportImagesOnly(), exportDiag.isHighlightTags(), exportDiag.isHighlightArticles(), wordBased, doBlackening, createTitle, cache, exportDiag.getFont(), pdfPars.getPdfImgQuality());
@@ -3943,8 +3942,8 @@ public class TrpMainWidget {
 
 			if (doMetsExport) {
 
-				exportDocument(metsExportDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(),
-						exportDiag.isSplitUpWords(), exportDiag.isWordBased(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
+				//exportDocument(metsExportDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), exportDiag.isSplitUpWords(), exportDiag.isWordBased(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
+				exportDocument(metsExportDir, commonPars, cache);
 				if (exportDiag.isPageExport()) {
 					if (exportFormats != "") {
 						exportFormats += " and ";
@@ -4062,7 +4061,39 @@ public class TrpMainWidget {
 		}
 
 	}
+	
+	public void exportDocument(final File dir, CommonExportPars commonPars, ExportCache cache) throws Throwable {
+		try {
 
+			if (dir == null)
+				return;
+
+			String what = "Images" + (commonPars.isDoExportPageXml() ? ", PAGE" : "") + (commonPars.isDoExportAltoXml() ? ", ALTO" : "");
+			lastExportFolder = dir.getParentFile().getAbsolutePath();
+			commonPars.setDir(dir.getAbsolutePath());
+			commonPars.setUseOcrMasterDir(false);
+			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					try {
+						logger.debug("exporting document...");
+						final String path = storage.exportDocument(commonPars, monitor, cache);
+						monitor.done();
+						// displaySuccessMessage("Written export to "+path);
+					} catch (Exception e) {
+						throw new InvocationTargetException(e, e.getMessage());
+					}
+				}
+			}, "Exporting document files: " + what, false);
+		} catch (Throwable e) {
+			onError("Export error", "Error during export of document", e);
+			throw e;
+		}
+	}
+
+	/*
+	 * use the commonPars instead
+	 */
+	@Deprecated
 	public void exportDocument(final File dir, final Set<Integer> pageIndices, final boolean exportImg, final boolean exportPage, final boolean exportAlto,
 			final boolean splitIntoWordsInAlto, final boolean useWordLayer, final String fileNamePattern, final ImgType imgType, ExportCache cache) throws Throwable {
 		try {

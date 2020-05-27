@@ -130,11 +130,10 @@ public class CommonExportDialog extends Dialog {
 	PdfExportPars pdfPars;
 	DocxExportPars docxPars;
 
-	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, 
+	boolean docxExport, pdfExport, teiExport, altoExport, singleTextFilesExport, splitUpWords, imgExport, metsExport, 
 	pageExport, tagXlsxExport, tagIOBExport, tableXlsxExport, zipExport, txtExport;
 
 //	String fileNamePattern = ExportFilePatternUtils.FILENAME_PATTERN;
-	
 	Button addExtraTextPagesBtn;
 	boolean addExtraTextPages2PDF;
 	Button imagesOnlyBtn;
@@ -1003,7 +1002,7 @@ public class CommonExportDialog extends Dialog {
 			final Button e2 = new Button(metsComposite, SWT.CHECK);
 			final Button e21 = new Button(metsComposite, SWT.CHECK);
 			final Button e3 = new Button(metsComposite, SWT.CHECK);
-//			final Button e4 = new Button(metsComposite, SWT.CHECK);
+			final Button e4 = new Button(metsComposite, SWT.CHECK);
 			final Composite imgComp = new Composite(metsComposite, SWT.NONE);
 			imgComp.setLayout(new GridLayout(2, false));
 			Label imgQualLbl = new Label(imgComp, SWT.NONE);
@@ -1022,12 +1021,11 @@ public class CommonExportDialog extends Dialog {
 			e21.setText("Export ALTO (Split Lines Into Words)");
 			e21.setToolTipText("Words get determined from the lines with some degree of fuzziness");
 			e3.setText("Export Image");
+			e4.setText("Export text files");
 			
 			imgQualityCmb.setItems(imgQualityChoices);
 			imgQualityCmb.select(0);
 			imgQualityCmb.pack();
-			
-//			e4.setText("Standardized Filenames");
 			
 			e1.addSelectionListener(new SelectionAdapter() {
 			
@@ -1094,18 +1092,13 @@ public class CommonExportDialog extends Dialog {
 			    }
 			});
 			
-//			e4.addSelectionListener(new SelectionAdapter() {
-//			    @Override
-//			    public void widgetSelected(SelectionEvent event) {
-//			        Button btn = (Button) event.getSource();
-//			        if (btn.getSelection()){
-//			        	setFileNamePattern(ExportFilenameUtils.STANDARDIZED_PATTERN);
-//			        }
-//			        else{
-//			        	setFileNamePattern(ExportFilenameUtils.FILENAME_PATTERN);
-//			        }
-//			    }
-//			});
+			e4.addSelectionListener(new SelectionAdapter() {
+			    @Override
+			    public void widgetSelected(SelectionEvent event) {
+			        Button btn = (Button) event.getSource();
+			        setSingleTextFilesExport(btn.getSelection());
+			    }
+			});
 			
 			return metsComposite;
 	}
@@ -1598,9 +1591,14 @@ public class CommonExportDialog extends Dialog {
 	}
 		
 	private void updateCommonPars() {
-		commonPars = new CommonExportPars(getPagesStr(), metsExport, imgExport, pageExport, altoExport, 
+
+		commonPars = new CommonExportPars(getPagesStr(), metsExport, imgExport, pageExport, altoExport, singleTextFilesExport,
 				pdfExport, teiExport, docxExport, txtExport, tagXlsxExport, tagIOBExport, tableXlsxExport, createTitlePage, versionStatus, wordBased, doBlackening, getSelectedTagsList(), font);
-		commonPars.setFileNamePattern(filenamePatternComp.pattern.text.getText());
+		
+		String fileNamePattern = filenamePatternComp.pattern.text.getText();
+		if(fileNamePattern != null) {
+			commonPars.setFileNamePattern(fileNamePattern);
+		}
 		
 		if(isImgExport() && imgQualityCmb != null) {
 			ImgType type = getSelectedImgType(imgQualityCmb);
@@ -1770,6 +1768,14 @@ public class CommonExportDialog extends Dialog {
 
 	public void setPageExport(boolean pageExport) {
 		this.pageExport = pageExport;
+	}
+
+	public boolean isSingleTextFilesExport() {
+		return singleTextFilesExport;
+	}
+
+	public void setSingleTextFilesExport(boolean singleTextFilesExport) {
+		this.singleTextFilesExport = singleTextFilesExport;
 	}
 
 	public boolean isAddExtraTextPages2PDF() {
