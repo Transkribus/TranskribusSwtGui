@@ -95,7 +95,7 @@ public class GenericDialogTest {
 							w.setDoc(store.getDoc());
 						}
 						
-						if (true) {
+						if (false) {
 							P2PaLATrainDialog d = new P2PaLATrainDialog(getShell());
 							if (d.open() == IDialogConstants.OK_ID) {
 								P2PaLATrainUiConf conf = d.getConf();
@@ -115,7 +115,7 @@ public class GenericDialogTest {
 							d.open();
 						}
 						
-						if (false) {
+						if (true) {
 							P2PaLAConfDialog d = new P2PaLAConfDialog(getShell());
 							d.open();
 						}						

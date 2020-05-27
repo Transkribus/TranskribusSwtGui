@@ -694,4 +694,5 @@ CHANGES AND BUGFIXES
 	-> improve P2PaLA train dialog - check structures and merged-structures consistency
 	-> status change of one page is checked for reasonableness and creates new transcript version
 	-> label existing layouts using P2PaLA
+	-> Export option to export a text file for each selected page
 	
