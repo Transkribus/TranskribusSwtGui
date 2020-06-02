@@ -31,16 +31,17 @@ public class HtrTextRecognitionConfigDialogTest {
 					
 					System.out.println(Storage.getInstance().loadTextRecognitionConfig());
 					
-	//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
-//					HtrModelsDialog diag = new HtrModelsDialog(getShell());
-//					if (diag.open() == Dialog.OK) {
-//						System.out.println("selected model: "+diag.getSelectedHtr());
-//					}
+					HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
 					
-					Text2ImageConfDialog diag = new Text2ImageConfDialog(getShell());
+//					HtrModelsDialog diag = new HtrModelsDialog(getShell());
 					if (diag.open() == Dialog.OK) {
-						System.out.println("conf: "+diag.getConfig());
+//						System.out.println("selected model: "+diag.getSelectedHtr());
 					}
+					
+//					Text2ImageConfDialog diag = new Text2ImageConfDialog(getShell());
+//					if (diag.open() == Dialog.OK) {
+//						System.out.println("conf: "+diag.getConfig());
+//					}
 	
 					return parent;
 				}

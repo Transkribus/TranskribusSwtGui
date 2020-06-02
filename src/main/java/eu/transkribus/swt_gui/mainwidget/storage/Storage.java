@@ -2278,6 +2278,40 @@ public class Storage {
 		checkConnection(true);
 		conn.addPage(colId, docId, pageNr, imgFile, monitor);
 	}
+	
+	public String exportDocument(CommonExportPars pars, final IProgressMonitor monitor, ExportCache cache) throws SessionExpiredException, ServerErrorException, IllegalArgumentException,
+			NoConnectionException, Exception {
+		if (!isDocLoaded())
+			throw new Exception("No document is loaded!");
+		
+		FileUtils.forceMkdir(new File(pars.getDir()));
+
+		Set<Integer> pageIndices = CoreUtils.parseRangeListStr(pars.getPages(), Integer.MAX_VALUE);
+		final int totalWork = pageIndices==null ? doc.getNPages() : pageIndices.size();		
+		monitor.beginTask("Exporting document", totalWork);
+
+		String path = pars.getDir();
+		logger.debug("Trying to export document to " + path);
+			
+		Observer o = new Observer() {
+			int c=0;
+			@Override public void update(Observable o, Object arg) {
+				if (monitor != null && monitor.isCanceled()) {
+					return;
+				}
+				if (arg instanceof Integer) {
+					++c;
+					monitor.subTask("Processed page " + c +" / "+totalWork);
+					monitor.worked(c);
+				}
+			}
+		};
+		DocExporter de = new DocExporter(conn.newFImagestoreGetClient(), cache);
+		de.addObserver(o);
+		de.exportDoc(doc, pars);
+
+		return path;
+	}
 
 	public String exportDocument(File dir, Set<Integer> pageIndices, boolean exportImg, 
 			boolean exportPage, boolean exportAlto, boolean splitIntoWordsInAlto, boolean useWordLayer,
@@ -2903,8 +2937,8 @@ public class Storage {
 					config.isDoStoreConfMats(), config.getStructures());
 		case UPVLC:
 			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), getDocId(), pages, 
-					config.getHtrId(), config.getDictionary(),
-					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(),
+					config.getHtrId(), config.getLanguageModel(),
+					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
 					config.getBatchSize(),
 					config.getStructures());			
 		default:
@@ -2921,8 +2955,8 @@ public class Storage {
 					config.isDoStoreConfMats(), config.getStructures()
 					);
 		case UPVLC:
-			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), descriptor, config.getHtrId(), config.getDictionary(), 
-					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(),
+			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), descriptor, config.getHtrId(), config.getLanguageModel(), 
+					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
 					config.getBatchSize(),
 					config.getStructures()
 					);		
@@ -2939,8 +2973,8 @@ public class Storage {
 					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), config.isDoStoreConfMats(), config.getStructures());
 		case UPVLC:
 			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), docId, pages, 
-					config.getHtrId(), config.getDictionary(), 
-					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(),
+					config.getHtrId(), config.getLanguageModel(), 
+					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
 					config.getBatchSize(),
 					config.getStructures());
 		default:

@@ -42,8 +42,6 @@ import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.CITlabAdvancedLaConfigDialog;
 import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
-import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
-import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog.P2PaLARecogUiConf;
 import eu.transkribus.swt_gui.dialogs.SamplesCompareDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
@@ -53,6 +51,8 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage.StorageException;
+import eu.transkribus.swt_gui.p2pala.P2PaLAConfDialog;
+import eu.transkribus.swt_gui.p2pala.P2PaLAConfDialog.P2PaLARecogUiConf;
 import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.util.OcrConfig;
 import eu.transkribus.util.TextRecognitionConfig;
@@ -399,6 +399,10 @@ public class ToolsWidgetListener implements SelectionListener {
 							pm.addParameter(JobConstP2PaLA.MIN_AREA_PAR, conf.minArea);	
 						}
 						pm.addParameter(JobConstP2PaLA.RECTIFY_REGIONS_PAR, conf.rectifyRegions);
+						pm.addParameter(JobConstP2PaLA.ENRICH_EXISTING_TRANSCRIPTIONS_PAR, conf.enrichExistingTranscriptions);
+						pm.addParameter(JobConstP2PaLA.LABEL_REGIONS_PAR, conf.labelRegions);
+						pm.addParameter(JobConstP2PaLA.LABEL_LINES_PAR, conf.labelLines);
+						pm.addParameter(JobConstP2PaLA.LABEL_WORDS_PAR, conf.labelWords);
 						
 						if (diag.isDocsSelected() && diag.getDocs() != null && Storage.getInstance().isAdminLoggedIn()){
 							// NEW
@@ -646,8 +650,14 @@ public class ToolsWidgetListener implements SelectionListener {
 							if (isDocsSelection){
 								// NEW: use DocSelection here, as they contain the pages string for each doc:
 								for (DocSelection docSel : trd2.getDocs()) {
-									String jobId = store.runHtr(docSel.getDocId(), docSel.getPages(), config);
+									DocumentSelectionDescriptor dsd = store.getDocumentSelectionDescriptor(colId, docSel);
+									logger.debug("dsd = "+dsd);
+									String jobId = store.runHtr(dsd, config);
 									jobIds.add(jobId);
+
+									// OLD: call does not work when docSel.getPages() is null!
+//									logger.debug("sel: "+docSel+" docId: "+docSel.getDocId()+" pages: "+docSel.getPages());
+//									String jobId = store.runHtr(docSel.getDocId(), docSel.getPages(), config);
 								}
 								// OLD: use DocumentSelectionDescriptor which do *not* contain individual pages
 //								for (DocumentSelectionDescriptor docDescr : trd2.getDocs()){

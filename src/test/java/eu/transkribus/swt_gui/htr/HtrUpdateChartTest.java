@@ -34,7 +34,7 @@ public class HtrUpdateChartTest {
 				comp = new HtrModelsComposite(parent, SWT.NONE);
 				parent.pack();
 				
-				Future<TrpHtrList> htrList = getStorage().getConnection().getHtrs(null, null, 0, -1, new InvocationCallback<TrpHtrList>() {
+				Future<TrpHtrList> htrList = getStorage().getConnection().getHtrs(null, null, 0, -1, null, null, new InvocationCallback<TrpHtrList>() {
 
 					@Override
 					public void completed(TrpHtrList htrList) {

@@ -232,8 +232,8 @@ public class HtrTrainingDialog extends Dialog {
 	private TrainMethodUITab createPylaiaTrainTabItem(int tabIndex) {
 		pylaiaTrainTabItem = new CTabItem(paramTabFolder, SWT.NONE);
 		
-//		pyLaiaTrainingConfComp = new PyLaiaTrainingConfComposite(paramTabFolder, true, SWT.NONE);
-		pyLaiaTrainingConfComp = new PyLaiaTrainingConfComposite(paramTabFolder, false, SWT.NONE);
+		pyLaiaTrainingConfComp = new PyLaiaTrainingConfComposite(paramTabFolder, true, SWT.NONE);
+//		pyLaiaTrainingConfComp = new PyLaiaTrainingConfComposite(paramTabFolder, false, SWT.NONE);
 		pylaiaTrainTabItem.setText(HtrTableLabelProvider.getLabelForHtrProvider(pyLaiaTrainingConfComp.getProvider()));
 		pylaiaTrainTabItem.setControl(pyLaiaTrainingConfComp);
 		return new TrainMethodUITab(tabIndex, pylaiaTrainTabItem, pyLaiaTrainingConfComp);		

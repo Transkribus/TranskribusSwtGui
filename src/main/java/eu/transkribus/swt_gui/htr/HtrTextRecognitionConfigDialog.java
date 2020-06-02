@@ -70,7 +70,7 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 		
 		Group dictGrp = new Group(sash, SWT.NONE);
 		dictGrp.setLayout(new GridLayout(1, false));
-		dictGrp.setText("Dictionary");
+		dictGrp.setText("Language Model");
 		
 		htrDictComp = new HtrDictionaryComposite(dictGrp, 0);
 		htrDictComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -96,13 +96,15 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 			return;
 		}
 		final String provider = htrModelsComp.getSelectedHtr().getProvider();
-		if (!HtrPyLaiaUtils.doesDecodingSupportDicts() 
-				&& provider.equals(HtrPyLaiaUtils.PROVIDER_PYLAIA)) {
-			sash.setWeights(new int[] { 100, 0 });
+		if (provider.equals(HtrPyLaiaUtils.PROVIDER_PYLAIA)) {
+//			sash.setWeights(new int[] { 100, 0 });
+//			htrDictComp.updateUi(false, htrModelsComp.getSelectedHtr().isLanguageModelExists(), false);
+			htrDictComp.updateUi(false, true, false);
+			sash.setWeights(new int[] { 88, 12 });			
 		} else if (provider.equals(HtrCITlabUtils.PROVIDER_CITLAB_PLUS)
 				|| provider.equals(HtrCITlabUtils.PROVIDER_CITLAB)) {
 			//show option to select integrated dictionary if available for this model
-			htrDictComp.updateUi(false, htrModelsComp.getSelectedHtr().isLanguageModelExists());
+			htrDictComp.updateUi(false, htrModelsComp.getSelectedHtr().isLanguageModelExists(), true);
 			sash.setWeights(new int[] { 88, 12 });
 		} else {
 			sash.setWeights(new int[] { 88, 12 });
@@ -121,13 +123,12 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 			
 			TrpHtr selHtr = htrModelsComp.getSelectedHtr();
 			boolean showLangModOption = selHtr != null && selHtr.isLanguageModelExists();
-			htrDictComp.updateUi(false, showLangModOption);
-			
+			htrDictComp.updateUi(false, showLangModOption, true);
 			htrDictComp.updateSelection(config.getDictionary());
 			break;
 		case UPVLC:
 			htrModelsComp.setSelection(config.getHtrId());
-			htrDictComp.updateSelection(config.getDictionary());
+			htrDictComp.updateSelection(config.getLanguageModel());
 			break;
 		default:
 			break;
@@ -162,7 +163,13 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 			return;
 		}
 		config = new TextRecognitionConfig(mode);
-		config.setDictionary(htrDictComp.getDictionarySetting());
+		
+		if (mode == Mode.CITlab) { // FIXME: set language model here once ready for CITlab recognition
+			config.setDictionary(htrDictComp.getDictionarySetting());
+		}
+		else { // for PyLaia, only language model setting is relevant!
+			config.setLanguageModel(htrDictComp.getLanguageModelSetting());	
+		}
 		
 		if (htr == null) {
 			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please select a HTR.");

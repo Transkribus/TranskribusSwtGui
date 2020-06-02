@@ -36,6 +36,8 @@ import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.ServerErrorException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.io.FileDeleteStrategy;
@@ -3892,8 +3894,7 @@ public class TrpMainWidget {
 				FileUtils.forceMkdir(tempZipFileDir);
 
 				if (exportDiag.isMetsExport())
-					exportDocument(tempZipFileDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(),
-							exportDiag.isSplitUpWords(), wordBased, commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
+					exportDocument(tempZipFileDir, commonPars, cache);
 				if (exportDiag.isPdfExport())
 					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(),
 							exportDiag.isExportImagesOnly(), exportDiag.isHighlightTags(), exportDiag.isHighlightArticles(), wordBased, doBlackening, createTitle, cache, exportDiag.getFont(), pdfPars.getPdfImgQuality());
@@ -3941,8 +3942,8 @@ public class TrpMainWidget {
 
 			if (doMetsExport) {
 
-				exportDocument(metsExportDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(),
-						exportDiag.isSplitUpWords(), exportDiag.isWordBased(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
+				//exportDocument(metsExportDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), exportDiag.isSplitUpWords(), exportDiag.isWordBased(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
+				exportDocument(metsExportDir, commonPars, cache);
 				if (exportDiag.isPageExport()) {
 					if (exportFormats != "") {
 						exportFormats += " and ";
@@ -4060,7 +4061,39 @@ public class TrpMainWidget {
 		}
 
 	}
+	
+	public void exportDocument(final File dir, CommonExportPars commonPars, ExportCache cache) throws Throwable {
+		try {
 
+			if (dir == null)
+				return;
+
+			String what = "Images" + (commonPars.isDoExportPageXml() ? ", PAGE" : "") + (commonPars.isDoExportAltoXml() ? ", ALTO" : "");
+			lastExportFolder = dir.getParentFile().getAbsolutePath();
+			commonPars.setDir(dir.getAbsolutePath());
+			commonPars.setUseOcrMasterDir(false);
+			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					try {
+						logger.debug("exporting document...");
+						final String path = storage.exportDocument(commonPars, monitor, cache);
+						monitor.done();
+						// displaySuccessMessage("Written export to "+path);
+					} catch (Exception e) {
+						throw new InvocationTargetException(e, e.getMessage());
+					}
+				}
+			}, "Exporting document files: " + what, false);
+		} catch (Throwable e) {
+			onError("Export error", "Error during export of document", e);
+			throw e;
+		}
+	}
+
+	/*
+	 * use the commonPars instead
+	 */
+	@Deprecated
 	public void exportDocument(final File dir, final Set<Integer> pageIndices, final boolean exportImg, final boolean exportPage, final boolean exportAlto,
 			final boolean splitIntoWordsInAlto, final boolean useWordLayer, final String fileNamePattern, final ImgType imgType, ExportCache cache) throws Throwable {
 		try {
@@ -4541,6 +4574,8 @@ public class TrpMainWidget {
 			} catch (IOException e) {
 				if (!e.getMessage().equals("stream is closed")) {
 					TrpMainWidget.getInstance().onError("IO-Error during update", "Error during update: \n\n" + e.getMessage(), e);
+				} else {
+					logger.error("Program update could not be downloaded or installed.", e);
 				}
 			} catch (Throwable e) {
 				TrpMainWidget.getInstance().onError("Error during update", "Error during update: \n\n" + e.getMessage(), e);
@@ -6119,13 +6154,70 @@ public class TrpMainWidget {
 	}
 	
 	public void changeVersionStatus(String text, TrpPage page) {
-		if (EditStatus.fromString(text).equals(EditStatus.NEW)){
-			//New is only allowed for the first transcript
-			DialogUtil.showInfoMessageBox(getShell(), "Status 'New' reserved for first transcript", "Only the first transcript can be 'New', all others must be at least 'InProgress'");
+		
+		/*
+		 * new strategy for status change
+		 * 1) change the status if it makes sense and is allowed
+		 * 2) if so - save as new version with the new status
+		 */
+		
+		//is the page the one currently loaded in Transkribus
+		boolean isLoaded = (page.getPageId() == Storage.getInstance().getPage().getPageId());
+        //then only the latest transcript can be changed -> page.getCurrentTranscript() gives the latest of this page
+		boolean isLatestTranscript = (page.getCurrentTranscript().getTsId() == Storage.getInstance().getTranscriptMetadata().getTsId());
+		
+		TrpTranscriptMetadata trMd = Storage.getInstance().getTranscript().getMd();
+		if (trMd.getStatus().equals(EditStatus.fromString(text))){
+			DialogUtil.showInfoMessageBox(getShell(), "Status stays the same", "The chosen status " + EditStatus.fromString(text) + " is the same as the old!");
+			return;
+		}
+			
+		if (isLoaded && !isLatestTranscript){
+			DialogUtil.showInfoMessageBox(getShell(), "Status change not allowed", "Status change is only allowed for the latest transcript. Load the latest transcript or save the current transcript.");
+			ui.getStatusCombo().setText(storage.getTranscriptMetadata().getStatus().getStr());
+			ui.getStatusCombo().redraw();
+			return;
+			//logger.debug("page is loaded with transcript ID " + Storage.getInstance().getTranscriptMetadata().getTsId());
+		}
+		
+		if (!AuthUtils.canTranscribe(storage.getRoleOfUserInCurrentCollection())) { // not allowed
+			DialogUtil.showInfoMessageBox(getShell(), "No authorization to change status", "No authorization to change status - keep current status");
+			ui.getStatusCombo().setText(storage.getTranscriptMetadata().getStatus().getStr());
+			ui.getStatusCombo().redraw();
 			return;
 		}
 		
-		int colId = Storage.getInstance().getCollId();
+		if(EditStatus.fromString(text).getValue() >= EditStatus.FINAL.getValue() && !AuthUtils.canManage(storage.getRoleOfUserInCurrentCollection())){
+			DialogUtil.showInfoMessageBox(getShell(), "No authorization to change status", "Status 'Final' and 'GT' can only be set by editors or the owner - keep current status");
+			ui.getStatusCombo().setText(storage.getTranscriptMetadata().getStatus().getStr());
+			ui.getStatusCombo().redraw();
+			return;
+		}
+		
+		if (EditStatus.fromString(text).equals(EditStatus.NEW)){
+			//New is only allowed for the first transcript
+			DialogUtil.showInfoMessageBox(getShell(), "Status 'New' reserved for first transcript", "Only the first transcript can be 'New' - please use another status!");
+			ui.getStatusCombo().setText(storage.getTranscriptMetadata().getStatus().getStr());
+			ui.getStatusCombo().redraw();
+			return;
+		}
+		
+		//set new status and save as new version (includes all transcript changes as well)
+		trMd.setStatus(EditStatus.fromString(text));
+		saveTranscription(false);
+		
+		//this would show another request to the user if he wants to save - too much in my opinion
+		//saveTranscriptDialogOrAutosave();
+			
+		
+
+		/*
+		 * 
+		 * old solution: directly change the status in the database
+		 * no check if the transcript has changed. Therefore the version before the transcript was saved got e.g. status GT
+		 */
+		
+/*		int colId = Storage.getInstance().getCollId();
 		//is the page the one currently loaded in Transkribus
 		boolean isLoaded = (page.getPageId() == Storage.getInstance().getPage().getPageId());
         //then only the latest transcript can be changed -> page.getCurrentTranscript() gives the latest of this page
@@ -6182,7 +6274,7 @@ public class TrpMainWidget {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 		
 	}
 

@@ -310,6 +310,7 @@ public class ProgramUpdaterDialog {
 					try {
 						PROGRAM_UPDATER.downloadUpdate(downloadFile, f, monitor, downloadAll);
 					} catch (Exception e) {
+						logger.error("Program update could not be downloaded.", e);
 						throw new InvocationTargetException(e);
 					}
 				}
@@ -503,7 +504,9 @@ public class ProgramUpdaterDialog {
 			catch (IOException e) {
 				if (!e.getMessage().equals("stream is closed")) {
 					TrpMainWidget.getInstance().onError("IO-Error during update", "Error during update: \n\n"+e.getMessage(), e);	
-				}	
+				} else {
+					logger.error("Program update could not be downloaded or installed.", e);
+				}
 			}
 			catch (Throwable e) {
 				TrpMainWidget.getInstance().onError("Error during update", "Error during update: \n\n"+e.getMessage(), e);

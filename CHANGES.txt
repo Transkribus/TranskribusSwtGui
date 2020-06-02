@@ -687,4 +687,13 @@ CHANGES AND BUGFIXES
 	-> P2PaLA train dialog - "Analyze structure types" fixes
 	-> HTR configuration dialog bugfix: did not load when stored configuration contained a deleted model
 	-> fix a memory leak in CanvasImage
+	-> xlsx export: concat continued tags
+	
+1.11.0:
+	-> integrate baseline error rate tool
+	-> improve P2PaLA train dialog - check structures and merged-structures consistency
+	-> status change of one page is checked for reasonableness and creates new transcript version
+	-> label existing layouts using P2PaLA
+	-> Export option to export a text file for each selected page
+	-> severe bugfix: update JRE for MacOS to version 8u251 to support server certificate 
 	

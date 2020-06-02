@@ -27,15 +27,16 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.AllowUsersForJobDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncWithFilesDialog;
-import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
-import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog;
 import eu.transkribus.swt_gui.dialogs.RemoveTextRegionsConfDialog;
-import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog.P2PaLATrainUiConf;
 import eu.transkribus.swt_gui.htr.HtrModelsDialog;
 import eu.transkribus.swt_gui.htr.Text2ImageConfDialog;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.StructTagConfWidget;
+import eu.transkribus.swt_gui.p2pala.P2PaLAConfDialog;
+import eu.transkribus.swt_gui.p2pala.P2PaLATrainDialog;
+import eu.transkribus.swt_gui.p2pala.P2PaLATrainDialog.P2PaLATrainUiConf;
+import eu.transkribus.swt_gui.versions.VersionsTreeWidget;
 import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsWidget;
 import eu.transkribus.swt_gui.vkeyboards.VirtualKeyboardEditor;
 
@@ -89,6 +90,12 @@ public class GenericDialogTest {
 		//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
 						
 						if (false) {
+							store.loadRemoteDoc(1, 455);
+							VersionsTreeWidget w = new VersionsTreeWidget(parent, 0);
+							w.setDoc(store.getDoc());
+						}
+						
+						if (false) {
 							P2PaLATrainDialog d = new P2PaLATrainDialog(getShell());
 							if (d.open() == IDialogConstants.OK_ID) {
 								P2PaLATrainUiConf conf = d.getConf();
@@ -108,7 +115,7 @@ public class GenericDialogTest {
 							d.open();
 						}
 						
-						if (false) {
+						if (true) {
 							P2PaLAConfDialog d = new P2PaLAConfDialog(getShell());
 							d.open();
 						}						
@@ -221,7 +228,7 @@ public class GenericDialogTest {
 					return parent;
 				}
 			};
-//			aw.setBlockOnOpen(true);
+			aw.setBlockOnOpen(true);
 			aw.open();
 	
 			Display.getCurrent().dispose();

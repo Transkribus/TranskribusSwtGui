@@ -36,7 +36,7 @@ import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 public class HtrDictionaryComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(HtrDictionaryComposite.class);
 	
-	public final static String NO_DICTIONARY = "No dictionary";
+	public final static String NO_DICTIONARY = "None";
 	/**
 	 * The integrated dictionary might be very large nad results don't differ much from the LM which is much faster
 	 */
@@ -62,7 +62,7 @@ public class HtrDictionaryComposite extends Composite {
 		tableWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		addListeners();
-		updateUi(true, false);
+		updateUi(true, true, true);
 	}
 	
 	private void addListeners() {
@@ -82,7 +82,7 @@ public class HtrDictionaryComposite extends Composite {
 		}
 		tableWidget.setEnabled(option.equals(CUSTOM_DICTIONARY));
 	}
-
+	
 	/**
 	 * @return Depending on the selected dictComboOption: null for no dictionary, 
 	 * the correct JobConst value for triggering requested behavior on the server side
@@ -97,6 +97,16 @@ public class HtrDictionaryComposite extends Composite {
 			return JobConst.PROP_TRAIN_DATA_LM_VALUE;
 		case CUSTOM_DICTIONARY:
 			return tableWidget.getSelection();
+		case NO_DICTIONARY:
+		default:
+			return null;
+		}
+	}
+	
+	public String getLanguageModelSetting() {
+		switch (dictOptionCombo.getText()) {
+		case INTEGRATED_LM:
+			return JobConst.PROP_TRAIN_DATA_LM_VALUE;
 		case NO_DICTIONARY:
 		default:
 			return null;
@@ -149,10 +159,7 @@ public class HtrDictionaryComposite extends Composite {
 	 * @param reloadDicts if true then reload the dict. list from the server
 	 * @param showIntegratedDictOptions if true then the combo will allow to select the respective options
 	 */
-	public void updateUi(boolean reloadDicts, boolean showIntegratedDictOptions) {
-		if (reloadDicts) {
-			this.htrDicts = loadHtrDicts();
-		}
+	public void updateUi(boolean reloadDicts, boolean showIntegratedDictOptions, boolean showCustomDictOption) {
 		final String selectedOption = dictOptionCombo.getText();
 		dictOptionCombo.removeAll();
 		dictOptionCombo.add(NO_DICTIONARY);
@@ -161,16 +168,24 @@ public class HtrDictionaryComposite extends Composite {
 //			dictOptionCombo.add(INTEGRATED_DICTIONARY);
 			dictOptionCombo.add(INTEGRATED_LM);
 		}
-		dictOptionCombo.add(CUSTOM_DICTIONARY);
-		
-		selectDictionaryOption(selectedOption);
-		
-		final String dictName = tableWidget.getSelection();
-		//update the list and keep former selection
-		tableWidget.refreshList(this.htrDicts);
-		if(dictName != null) {
-			selectDictionary(dictName);
+		if (showCustomDictOption) {
+			if (reloadDicts) {
+				this.htrDicts = loadHtrDicts();
+			}			
+			dictOptionCombo.add(CUSTOM_DICTIONARY);
+			selectDictionaryOption(selectedOption);
+			
+			final String dictName = tableWidget.getSelection();
+			//update the list and keep former selection
+			tableWidget.refreshList(this.htrDicts);
+			if(dictName != null) {
+				selectDictionary(dictName);
+			}			
 		}
+		else {
+			tableWidget.refreshList(null);
+		}
+		dictOptionCombo.select(0);
 	}
 	
 	private List<String> loadHtrDicts() {
