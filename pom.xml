@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>1.10.2.4-SNAPSHOT</version>
+	<version>1.10.2.5-SNAPSHOT</version>
 	<name>Transkribus</name>
 
 	<properties>
@@ -16,7 +16,7 @@
 		<macapp-dir>/Transkribus.app/Contents/MacOS</macapp-dir>
 		<macapp-resources-dir>/Transkribus.app/Contents/Resources</macapp-resources-dir>
 		<macapp-contents-dir>/Transkribus.app/Contents</macapp-contents-dir>
-		<mac-jre>jre-1.8.0_45-mac64</mac-jre>
+		<mac-jre>jre-1.8.0_251-mac64</mac-jre>
 		<win-jre>jre-1.8.0_172-win64</win-jre>
 		
 		<swt-lib-name>swt-${swt.version}.jar</swt-lib-name>

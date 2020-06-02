@@ -695,4 +695,5 @@ CHANGES AND BUGFIXES
 	-> status change of one page is checked for reasonableness and creates new transcript version
 	-> label existing layouts using P2PaLA
 	-> Export option to export a text file for each selected page
+	-> severe bugfix: update JRE for MacOS to version 8u251 to support server certificate 
 	
