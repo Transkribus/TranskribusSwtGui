@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -92,9 +93,9 @@ public class AllowUsersForJobDialog extends Dialog {
 		
 		jobImplCombo = new LabeledCombo(cont, "Job type: ", false, SWT.DROP_DOWN | SWT.READ_ONLY);
 		jobImplCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-//		jobImplCombo.getCombo().setItems(JobImpl.valuesAsString().toArray(new String[0]));
 		jobImplCombo.getCombo().add(JobImpl.CITlabHtrPlusTrainingJob.toString());
 		jobImplCombo.getCombo().add(JobImpl.P2PaLATrainJob.toString());
+		jobImplCombo.getCombo().add(JobImpl.PyLaiaTrainingJob.toString());
 		jobImplCombo.getCombo().select(0);
 		SWTUtil.onSelectionEvent(jobImplCombo.getCombo(), e -> reloadAllowedUsersForJob());
 		
@@ -108,15 +109,19 @@ public class AllowUsersForJobDialog extends Dialog {
 				DialogUtil.showErrorMessageBox(getShell(), "No admin logged in!", "Login as an adming to allow users for a job!");
 				return;
 			}
+			String userListTxt = userListText.getText().trim();
+			if (StringUtils.isEmpty(userListTxt)) {
+				return;
+			}
 			
-			List<String> userList = Arrays.asList(userListText.getText().trim().split(" "));
+			List<String> userList = Arrays.asList(userListTxt.split(" "));
 			String userListStr = userList.stream().collect(Collectors.joining(", "));
 			String jobImpl = jobImplCombo.getCombo().getText();
 			int res = DialogUtil.showYesNoDialog(getShell(), "Add "+userList.size()+" users", "Do you really want to add the following "+userList.size()+" user to job "+jobImpl+":\n"+userListStr);
 			if (res == SWT.YES) {
 				logger.info("adding users to job '"+jobImpl+"': "+userListStr);
 				try {
-					String resp = store.getConnection().getAdminCalls().allowUsersForJob(userList, jobImpl);
+					store.getConnection().getAdminCalls().allowUsersForJob(userList, jobImpl);
 					DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully added "+userList.size()+" user to '"+jobImpl+"'");
 				} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e1) {
 					DialogUtil.showErrorMessageBox(getShell(), "Error allowing users for job "+jobImpl, e1.getMessage());
