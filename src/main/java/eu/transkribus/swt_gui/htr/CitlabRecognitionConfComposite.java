@@ -42,7 +42,7 @@ public class CitlabRecognitionConfComposite extends Composite {
 		doStoreConfMatsBtn = new Button(this, SWT.CHECK);
 		doStoreConfMatsBtn.setText("Enable Keyword Spotting");
 		doStoreConfMatsBtn.setToolTipText("The internal recognition result respresentation, needed for keyword spotting, will be stored in addition to the transcription.");
-		doStoreConfMatsBtn.setSelection(true);
+		doStoreConfMatsBtn.setSelection(false);
 		doStoreConfMatsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
 		SWTUtil.onSelectionEvent(keepOriginalLinePolygonsBtn, e -> {
