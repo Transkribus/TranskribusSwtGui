@@ -25,8 +25,10 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
+import eu.transkribus.core.model.beans.ReleaseLevel;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.job.JobError;
+import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.rest.JobErrorList;
 import eu.transkribus.core.model.beans.rest.TrpHtrList;
 import eu.transkribus.core.util.HtrCITlabUtils;
@@ -42,7 +44,7 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class HtrPagedTableWidget extends ATableWidgetPagination<TrpHtr> {
-	private static final Logger logger = LoggerFactory.getLogger(HtrTableWidget.class);
+	private static final Logger logger = LoggerFactory.getLogger(HtrPagedTableWidget.class);
 	
 	public final static String[] providerValues = { HtrCITlabUtils.PROVIDER_CITLAB, HtrCITlabUtils.PROVIDER_CITLAB_PLUS, HtrPyLaiaUtils.PROVIDER_PYLAIA };	
 	
@@ -161,9 +163,27 @@ public class HtrPagedTableWidget extends ATableWidgetPagination<TrpHtr> {
 			TrpHtrList l;
 			
 			private void load(int fromIndex, int toIndex, String sortPropertyName, String sortDirection) {
-				if (store.isLoggedIn()) {
+				if (store != null && store.isLoggedIn()) {
 					try {
-						l = store.getConnection().getHtrsSync(store.getCollId(), providerFilter, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
+						Integer collId = store.getCollId();
+						String htrRelease = filterComposite.getLinkageFilterComboText();
+						Integer releaseLevel = htrRelease.contains("All")? null : htrRelease.contains("Public")? -1 : 0;
+						if (store.isAdminLoggedIn() && releaseLevel == null){
+							collId = null;
+						}
+					
+						logger.debug("load HTRs from DB with filter: " + filterComposite.getFilterText().getText());
+						logger.debug("providerFilter: " + getProviderComboValue());
+						logger.debug("linkage filter: " + filterComposite.getLinkageFilterComboText());
+						logger.debug("htr release is : " + releaseLevel);
+						
+						l = store.getConnection().getHtrsSync(collId, getProviderComboValue(), filterComposite.getFilterText().getText(), releaseLevel, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
+						if (l.getList()== null){
+							logger.debug("the result list is null - no htr match the search string");
+							//if we set not this the old entries persist in the table!!
+							l = new TrpHtrList(new ArrayList<>(), 0, 0, 0, null, null);
+						}
+						
 					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 						TrpMainWidget.getInstance().onError("Error loading HTRs", e.getMessage(), e);
 					}
@@ -186,13 +206,16 @@ public class HtrPagedTableWidget extends ATableWidgetPagination<TrpHtr> {
 			@Override
 			public TrpHtrList loadPage(int fromIndex, int toIndex, String sortPropertyName,
 					String sortDirection) {
+				//pageableTable.refreshPage();
 				load(fromIndex, toIndex, sortPropertyName, sortDirection);
-				applyFilter();
+				//applyFilter();
 				return l;
 			}
 		};
 		final IPageLoader<PageResult<TrpHtr>> pl = new RemotePageLoaderSingleRequest<>(pageableTable.getController(), plm);
-		pageableTable.setPageLoader(pl);		
+		pageableTable.setPageLoader(pl);	
+		
+
 	}
 
 	@Override

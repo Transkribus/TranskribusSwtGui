@@ -646,8 +646,14 @@ public class ToolsWidgetListener implements SelectionListener {
 							if (isDocsSelection){
 								// NEW: use DocSelection here, as they contain the pages string for each doc:
 								for (DocSelection docSel : trd2.getDocs()) {
-									String jobId = store.runHtr(docSel.getDocId(), docSel.getPages(), config);
+									DocumentSelectionDescriptor dsd = store.getDocumentSelectionDescriptor(colId, docSel);
+									logger.debug("dsd = "+dsd);
+									String jobId = store.runHtr(dsd, config);
 									jobIds.add(jobId);
+
+									// OLD: call does not work when docSel.getPages() is null!
+//									logger.debug("sel: "+docSel+" docId: "+docSel.getDocId()+" pages: "+docSel.getPages());
+//									String jobId = store.runHtr(docSel.getDocId(), docSel.getPages(), config);
 								}
 								// OLD: use DocumentSelectionDescriptor which do *not* contain individual pages
 //								for (DocumentSelectionDescriptor docDescr : trd2.getDocs()){
