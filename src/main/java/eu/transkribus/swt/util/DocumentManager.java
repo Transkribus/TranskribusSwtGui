@@ -11,10 +11,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
-import javax.mail.Store;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
@@ -36,14 +35,11 @@ import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuDetectEvent;
 import org.eclipse.swt.events.MenuDetectListener;
 import org.eclipse.swt.events.MenuEvent;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -75,7 +71,6 @@ import eu.transkribus.core.io.UnsupportedFormatException;
 import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
-import eu.transkribus.core.model.beans.TrpDocDir;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTotalTranscriptStatistics;
@@ -1757,8 +1752,7 @@ public class DocumentManager extends Dialog {
 				}
 				
 			} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(e.getMessage(), e);
 			}
 			for (TrpDocMetadata currDoc : storage.getDocList()){
 				totalCollectionPages += currDoc.getNrOfPages();
@@ -1768,14 +1762,20 @@ public class DocumentManager extends Dialog {
 
 			int totalLinesTranscribed = 0;
 			int totalWordsTranscribed = 0;
-			if (doc.getMd().getNrOfTranscribedLines() != null){
-				totalLinesTranscribed = doc.getMd().getNrOfTranscribedLines();
-			}
-			if (doc.getMd().getNrOfWordsInLines() != null){
-				totalWordsTranscribed = doc.getMd().getNrOfWordsInLines();
-			}
-			else if (doc.getMd().getNrOfTranscribedWords() != null){
-				totalWordsTranscribed = doc.getMd().getNrOfTranscribedWords();
+			try {
+				TrpTotalTranscriptStatistics docStats = storage.getConnection().getDocStats(colId, doc.getMd().getDocId());
+				if (docStats.getNrOfTranscribedLines() != null){
+					totalLinesTranscribed = docStats.getNrOfTranscribedLines();
+				}
+				if (docStats.getNrOfWordsInLines() != null){
+					totalWordsTranscribed = docStats.getNrOfWordsInLines();
+				}
+				else if (docStats.getNrOfTranscribedWords() != null){
+					totalWordsTranscribed = docStats.getNrOfTranscribedWords();
+				}
+				
+			} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e) {
+				logger.error(e.getMessage(), e);
 			}
 	
 			msg += "Nr. of lines transcribed: " + totalLinesTranscribed + " in doc / " + totalCollectionLines + " in collection"+"\n";
