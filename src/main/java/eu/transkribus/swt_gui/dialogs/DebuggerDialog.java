@@ -65,6 +65,8 @@ public class DebuggerDialog extends Dialog {
 	Button batchReplaceImgsBtn;
 	Button openSleakBtn;
 	
+	Button openCreditManagerBtn;
+	
 	public Button lineToWordSegBtn;
 	
 	ITranscriptionWidgetListener twl;
@@ -118,6 +120,8 @@ public class DebuggerDialog extends Dialog {
 		openSleakBtn = new Button(btns, SWT.PUSH);
 		openSleakBtn.setText("Open Sleak");
 		
+		openCreditManagerBtn = new Button(btns, SWT.PUSH);
+		openCreditManagerBtn.setText("Credit Manager");
 //		new Label(shell, SWT.NONE);
 		
 		listLibsBtn = new Button(container, 0);
@@ -196,6 +200,7 @@ public class DebuggerDialog extends Dialog {
 		SWTUtil.onSelectionEvent(applyAffineTransformBtn, (e) -> {mw.applyAffineTransformToDoc();} );
 		SWTUtil.onSelectionEvent(batchReplaceImgsBtn, (e) -> {mw.batchReplaceImagesForDoc();} );
 		SWTUtil.onSelectionEvent(openSleakBtn, (e) -> { mw.openSleak(); } );
+		SWTUtil.onSelectionEvent(openCreditManagerBtn, (e) -> { mw.openCreditManager(); } );
 		
 		listLibsBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {

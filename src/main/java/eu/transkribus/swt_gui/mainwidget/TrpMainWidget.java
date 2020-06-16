@@ -36,8 +36,6 @@ import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.io.FileDeleteStrategy;
@@ -182,6 +180,7 @@ import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.collection_manager.CollectionEditorDialog;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.collection_manager.CollectionUsersDialog;
+import eu.transkribus.swt_gui.credits.CreditManagerDialog;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
 import eu.transkribus.swt_gui.dialogs.AffineTransformDialog;
 import eu.transkribus.swt_gui.dialogs.AutoSaveDialog;
@@ -317,7 +316,8 @@ public class TrpMainWidget {
 	EditDeclManagerDialog edDiag;
 	ActivityDialog ad;
 	Shell sleakDiag;
-
+	CreditManagerDialog creditManagerDialog;
+	
 	/** Storage keeps track of the currently loaded collection, document, page, transcription etc. */
 	Storage storage;
 	boolean isPageLocked = false;
@@ -6622,5 +6622,17 @@ public class TrpMainWidget {
 			rids.add(st.getId());
 		}
 		return rids;
-	}	
+	}
+	
+	public void openCreditManager() {
+		if (creditManagerDialog != null) {
+			creditManagerDialog.setVisible();
+		} else {
+			creditManagerDialog = new CreditManagerDialog(mw.getShell());
+			if (creditManagerDialog.open() == IDialogConstants.OK_ID) {
+				//we don't need feedback here. do nothing
+			}
+			creditManagerDialog = null;
+		}
+	}
 }

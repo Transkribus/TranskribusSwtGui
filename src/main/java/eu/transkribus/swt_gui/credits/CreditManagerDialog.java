@@ -11,40 +11,45 @@ import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.pagination_tables.CreditPackagesCollectionPagedTableWidget;
 import eu.transkribus.swt_gui.pagination_tables.CreditPackagesUserPagedTableWidget;
 import eu.transkribus.swt_gui.pagination_tables.CreditTransactionsPagedTableWidget;
 import eu.transkribus.swt_gui.pagination_tables.JobTableWidgetPagination;
 
-public class CreditManagerDialog extends Dialog implements IStorageListener {
+public class CreditManagerDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(CreditManagerDialog.class);
 
-	private CTabFolder tabFolder;
-	private CTabItem collectionTabItem;
-	private CTabItem jobTabItem;
+	protected Composite dialogArea;
+	
+	protected CTabFolder tabFolder;
+	protected CTabItem collectionTabItem;
+	protected CTabItem jobTabItem;
 	
 	private Composite collectionCreditWidget, jobTransactionWidget;
 	
-	private CreditPackagesUserPagedTableWidget userCreditsTable;
-	private CreditPackagesCollectionPagedTableWidget collectionCreditsTable;
-	private JobTableWidgetPagination jobsTable;
-	private CreditTransactionsPagedTableWidget transactionsTable;
+	protected CreditPackagesUserPagedTableWidget userCreditsTable;
+	protected CreditPackagesCollectionPagedTableWidget collectionCreditsTable;
+	protected JobTableWidgetPagination jobsTable;
+	protected CreditTransactionsPagedTableWidget transactionsTable;
+	
+	protected Button addToCollectionBtn, removeFromCollectionBtn;
 
 	public CreditManagerDialog(Shell parent) {
 		super(parent);
@@ -58,9 +63,9 @@ public class CreditManagerDialog extends Dialog implements IStorageListener {
 
 	@Override
 	protected Control createDialogArea(Composite parent) {
-		Composite cont = (Composite) super.createDialogArea(parent);
+		dialogArea = (Composite) super.createDialogArea(parent);
 
-		tabFolder = new CTabFolder(cont, SWT.BORDER | SWT.FLAT);
+		tabFolder = new CTabFolder(dialogArea, SWT.BORDER | SWT.FLAT);
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
 		collectionTabItem = new CTabItem(tabFolder, SWT.NONE);
@@ -74,25 +79,16 @@ public class CreditManagerDialog extends Dialog implements IStorageListener {
 		jobTabItem.setControl(jobTransactionWidget);
 
 		tabFolder.setSelection(collectionTabItem);		
-		cont.pack();
-		SWTUtil.onSelectionEvent(tabFolder, (e) -> { updateUI(); } );
-		SWTUtil.setTabFolderBoldOnItemSelection(tabFolder);
+		dialogArea.pack();
 		updateUI();
+		new CreditManagerListener(this);
 		
-		Storage.getInstance().addListener(this);
-		cont.addDisposeListener(new DisposeListener() {
-			@Override
-			public void widgetDisposed(DisposeEvent arg0) {
-				Storage.getInstance().removeListener(CreditManagerDialog.this);
-			}
-		});
-		
-		return cont;
+		return dialogArea;
 	}
 
 	private Composite createCollectionCreditWidget(Composite parent, int style) {
 		SashForm sf = new SashForm(parent, SWT.HORIZONTAL | style);
-		sf.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		sf.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
 		sf.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		Group userCreditGroup = new Group(sf, SWT.BORDER);
@@ -102,6 +98,25 @@ public class CreditManagerDialog extends Dialog implements IStorageListener {
 		userCreditsTable = new CreditPackagesUserPagedTableWidget(userCreditGroup, SWT.NONE);
 		userCreditsTable.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
+		Composite buttonComp = new Composite(sf, SWT.NONE);
+		buttonComp.setLayout(new GridLayout(1, true));
+		buttonComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		Label space = new Label(buttonComp, SWT.NONE);
+		space.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true));
+		
+		addToCollectionBtn = new Button(buttonComp, SWT.PUSH);
+		addToCollectionBtn.setImage(Images.ARROW_RIGHT);
+//		addToCollectionBtn.setText("Assign");
+		addToCollectionBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		removeFromCollectionBtn = new Button(buttonComp, SWT.PUSH);
+		removeFromCollectionBtn.setImage(Images.ARROW_LEFT);
+//		removeFromCollectionBtn.setText("Remove");
+		removeFromCollectionBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		
+		Label space2 = new Label(buttonComp, SWT.NONE);
+		space2.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true));
+		
 		Group collectionCreditGroup = new Group(sf, SWT.BORDER);
 		collectionCreditGroup.setLayout(new GridLayout(1, true));
 		collectionCreditGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -109,13 +124,15 @@ public class CreditManagerDialog extends Dialog implements IStorageListener {
 		collectionCreditsTable = new CreditPackagesCollectionPagedTableWidget(collectionCreditGroup, SWT.NONE);
 		collectionCreditsTable.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
-		sf.setWeights(new int[] { 50, 50 });
+		final int buttonWeight = 6;
+		sf.setWeights(new int[] { 47, buttonWeight, 47 });
+
 		return sf;
 	}
 
 	private Composite createJobTransactionWidget(Composite parent, int style) {
 		SashForm sf = new SashForm(parent, SWT.HORIZONTAL | style);
-		sf.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		sf.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
 		sf.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		Group jobsGroup = new Group(sf, SWT.BORDER);
@@ -134,27 +151,10 @@ public class CreditManagerDialog extends Dialog implements IStorageListener {
 		
 		sf.setWeights(new int[] { 50, 50 });
 		
-		jobsTable.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
-			@Override
-			public void selectionChanged(SelectionChangedEvent event) {
-				BusyIndicator.showWhile(parent.getDisplay(), new Runnable() {
-					@Override
-					public void run() {
-						List<TrpJobStatus> jobs = jobsTable.getSelected();
-						if(CollectionUtils.isEmpty(jobs)) {
-							logger.debug("No job selected");
-							return;
-						}
-						transactionsTable.setJobId(jobs.get(0).getJobIdAsInt());
-					}
-				});
-			}
-		});
-		
 		return sf;
 	}
 	
-	private void updateUI() {
+	protected void updateUI() {
 		//refresh tables in selected tab
 		CTabItem selection = tabFolder.getSelection();
 		if(selection.equals(collectionTabItem)) {
@@ -180,12 +180,5 @@ public class CreditManagerDialog extends Dialog implements IStorageListener {
 	@Override
 	protected void setShellStyle(int newShellStyle) {
 		super.setShellStyle(SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
-	}
-	
-	@Override
-	public void handleDocListLoadEvent(DocListLoadEvent e) {
-		if(e.isCollectionChange) {
-			updateUI();
-		}
 	}
 }
