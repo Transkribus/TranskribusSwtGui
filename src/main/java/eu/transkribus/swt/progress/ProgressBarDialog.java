@@ -68,7 +68,7 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 	public ProgressBarDialog(Shell parent) {
 		super(parent);
 		parentShell=parent;
-		display = getParent().getDisplay();
+		display = parent.getDisplay();
 	}
 	
 	public static void open(Shell parent, final IRunnableWithProgress runnable, String title, boolean mayCancel) throws InterruptedException, Throwable {
