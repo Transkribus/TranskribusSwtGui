@@ -88,7 +88,7 @@ public class CreditTransactionsPagedTableWidget extends ATableWidgetPagination<T
 					return l;
 				}
 				try {
-					l = store.getConnection().credits().getTransactionsByJob(jobId, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
+					l = store.getConnection().getCreditCalls().getTransactionsByJob(jobId, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
 				} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 					TrpMainWidget.getInstance().onError("Error loading HTRs", e.getMessage(), e);
 				}

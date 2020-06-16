@@ -35,7 +35,7 @@ public class CreditPackagesCollectionPagedTableWidget extends CreditPackagesUser
 				Storage store = Storage.getInstance();
 				if (store.isLoggedIn()) {
 					try {
-						return store.getConnection().credits().getCreditPackagesByCollection(store.getCollId(), fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
+						return store.getConnection().getCreditCalls().getCreditPackagesByCollection(store.getCollId(), fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
 					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 						TrpMainWidget.getInstance().onError("Error loading HTRs", e.getMessage(), e);
 					}

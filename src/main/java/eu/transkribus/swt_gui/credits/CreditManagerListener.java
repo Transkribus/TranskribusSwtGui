@@ -97,7 +97,7 @@ public class CreditManagerListener implements IStorageListener {
 		final List<Exception> fails = new ArrayList<>(0);
 		for(TrpCreditPackage p : packageList) {
 			try {
-				store.getConnection().credits().addCreditPackageToCollection(store.getCollId(), p.getPackageId());
+				store.getConnection().getCreditCalls().addCreditPackageToCollection(store.getCollId(), p.getPackageId());
 				addCount++;
 			} catch (IllegalStateException ise) {
 				//Client currently maps "304 - Not modified" to an IllegalStateException. The package was already assigned to this collection.
@@ -135,7 +135,7 @@ public class CreditManagerListener implements IStorageListener {
 		final List<Exception> fails = new ArrayList<>(0);
 		for(TrpCreditPackage p : packageList) {
 			try {
-				store.getConnection().credits().removeCreditPackageFromCollection(store.getCollId(), p.getPackageId());
+				store.getConnection().getCreditCalls().removeCreditPackageFromCollection(store.getCollId(), p.getPackageId());
 				addCount++;
 			} catch (SessionExpiredException e1) {
 				//TODO abort and show login dialog

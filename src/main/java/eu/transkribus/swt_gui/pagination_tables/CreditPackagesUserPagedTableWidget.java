@@ -126,7 +126,7 @@ public class CreditPackagesUserPagedTableWidget extends ATableWidgetPagination<T
 				Storage store = Storage.getInstance();
 				if (store.isLoggedIn()) {
 					try {
-						return store.getConnection().credits().getCreditPackagesByUser(fromIndex, toIndex - fromIndex,
+						return store.getConnection().getCreditCalls().getCreditPackagesByUser(fromIndex, toIndex - fromIndex,
 								sortPropertyName, sortDirection);
 					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 						TrpMainWidget.getInstance().onError("Error loading HTRs", e.getMessage(), e);
