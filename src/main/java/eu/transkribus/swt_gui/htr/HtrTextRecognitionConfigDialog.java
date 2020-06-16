@@ -61,7 +61,7 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 		
 		htrModelsComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
-		htrModelsComp.htw.htrTv.addSelectionChangedListener(new ISelectionChangedListener() {
+		htrModelsComp.htw.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent arg0) {
 				updateUi();

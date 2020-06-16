@@ -24,7 +24,7 @@ public class HtrFilterWidget extends TrpViewerFilterWidget {
 	private final static String LINK_FILTER_PUBLIC = "Public Models";
 	
 	public HtrFilterWidget(Composite parent, StructuredViewer viewer, int style) {
-		super(parent, viewer, style, TrpHtr.class, "htrId", "name", "language");
+		super(parent, viewer, style, TrpHtr.class, "htrId", "name", "language", "userName");
 	}
 	
 	@Override
@@ -96,5 +96,13 @@ public class HtrFilterWidget extends TrpViewerFilterWidget {
 	public void reset() {
 		super.reset();
 		linkageFilterCombo.select(0);
+	}
+
+	public String getLinkageFilterComboText() {
+		return linkageFilterCombo.getText();
+	}
+
+	public void setLinkageFilterCombo(Combo linkageFilterCombo) {
+		this.linkageFilterCombo = linkageFilterCombo;
 	}
 }

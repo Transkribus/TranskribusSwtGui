@@ -47,7 +47,6 @@ public class HtrModelsDialog extends Dialog {
 		modelsComp = new HtrModelsComposite(cont, providerFilter, 0);
 		modelsComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
-		
 		modelsComp.htw.getTableViewer().getTable().addKeyListener(new KeyAdapter() {			
 			@Override
 			public void keyPressed(KeyEvent e) {
