@@ -10,7 +10,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
-import eu.transkribus.client.connection.ATrpServerConn.TrpServer;
+import eu.transkribus.client.connection.TrpServer;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.io.util.TrpProperties;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
