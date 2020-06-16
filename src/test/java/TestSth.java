@@ -121,7 +121,7 @@ public class TestSth {
 	}	
 	
 	public static void testDownloadClientFile(String un, String pw) throws Exception {
-		TrpServerConn conn = new TrpServerConn(TrpServerConn.OLD_TEST_SERVER_URI);
+		TrpServerConn conn = new TrpServerConn(TrpServerConn.TEST_SERVER_URI);
 		conn.login(un, pw);
 
 		File f = new File("testDownload.zip");
