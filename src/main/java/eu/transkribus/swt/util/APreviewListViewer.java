@@ -29,6 +29,7 @@ import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 
@@ -44,9 +45,12 @@ public abstract class APreviewListViewer<T> extends Composite {
 	protected Button upBtn, downBtn, sortBtn;
 	protected Composite tableContainer;
 	protected Composite previewContainer;
+	protected Composite mainContainer;
 	protected Button showPreviewBtn;
 	protected SashForm sf;
 	
+	TrpViewerFilterWidget docFilterWidget;
+		
 	protected boolean showUpDownBtns;
 	protected boolean withCheckboxes;
 	protected boolean showPreview;
@@ -86,7 +90,12 @@ public abstract class APreviewListViewer<T> extends Composite {
 		sf.setLayout(new GridLayout(1, false));
 		sf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		tableContainer = new Composite(sf, 0);
+		mainContainer = new Composite(sf,0);
+		mainContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		mainContainer.setLayout(new FillLayout(SWT.VERTICAL));
+		mainContainer.setLayout(new GridLayout(1, false));
+		
+		tableContainer = new Composite(mainContainer, 0);
 		tableContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		tableContainer.setLayout(new FillLayout(SWT.HORIZONTAL));
 		tableContainer.setLayout(new GridLayout(2, false));
@@ -95,6 +104,9 @@ public abstract class APreviewListViewer<T> extends Composite {
 		tv.getTable().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, hasBtns ? 1 : 2, 1));
 		tv.getTable().setHeaderVisible(true);
 		tv.setContentProvider(new ArrayContentProvider());
+		
+		//have a filter for the doc title
+		docFilterWidget = new TrpViewerFilterWidget(mainContainer, tv, SWT.NONE, TrpDocMetadata.class, "title");
 		
 		if (labelProvider!=null) {
 			tv.setLabelProvider(labelProvider);
@@ -131,7 +143,8 @@ public abstract class APreviewListViewer<T> extends Composite {
 						onSortingChanged();
 					});
 			}
-		}		
+		}	
+		
 		
 		if (hasBtns) {
 			Composite btns = new Composite(tableContainer, 0);
@@ -207,6 +220,8 @@ public abstract class APreviewListViewer<T> extends Composite {
 				
 				upBtn.addSelectionListener(upDownSelLis);
 				downBtn.addSelectionListener(upDownSelLis);
+				
+
 			}
 			
 		}

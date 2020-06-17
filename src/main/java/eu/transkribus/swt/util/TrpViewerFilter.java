@@ -83,7 +83,7 @@ public abstract class TrpViewerFilter extends ViewerFilter {
 		
 		String ft = filterTxt.getText();
 		logger.trace("ft = "+ft);
-		if (StringUtils.isEmpty(ft) || ft.length()<3) {
+		if (StringUtils.isEmpty(ft) || ft.length()<2) {
 			return true;
 		}
 		
