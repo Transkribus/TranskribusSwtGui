@@ -48,9 +48,10 @@ public class CreditManagerListener implements IStorageListener {
 	}
 	
 	private void addListeners(CreditManagerDialog view) {
-		SWTUtil.onSelectionEvent(view.tabFolder, (e) -> { 
-			view.updateUI(false);
-		});
+		//enable this to trigger a refresh on tab switch
+//		SWTUtil.onSelectionEvent(view.tabFolder, (e) -> { 
+//			view.updateUI(false);
+//		});
 		SWTUtil.setTabFolderBoldOnItemSelection(view.tabFolder);
 		SWTUtil.onSelectionEvent(view.addToCollectionBtn, (e) -> {
 			List<TrpCreditPackage> packageList = view.userCreditsTable.getSelected();

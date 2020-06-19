@@ -4,8 +4,6 @@ import java.util.ArrayList;
 
 import javax.ws.rs.ServerErrorException;
 
-import org.eclipse.nebula.widgets.pagination.IPageLoader;
-import org.eclipse.nebula.widgets.pagination.collections.PageResult;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +24,7 @@ public class CreditPackagesCollectionPagedTableWidget extends CreditPackagesUser
 	}
 	
 	@Override
-	protected void setPageLoader() {
+	protected RemotePageLoaderSingleRequest<TrpCreditPackageList, TrpCreditPackage> createPageLoader() {
 		IPageLoadMethod<TrpCreditPackageList, TrpCreditPackage> plm = new IPageLoadMethod<TrpCreditPackageList, TrpCreditPackage>() {
 
 			@Override
@@ -40,10 +38,9 @@ public class CreditPackagesCollectionPagedTableWidget extends CreditPackagesUser
 						TrpMainWidget.getInstance().onError("Error loading HTRs", e.getMessage(), e);
 					}
 				}
-				return new TrpCreditPackageList(new ArrayList<>(), 0, 0, 0, null, null);
+				return new TrpCreditPackageList(new ArrayList<>(), 0.0d, 0, 0, 0, null, null);
 			}
 		};
-		final IPageLoader<PageResult<TrpCreditPackage>> pl = new RemotePageLoaderSingleRequest<>(pageableTable.getController(), plm);
-		pageableTable.setPageLoader(pl);		
+		return new RemotePageLoaderSingleRequest<>(pageableTable.getController(), plm);
 	}
 }

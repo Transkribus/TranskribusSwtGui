@@ -8,15 +8,13 @@ import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
-import org.eclipse.nebula.widgets.pagination.IPageLoader;
-import org.eclipse.nebula.widgets.pagination.collections.PageResult;
+import org.eclipse.nebula.widgets.pagination.table.PageableTable;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Listener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpCreditPackage;
@@ -24,6 +22,7 @@ import eu.transkribus.core.model.beans.rest.TrpCreditPackageList;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
 import eu.transkribus.swt.pagination_table.IPageLoadMethod;
 import eu.transkribus.swt.pagination_table.RemotePageLoaderSingleRequest;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -32,8 +31,7 @@ import eu.transkribus.swt_gui.mainwidget.storage.Storage;
  *
  */
 public class CreditPackagesUserPagedTableWidget extends ATableWidgetPagination<TrpCreditPackage> {
-	private static final Logger logger = LoggerFactory.getLogger(CreditPackagesUserPagedTableWidget.class);
-
+	
 	// TODO show username additionally?
 	public static final String PACKAGE_USER_ID_COL = "Owner ID";
 	public static final String PACKAGE_NAME_COL = "Name";
@@ -41,26 +39,33 @@ public class CreditPackagesUserPagedTableWidget extends ATableWidgetPagination<T
 	public static final String PACKAGE_TYPE_COL = "Type";
 	public static final String PACKAGE_DATE_COL = "Created";
 	public static final String PACKAGE_ID_COL = "ID";
-
-	// filter:
-	Composite filterAndReloadComp;
+	
+	RemotePageLoaderSingleRequest<TrpCreditPackageList, TrpCreditPackage> pageLoader;
+	
+	OverallBalanceComposite overallBalanceComp;
 
 	public CreditPackagesUserPagedTableWidget(Composite parent, int style) {
 		super(parent, style, 25);
 		this.setLayout(new GridLayout(1, false));
-		addFilter();
+		
+		createOverallBalanceComposite(pageableTable);
 	}
 
-	@Override
-	public void addListener(int eventType, Listener listener) {
-		super.addListener(eventType, listener);
-	}
-
-	private void addFilter() {
-		filterAndReloadComp = new Composite(this, SWT.NONE);
-		filterAndReloadComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		filterAndReloadComp.setLayout(new GridLayout(2, false));
-		filterAndReloadComp.moveAbove(null);
+	private void createOverallBalanceComposite(PageableTable pageableTable) {
+		// Create the composite in the bottom right of the table widget
+		Composite parent = pageableTable.getCompositeBottom();
+		
+		//create Label to occupy space in the middle and push other stuff to the right
+		Label space = new Label(parent, SWT.NONE);
+		space.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, true, true));
+		
+		overallBalanceComp = new OverallBalanceComposite(parent, SWT.NONE);
+		overallBalanceComp.setLayoutData(new GridData(SWT.END, SWT.CENTER, false, true));
+		
+		//adjust layout of bottom
+		GridLayout layout = (GridLayout) parent.getLayout();
+		layout.numColumns += 2;
+		parent.pack();
 	}
 
 	public TrpCreditPackage getSelectedPackage() {
@@ -70,9 +75,19 @@ public class CreditPackagesUserPagedTableWidget extends ATableWidgetPagination<T
 	public void setSelection(int packageId) {
 		// TODO
 	}
-
 	
-	private int packageId;
+	@Override
+	public void refreshPage(boolean resetToFirstPage) {
+		//do the refresh
+		super.refreshPage(resetToFirstPage);
+		//retrieve previous page data from loader for further UI update
+		TrpCreditPackageList currentData = pageLoader.getCurrentData();
+		Double balance = null;
+		if(currentData != null && currentData.getOverallBalance() != null) {
+			balance = currentData.getOverallBalance();
+		}
+		overallBalanceComp.updateBalanceValue(balance);
+	}
 
 	@Column(name = "PRODUCT_ID")
 	private Integer productId;
@@ -116,8 +131,7 @@ public class CreditPackagesUserPagedTableWidget extends ATableWidgetPagination<T
 		createDefaultColumn(PACKAGE_ID_COL, 50, "packageId", true);
 	}
 
-	@Override
-	protected void setPageLoader() {
+	protected RemotePageLoaderSingleRequest<TrpCreditPackageList, TrpCreditPackage> createPageLoader() {
 		IPageLoadMethod<TrpCreditPackageList, TrpCreditPackage> plm = new IPageLoadMethod<TrpCreditPackageList, TrpCreditPackage>() {
 
 			@Override
@@ -132,11 +146,48 @@ public class CreditPackagesUserPagedTableWidget extends ATableWidgetPagination<T
 						TrpMainWidget.getInstance().onError("Error loading HTRs", e.getMessage(), e);
 					}
 				}
-				return new TrpCreditPackageList(new ArrayList<>(), 0, 0, 0, null, null);
+				return new TrpCreditPackageList(new ArrayList<>(), 0.0d, 0, 0, 0, null, null);
 			}
 		};
-		final IPageLoader<PageResult<TrpCreditPackage>> pl = new RemotePageLoaderSingleRequest<>(
-				pageableTable.getController(), plm);
-		pageableTable.setPageLoader(pl);
+		return new RemotePageLoaderSingleRequest<>(pageableTable.getController(), plm);
+	}
+	
+	@Override
+	protected void setPageLoader() {
+		//hold reference to page loader for later access
+		pageLoader = createPageLoader();
+		pageableTable.setPageLoader(pageLoader);
+	}
+	
+	protected static class OverallBalanceComposite extends Composite {
+		final Label overallBalanceLbl;
+		final Text overallBalanceValueTxt;
+		
+		public OverallBalanceComposite(Composite parent, int style) {
+			super(parent, style);
+			this.setLayout(new GridLayout(2, false));
+			
+			overallBalanceLbl = new Label(this, SWT.NONE);
+			overallBalanceLbl.setLayoutData(new GridData(SWT.END, SWT.CENTER, false, true));
+			overallBalanceLbl.setText("Overall Credits:");
+			Fonts.setBoldFont(overallBalanceLbl);
+			
+			overallBalanceValueTxt = new Text(this, SWT.BORDER | SWT.READ_ONLY);
+			overallBalanceValueTxt.setLayoutData(new GridData(GridData.END, SWT.CENTER, true, false));
+			
+			updateBalanceValue(null);
+		}
+		
+		public void updateBalanceValue(Double balance) {
+			String txt = "N/A";
+			if(balance != null) {
+				txt = "" + balance;
+			}
+
+			overallBalanceValueTxt.setText(txt);
+			overallBalanceValueTxt.pack();
+			this.pack();
+			this.getParent().pack();
+		}
 	}
 }

@@ -14,8 +14,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
@@ -25,8 +23,6 @@ import eu.transkribus.swt_gui.pagination_tables.CreditTransactionsPagedTableWidg
 import eu.transkribus.swt_gui.pagination_tables.JobTableWidgetPagination;
 
 public class CreditManagerDialog extends Dialog {
-	private static final Logger logger = LoggerFactory.getLogger(CreditManagerDialog.class);
-
 	protected Composite dialogArea;
 	
 	protected CTabFolder tabFolder;
