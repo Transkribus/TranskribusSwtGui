@@ -2,6 +2,7 @@ package eu.transkribus.swt.pagination_table;
 
 import java.util.List;
 
+import org.dea.fimagestore.core.util.SebisStopWatch.SSW;
 import org.eclipse.nebula.widgets.pagination.PageableController;
 import org.eclipse.nebula.widgets.pagination.collections.PageResult;
 import org.eclipse.swt.SWT;
@@ -45,12 +46,15 @@ public class PagingUtils {
 		int fromIndex = pageIndex;
 		int toIndex = pageIndex + pageSize;
 				
-		T items = method.loadPage(fromIndex, toIndex, c.getSortPropertyName(), sortDirection);
-		
-		logger.debug("Loaded page. Type = " + items.getClass());
+		SSW sw = new SSW();
+		sw.start();
+		T items = method.loadPage(fromIndex, toIndex, c.getSortPropertyName(), sortDirection);		
+		logger.debug("Loaded page in {} ms. Type = {}", sw.stop(false), items.getClass());
 		logger.debug("Total count = {}", items.getTotal());
 		logger.debug("List size = {}", items.getList().size());
-		items.getList().stream().map(e -> "" + e).forEach(logger::debug);
+		if(logger.isTraceEnabled()) {
+			items.getList().stream().map(e -> "" + e).forEach(logger::trace);
+		}
 		
 		return new PageResult<R>(items.getList(), items.getTotal());
 	}

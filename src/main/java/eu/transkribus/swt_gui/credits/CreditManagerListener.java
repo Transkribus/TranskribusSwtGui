@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.credits;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.jface.util.LocalSelectionTransfer;
@@ -48,7 +49,7 @@ public class CreditManagerListener implements IStorageListener {
 	
 	private void addListeners(CreditManagerDialog view) {
 		SWTUtil.onSelectionEvent(view.tabFolder, (e) -> { 
-			view.updateUI();
+			view.updateUI(false);
 		});
 		SWTUtil.setTabFolderBoldOnItemSelection(view.tabFolder);
 		SWTUtil.onSelectionEvent(view.addToCollectionBtn, (e) -> {
@@ -95,7 +96,16 @@ public class CreditManagerListener implements IStorageListener {
 		int addCount = 0;
 		int notModifiedCount = 0;
 		final List<Exception> fails = new ArrayList<>(0);
+		List<String> nonShareableErrorMsgList = new ArrayList<>(0);
 		for(TrpCreditPackage p : packageList) {
+			if(!p.getProduct().getShareable()) {
+				final String msg = "'" + p.getProduct().getLabel() + "' packages are not shareable.";
+				if(!nonShareableErrorMsgList.contains(msg)) {
+					nonShareableErrorMsgList.add(msg);
+				}
+				//do not attempt to add. the server would respond with status 400 on this.
+				continue;
+			}
 			try {
 				store.getConnection().getCreditCalls().addCreditPackageToCollection(store.getCollId(), p.getPackageId());
 				addCount++;
@@ -105,7 +115,8 @@ public class CreditManagerListener implements IStorageListener {
 				notModifiedCount++;
 			} catch (SessionExpiredException e1) {
 				//TODO abort and show login dialog
-			} catch (TrpServerErrorException | TrpClientErrorException e2) {
+			} catch (TrpServerErrorException e2) {
+				logger.error(e2.getMessageToUser());
 				fails.add(e2);
 			}
 		}
@@ -113,6 +124,9 @@ public class CreditManagerListener implements IStorageListener {
 		String msg = "";
 		if(notModifiedCount > 0) {
 			msg += notModifiedCount + " already assigned\n";
+		}
+		if(nonShareableErrorMsgList.size() > 0) {
+			msg += nonShareableErrorMsgList.stream().collect(Collectors.joining("\n")) + "\n";
 		}
 		if(fails.size() > 0) {
 			msg += fails.size() + " errors occurred";
@@ -201,7 +215,7 @@ public class CreditManagerListener implements IStorageListener {
 	@Override
 	public void handleDocListLoadEvent(DocListLoadEvent e) {
 		if(e.isCollectionChange) {
-			view.updateUI();
+			view.updateUI(true);
 		}
 	}
 	

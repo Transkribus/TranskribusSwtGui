@@ -1,13 +1,7 @@
 package eu.transkribus.swt_gui.credits;
 
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
@@ -17,15 +11,12 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.pagination_tables.CreditPackagesCollectionPagedTableWidget;
@@ -80,7 +71,10 @@ public class CreditManagerDialog extends Dialog {
 
 		tabFolder.setSelection(collectionTabItem);		
 		dialogArea.pack();
-		updateUI();
+		//init both tabs and not only the visible one. 
+		//not resetting the tables to first page initially will lead to messed up pagination display.
+		updateCreditsTabUI(true);
+		updateJobsTabUI(true);
 		new CreditManagerListener(this);
 		
 		return dialogArea;
@@ -154,15 +148,28 @@ public class CreditManagerDialog extends Dialog {
 		return sf;
 	}
 	
-	protected void updateUI() {
-		//refresh tables in selected tab
+	/**
+	 * Refreshes the tables in the visible tab.
+	 * 
+	 * @param resetTablesToFirstPage
+	 */
+	protected void updateUI(boolean resetTablesToFirstPage) {
 		CTabItem selection = tabFolder.getSelection();
 		if(selection.equals(collectionTabItem)) {
-			userCreditsTable.refreshPage(false);
-			collectionCreditsTable.refreshPage(false);
+			updateCreditsTabUI(resetTablesToFirstPage);
 		} else {
-			//TODO refresh transaction view
+			updateJobsTabUI(resetTablesToFirstPage);
 		}
+	}
+	
+	protected void updateCreditsTabUI(boolean resetTablesToFirstPage) {
+		userCreditsTable.refreshPage(resetTablesToFirstPage);
+		collectionCreditsTable.refreshPage(resetTablesToFirstPage);
+	}
+
+	protected void updateJobsTabUI(boolean resetTablesToFirstPage) {
+		jobsTable.refreshPage(resetTablesToFirstPage);
+		transactionsTable.refreshPage(resetTablesToFirstPage);
 	}
 	
 	@Override
