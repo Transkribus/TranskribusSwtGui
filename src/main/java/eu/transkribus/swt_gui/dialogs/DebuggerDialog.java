@@ -78,7 +78,7 @@ public class DebuggerDialog extends Dialog {
 	@Override protected void configureShell(Shell shell) {
 		super.configureShell(shell);
 		shell.setSize(800, 800);
-		SWTUtil.centerShell(shell);
+		SWTUtil.centerShell(shell, false);
 		shell.setText("Debugging Dialog");
 	}
 	
