@@ -13,6 +13,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 
 import eu.transkribus.swt.util.Images;
@@ -35,6 +37,8 @@ public class CreditManagerDialog extends Dialog {
 	protected CreditPackagesCollectionPagedTableWidget collectionCreditsTable;
 	protected JobTableWidgetPagination jobsTable;
 	protected CreditTransactionsPagedTableWidget transactionsTable;
+	
+	protected MenuItem splitUserPackageItem, showUserPackageDetailsItem;
 	
 	protected Button addToCollectionBtn, removeFromCollectionBtn;
 
@@ -113,6 +117,15 @@ public class CreditManagerDialog extends Dialog {
 		collectionCreditGroup.setText("Credit Packages in Collection");
 		collectionCreditsTable = new CreditPackagesCollectionPagedTableWidget(collectionCreditGroup, SWT.NONE);
 		collectionCreditsTable.setLayoutData(new GridData(GridData.FILL_BOTH));
+		
+		//TODO add menu to collectionCreditsTable too with same listeners
+		Menu menu = new Menu(userCreditsTable.getTableViewer().getTable());
+		userCreditsTable.getTableViewer().getTable().setMenu(menu);
+
+		showUserPackageDetailsItem = new MenuItem(menu, SWT.NONE);
+		showUserPackageDetailsItem.setText("Show details...");
+		splitUserPackageItem = new MenuItem(menu, SWT.NONE);
+		splitUserPackageItem.setText("Split package...");
 		
 		final int buttonWeight = 6;
 		sf.setWeights(new int[] { 47, buttonWeight, 47 });

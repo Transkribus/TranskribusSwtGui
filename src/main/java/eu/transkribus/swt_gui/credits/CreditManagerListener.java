@@ -1,10 +1,14 @@
 package eu.transkribus.swt_gui.credits;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -20,6 +24,10 @@ import org.eclipse.swt.dnd.DropTargetListener;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +36,7 @@ import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.TrpCreditPackage;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
@@ -88,6 +97,51 @@ public class CreditManagerListener implements IStorageListener {
 				});
 			}
 		});
+		
+		view.userCreditsTable.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent arg0) {
+				logger.trace("Selection changed: {}", arg0);
+				List<TrpCreditPackage> selection = view.userCreditsTable.getSelected();
+				boolean enableSplitPackageItem = !CollectionUtils.isEmpty(selection)
+						&& selection.size() == 1
+						//allow split only for shareable package
+						&& selection.get(0).getProduct().getShareable();
+				boolean enableShowDetailsItem = !CollectionUtils.isEmpty(selection);
+				view.showUserPackageDetailsItem.setEnabled(enableShowDetailsItem);
+				view.splitUserPackageItem.setEnabled(enableSplitPackageItem);
+			}
+		});
+		
+		SelectionAdapter showDetailsListener = new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				openPackageDetailsDialog(view.userCreditsTable.getSelected());
+			}
+		};
+		SelectionAdapter splitPackageListener = new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				openPackageManagerDialog(view.userCreditsTable.getSelectedPackage());
+			}
+		};
+		view.showUserPackageDetailsItem.addSelectionListener(showDetailsListener);
+		view.splitUserPackageItem.addSelectionListener(splitPackageListener);
+		
+		SWTUtil.onSelectionEvent(view.userCreditsTable.getShowDetailsButton(), (e) -> {
+			openPackageDetailsDialog(null, view.userCreditsTable.getCurrentBalance());
+		});
+		
+		SWTUtil.onSelectionEvent(view.collectionCreditsTable.getShowDetailsButton(), (e) -> {
+			openPackageDetailsDialog(null, view.collectionCreditsTable.getCurrentBalance());
+		});
+		
+		if(view.userCreditsTable.getCreatePackageBtn() != null) {
+			//button is only there for admins
+			SWTUtil.onSelectionEvent(view.userCreditsTable.getCreatePackageBtn(), (e) -> {
+				openCreatePackageDialog();
+			});
+		}
 	}
 
 	private void assignPackagesToCollection(int collId, List<TrpCreditPackage> packageList) {
@@ -167,6 +221,93 @@ public class CreditManagerListener implements IStorageListener {
 		});
 	}
 	
+	private void openPackageDetailsDialog(List<TrpCreditPackage> packages) {
+		if(CollectionUtils.isEmpty(packages)) {
+			return;
+		}
+		openPackageDetailsDialog(null, sumBalances(packages));
+	}
+	
+	private void openPackageDetailsDialog(String msg, double creditValue) {
+		CreditPackageDetailsDialog d = new CreditPackageDetailsDialog(view.getShell(), creditValue);
+		if (d.open() == IDialogConstants.OK_ID) {
+			//we don't need feedback here. do nothing
+		}
+	}
+	
+	/**
+	 * sum credit values of all selected packages
+	 * @param packages
+	 * @return sum over all balances or 0.0 if list is null or empty
+	 */
+	private static double sumBalances(List<TrpCreditPackage> packages) {
+		if(CollectionUtils.isEmpty(packages)) {
+			return 0.0;
+		}
+		return packages.stream().collect(Collectors.summingDouble(TrpCreditPackage::getBalance));
+	}
+	
+	private void openPackageManagerDialog(TrpCreditPackage creditPackage) {
+		if(creditPackage == null || creditPackage.getBalance() <= 0.0) {
+			return;
+		}
+		logger.debug("Opening package split dialog for package {}", creditPackage);
+		CreditPackageManagerDialog d = new CreditPackageManagerDialog(view.getShell(), creditPackage);
+		if (d.open() == IDialogConstants.OK_ID) {
+			int numPackages = d.getNumPackages();
+			double creditValue = d.getCreditValue();
+			//currently the package can't be changed within the dialog so using creditPackage would work as well.
+			TrpCreditPackage sourcePackage = d.getCreditPackage();
+			ProgressBarDialog pbd = new ProgressBarDialog(view.getShell());
+			
+			IRunnableWithProgress r = new IRunnableWithProgress() {
+				@Override
+				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					monitor.beginTask("Splitting package...", numPackages);
+					//check selected Dirs on server
+					for(int i = 0; i < numPackages; i++) {
+						monitor.worked(i);
+						try {
+							store.getConnection().getCreditCalls().splitCreditPackage(sourcePackage, creditValue);
+						} catch (Exception e) {
+							logger.error("Error while splitting package", e);
+							Runnable r = new Runnable() {
+								@Override
+								public void run() {
+									DialogUtil.showErrorMessageBox(new Shell(Display.getDefault()), "Error", e.getMessage());
+								}
+							};
+							Display.getDefault().syncExec(r);
+						}
+					}
+					logger.debug("Finished splitting package.");
+				}
+			};
+			
+			try {
+				pbd.open(r, "Splitting package...", true);
+			} catch (Throwable e) {
+				DialogUtil.showErrorMessageBox(view.getShell(), "Error", e.getMessage());
+				logger.error("Error in ProgressMonitorDialog", e);
+			}
+		}
+	}
+	
+	private void openCreatePackageDialog() {
+		CreateCreditPackageDialog d = new CreateCreditPackageDialog(view.getShell());
+		if(d.open() == IDialogConstants.OK_ID) {
+			TrpCreditPackage newPackage = d.getPackageToCreate();
+			try {
+				TrpCreditPackage createdPackage = store.getConnection().getCreditCalls().createCredit(newPackage);
+				DialogUtil.showInfoBalloonToolTip(view.userCreditsTable.getCreatePackageBtn(), 
+						"Done", "Package created: '" + createdPackage.getProduct().getLabel());
+				view.userCreditsTable.refreshPage(false);
+			} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e1) {
+				DialogUtil.showErrorMessageBox2(view.getShell(), "Error", "Package could not be created.", e1);
+			}
+		}
+	}
+
 	/**
 	 * Does not work as required.<br>
 	 * Drag and drop should only work from one table to another, not within the same table.
