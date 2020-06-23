@@ -49,9 +49,11 @@ public class RemotePageLoaderSingleRequest<T extends JaxbPaginatedList<R>, R> im
 			currentData = loadPage(fromIndex, toIndex, controller.getSortPropertyName(), sortDirection);		
 			logger.debug("Loaded page in {} ms. Type = {}", sw.stop(false), currentData.getClass());
 			logger.debug("Total count = {}", currentData.getTotal());
-			logger.debug("List size = {}", currentData.getList().size());
-			if(logger.isTraceEnabled()) {
-				currentData.getList().stream().map(e -> "" + e).forEach(logger::trace);
+			if(currentData.getList() != null) {
+				logger.debug("List size = {}", currentData.getList().size());
+				if(logger.isTraceEnabled()) {
+					currentData.getList().stream().map(e -> "" + e).forEach(logger::trace);
+				}
 			}
 			return new PageResult<R>(currentData.getList(), currentData.getTotal());
 		} catch (Exception e) {
