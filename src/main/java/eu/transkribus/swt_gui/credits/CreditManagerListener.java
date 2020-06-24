@@ -2,7 +2,9 @@ package eu.transkribus.swt_gui.credits;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -201,7 +203,7 @@ public class CreditManagerListener implements IStorageListener {
 			return;
 		}
 		int addCount = 0;
-		final List<Exception> fails = new ArrayList<>(0);
+		final Set<String> fails = new HashSet<>();
 		for(TrpCreditPackage p : packageList) {
 			try {
 				store.getConnection().getCreditCalls().removeCreditPackageFromCollection(store.getCollId(), p.getPackageId());
@@ -209,14 +211,15 @@ public class CreditManagerListener implements IStorageListener {
 			} catch (SessionExpiredException e1) {
 				//TODO abort and show login dialog
 			} catch (TrpServerErrorException | TrpClientErrorException e2) {
-				fails.add(e2);
+				fails.add(e2.getMessageToUser());
 			}
 		}
 		final int successCount = addCount;
+		String errorMsg = fails.stream().collect(Collectors.joining("\n"));
 		view.dialogArea.getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				view.collectionCreditsTable.refreshPage(false);
-				DialogUtil.showBalloonToolTip(view.collectionCreditsTable, null, successCount + " packages removed", "");
+				DialogUtil.showBalloonToolTip(view.collectionCreditsTable, null, successCount + " packages removed", errorMsg);
 			}
 		});
 	}
