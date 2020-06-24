@@ -9,6 +9,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -23,7 +24,9 @@ public class CollectionEditorDialog extends Dialog {
 	
 	Text nameTxt, descrTxt;
 	//Text aimOfCrowdProjectTxt;
-	Button isCrowdsourceBtn, isELearningBtn;
+	
+	Group adminGrp;
+	Button isCrowdsourceBtn, isELearningBtn, isCreditAccountingBtn;
 	//Button createBtnMsg, editBtnMsg, createBtnMst, editBtnMst;
 	//Button deleteBtnMsg, deleteBtnMst, takeBtnMsg, takeBtnMst;
 	//Label landingLbl, tblLblMsg, tblLblMst, aimLbl;
@@ -384,12 +387,19 @@ public class CollectionEditorDialog extends Dialog {
 //	    manager.add(add);
 //	    manager.update(true);	  	
 		
-		Label attencione = new Label(cont, SWT.NONE);
+		adminGrp = new Group(cont, SWT.BORDER);
+		adminGrp.setText("Admin Area");
+		
+		GridData adminGrpLayoutData = new GridData(SWT.FILL, SWT.BOTTOM, true, false, 2, 1);
+		adminGrp.setLayoutData(adminGrpLayoutData);
+		adminGrp.setLayout(new GridLayout(2, false));
+		
+		Label attencione = new Label(adminGrp, SWT.NONE);
 		attencione.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 2, 1));
 		attencione.setText("Attention: By clicking these options your collection will be shown to the public");
 		attencione.setEnabled(editAllowed);
 		
-		isCrowdsourceBtn = new Button(cont, SWT.CHECK);
+		isCrowdsourceBtn = new Button(adminGrp, SWT.CHECK);
 		isCrowdsourceBtn.setText("Crowdsourcing");
 		isCrowdsourceBtn.setEnabled(editAllowed);
 //		isCrowdsourceBtn.addSelectionListener(new SelectionAdapter()
@@ -448,10 +458,22 @@ public class CollectionEditorDialog extends Dialog {
 //			}
 //		});
 		
-		new Label(cont, SWT.NONE);
-		isELearningBtn = new Button(cont, SWT.CHECK);
+		new Label(adminGrp, SWT.NONE);
+		isELearningBtn = new Button(adminGrp, SWT.CHECK);
 		isELearningBtn.setText("eLearning");
 		isELearningBtn.setEnabled(editAllowed);
+		
+		new Label(adminGrp, SWT.NONE);
+		isCreditAccountingBtn = new Button(adminGrp, SWT.CHECK);
+		isCreditAccountingBtn.setText("Credit Accounting");
+		isCreditAccountingBtn.setEnabled(editAllowed);
+		
+		if(!editAllowed) {
+			//hide adminGrp if not editable
+			adminGrp.setVisible(false);
+			adminGrpLayoutData.exclude = true;
+			adminGrp.layout();
+		}
 		
 		updateValues();
 		
@@ -683,6 +705,7 @@ public class CollectionEditorDialog extends Dialog {
 			descrTxt.setText("");
 			isCrowdsourceBtn.setSelection(false);
 			isELearningBtn.setSelection(false);
+			isCreditAccountingBtn.setSelection(false);
 			
 			//updateValues(false);
 
@@ -691,6 +714,9 @@ public class CollectionEditorDialog extends Dialog {
 			descrTxt.setText(collection.getDescription() == null ? "" : collection.getDescription());
 			isCrowdsourceBtn.setSelection(collection.isCrowdsourcing());
 			isELearningBtn.setSelection(collection.isElearning());
+			boolean isCreditAccountingEnabled = collection.getAccountingStatus() != null 
+					&& collection.getAccountingStatus().intValue() == 1;
+			isCreditAccountingBtn.setSelection(isCreditAccountingEnabled);
 			
 			//updateValues(collection.isCrowdsourcing() && editAllowed);
 		}
@@ -779,16 +805,20 @@ public class CollectionEditorDialog extends Dialog {
 			}
 		}
 		
+		Integer accountingStatus = isCreditAccountingBtn.getSelection() ? 1 : 0;  
+		
 		mdChanged = !name.equals(collection.getColName()) 
 				|| !descr.equals(collection.getDescription())
 				|| isCrowdsource != collection.isCrowdsourcing()
-				|| isELearning != collection.isElearning();
+				|| isELearning != collection.isElearning()
+				|| !accountingStatus.equals(collection.getAccountingStatus());
 				
 		if(mdChanged) {
 			collection.setColName(name);
 			collection.setDescription(descr);
 			collection.setCrowdsourcing(isCrowdsource);
 			collection.setElearning(isELearning);
+			collection.setAccountingStatus(accountingStatus);
 		}
 		
 //		if (collection.isCrowdsourcing() && collection.getCrowdProject().getProjId() == null){
