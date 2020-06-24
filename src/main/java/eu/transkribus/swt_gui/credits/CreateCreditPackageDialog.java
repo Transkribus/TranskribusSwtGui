@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Text;
 import eu.transkribus.core.model.beans.TrpCreditPackage;
 import eu.transkribus.core.model.beans.TrpCreditProduct;
 import eu.transkribus.core.model.beans.auth.TrpUser;
+import eu.transkribus.core.model.beans.job.enums.JobType;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
@@ -157,7 +158,7 @@ public class CreateCreditPackageDialog extends Dialog {
 			String errorMsg = "";
 			String label = labelTxt.getText();
 			if(label == null || label.length() < 5) {
-				errorMsg += "Label is too short\n";
+				errorMsg += "Enter a label with at least 5 letters\n";
 			}
 			double value = nrOfCreditsSldr.getValue();
 			if(value <= 0.0) {
@@ -175,6 +176,7 @@ public class CreateCreditPackageDialog extends Dialog {
 			//FIXME value must be an int!
 			product.setNrOfCredits(new Double(value).intValue());
 			product.setShareable(shareable);
+			product.setCreditType("" + JobType.recognition);
 		}
 		packageToCreate = new TrpCreditPackage();
 		packageToCreate.setUserId(selectedOwner.getUserId());
