@@ -284,6 +284,11 @@ public class CreditManagerListener implements IStorageListener {
 						}
 					}
 					logger.debug("Finished splitting package.");
+					Display.getDefault().syncExec(new Runnable() {
+						public void run() {
+							view.userCreditsTable.refreshPage(false);
+						}
+					});
 				}
 			};
 			
@@ -303,7 +308,8 @@ public class CreditManagerListener implements IStorageListener {
 			try {
 				TrpCreditPackage createdPackage = store.getConnection().getCreditCalls().createCredit(newPackage);
 				DialogUtil.showInfoBalloonToolTip(view.userCreditsTable.getCreatePackageBtn(), 
-						"Done", "Package created: '" + createdPackage.getProduct().getLabel());
+						"Done", "Package created: '" + createdPackage.getProduct().getLabel() + "'"
+								+ "\nOwner: " + createdPackage.getUserName());
 				view.userCreditsTable.refreshPage(false);
 			} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e1) {
 				DialogUtil.showErrorMessageBox2(view.getShell(), "Error", "Package could not be created.", e1);
