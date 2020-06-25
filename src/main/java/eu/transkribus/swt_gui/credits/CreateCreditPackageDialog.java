@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.TrpSliderComposite;
 
 import eu.transkribus.core.model.beans.TrpCreditPackage;
 import eu.transkribus.core.model.beans.TrpCreditProduct;
@@ -27,7 +28,6 @@ import eu.transkribus.core.model.beans.job.enums.JobType;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.credits.CreditPackageManagerDialog.TrpSliderComposite;
 import eu.transkribus.swt_gui.dialogs.FindUserDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.pagination_tables.CreditProductsPagedTableWidget;
