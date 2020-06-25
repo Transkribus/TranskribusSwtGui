@@ -18,17 +18,14 @@ import eu.transkribus.swt.util.Colors;
 /**
  * A Text field with a slider for value adjustment.
  * <br><br>
- * Currently can deal with double values only!<br>
- * To be tested: <br>
- * override createValueFormat() to return strings without floating point 
- * and use getValue().intValue() when retrieving the input
+ * Currently uses double values internally!<br>
  */
 public class TrpSliderComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TrpSliderComposite.class);
 	
 	private final static double MIN_VALUE = 1.00;
 	private final static int THUMB_SIZE = 5; // size of slider thumb
-	private final DecimalFormat valueFormat;
+	private DecimalFormat valueFormat;
 	
 	double value;
 	double max;
@@ -89,12 +86,8 @@ public class TrpSliderComposite extends Composite {
 				}
 			}
 		});			
-		valueFormat = createValueFormat();
+		valueFormat = new DecimalFormat("0.00");
 		setValue(MIN_VALUE);
-	}
-	
-	protected DecimalFormat createValueFormat() {
-		return new DecimalFormat("0.00");
 	}
 	
 	public void setValue(double value) {
@@ -134,5 +127,17 @@ public class TrpSliderComposite extends Composite {
 		if(value > max) {
 			setValue(max);
 		}
+	}
+
+	/**
+	 * Define String format for values shown in the text field. Default is "0.00".
+	 * 
+	 * @param format a DecimalFormat. Null value in argument is ignored.
+	 */
+	public void setNumberFormat(DecimalFormat format) {
+		if(format == null) {
+			return;
+		}
+		valueFormat = format;
 	}
 }

@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.credits;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -136,8 +137,10 @@ public class CreateCreditPackageDialog extends Dialog {
 		nrOfCreditsLbl.setText("Nr. of Credits:");
 		nrOfCreditsSldr = new TrpSliderComposite(c, SWT.NONE);
 		nrOfCreditsSldr.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		nrOfCreditsSldr.setValue(100.0);
-		nrOfCreditsSldr.setMaximum(10000.0);
+		//do not show decimal places here and use intValue when getting it from the slider composite
+		nrOfCreditsSldr.setNumberFormat(new DecimalFormat("0"));
+		nrOfCreditsSldr.setValue(100);
+		nrOfCreditsSldr.setMaximum(10000);
 		
 		shareableChk = new Button(c, SWT.CHECK);
 		shareableChk.setText("Shareable");
@@ -160,8 +163,8 @@ public class CreateCreditPackageDialog extends Dialog {
 			if(label == null || label.length() < 5) {
 				errorMsg += "Enter a label with at least 5 letters\n";
 			}
-			double value = nrOfCreditsSldr.getValue();
-			if(value <= 0.0) {
+			Double value = nrOfCreditsSldr.getValue();
+			if(value == null || value <= 0.0) {
 				errorMsg += "Nr of credits must be positive\n";
 			}
 			boolean shareable = shareableChk.getSelection();
@@ -173,8 +176,8 @@ public class CreateCreditPackageDialog extends Dialog {
 			
 			product = new TrpCreditProduct();
 			product.setLabel(label);
-			//FIXME value must be an int!
-			product.setNrOfCredits(new Double(value).intValue());
+			//value must be an int!
+			product.setNrOfCredits(value.intValue());
 			product.setShareable(shareable);
 			product.setCreditType("" + JobType.recognition);
 		}
