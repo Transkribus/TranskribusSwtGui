@@ -698,3 +698,6 @@ CHANGES AND BUGFIXES
 	-> severe bugfix: update JRE for MacOS to version 8u251 to support server certificate 
 	-> paged htr model tables
 	
+1.12.0:
+	-> (PyLaia) training from compressed viewing files 
+	
