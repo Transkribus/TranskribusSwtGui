@@ -55,6 +55,7 @@ public class LabeledText extends Composite {
 	public void setEnabled(boolean enabled) {
 		SWTUtil.setEnabled(label, enabled);
 		SWTUtil.setEnabled(text, enabled);
+		super.setEnabled(enabled);
 	}
 	
 	@Override public void setToolTipText(String tooltip) {
