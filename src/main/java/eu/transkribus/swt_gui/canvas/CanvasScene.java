@@ -319,7 +319,10 @@ public class CanvasScene {
 		
 		// sort shapes if possible
 //		CanvasShapeUtil.sortCanvasShapesByReadingOrder(selectedShapes);
-		CanvasShapeUtil.sortCanvasShapesByXY(selectedShapes);
+		//CanvasShapeUtil.sortCanvasShapesByXY(selectedShapes);
+		//this will sort the shapes with YX - like it is the standard now
+		//TODO: sort dependent on the situation - merge one upon the other or side by side (if this makes any sense because would you merge two columns into one??)
+		CanvasShapeUtil.sortCanvasShapesByCoordinates(selectedShapes, true);
 		for (ICanvasShape s : selectedShapes) {
 			logger.debug(CanvasShapeUtil.getTrpShapeType(s).getId());
 		}
