@@ -149,6 +149,7 @@ import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.SysUtils.JavaInfo;
 import eu.transkribus.core.util.ZipUtils;
@@ -823,13 +824,13 @@ public class TrpMainWidget {
 			TrpTextLineType currLine = storage.getCurrentLineObject();
 			TrpWordType currWord = storage.getCurrentWordObject();
 			if (currWord != null) {
-				java.awt.Rectangle boundingRect = PageXmlUtils.buildPolygon(currWord.getCoords().getPoints()).getBounds();
+				java.awt.Rectangle boundingRect = PointStrUtils.buildPolygon(currWord.getCoords().getPoints()).getBounds();
 				title += " [ current word: w*h: " + boundingRect.width + " * " + boundingRect.height + " ]";
 			} else if (currLine != null) {
-				java.awt.Rectangle boundingRect = PageXmlUtils.buildPolygon(currLine.getCoords().getPoints()).getBounds();
+				java.awt.Rectangle boundingRect = PointStrUtils.buildPolygon(currLine.getCoords().getPoints()).getBounds();
 				title += " [ current line: w*h: " + boundingRect.width + " * " + boundingRect.height + " ]";
 			} else if (currRegion != null) {
-				java.awt.Rectangle boundingRect = PageXmlUtils.buildPolygon(currRegion.getCoords().getPoints()).getBounds();
+				java.awt.Rectangle boundingRect = PointStrUtils.buildPolygon(currRegion.getCoords().getPoints()).getBounds();
 				title += " [ current region: w*h: " + boundingRect.width + " * " + boundingRect.height + " ]";
 			}
 
