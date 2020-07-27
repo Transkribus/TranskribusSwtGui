@@ -226,7 +226,7 @@ public class ShapeEditController extends AMainWidgetController {
 								
 								if (!dryRun) {
 									mw.getStorage().saveTranscript(mw.getStorage().getCurrentDocumentCollectionId(), 
-											tr.getPage(), md.getStatus(), md.getParentTsId(), msg);									
+											tr.getPage(), md.getStatus(), md.getTsId(), msg);									
 								}
 							}
 							
