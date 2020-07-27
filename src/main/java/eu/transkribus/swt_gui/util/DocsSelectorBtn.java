@@ -79,6 +79,7 @@ public class DocsSelectorBtn extends Composite {
 	public void setEnabled(boolean enabled) {
 		SWTUtil.setEnabled(lbl, enabled);
 		SWTUtil.setEnabled(btn, enabled);
+		super.setEnabled(enabled);
 	}
 	
 	private void updateLabel() {

@@ -508,7 +508,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 			lastExportFolder = lastExportFolderTmp;
 		}
 	    
-		exportPathComp = new ExportPathComposite(body, lastExportFolder, "File/Folder name: ", ".xls", docName);
+		exportPathComp = new ExportPathComposite(body, lastExportFolder, "File/Folder name: ", ".xlsx", docName);
 		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		
 		downloadXLS = new Button(body,SWT.PUSH);

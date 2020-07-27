@@ -44,6 +44,19 @@ public class CanvasShapeUtil {
 		}
 	}	
 	
+	public static <T> boolean sortCanvasShapesByCoordinates(List<ICanvasShape> canvasShapes, boolean sortYX) {
+		try {
+			logger.debug("sorting canvas shapes by coordinates!");
+			TrpShapeTypeUtils.sortShapesByCoordinates(canvasShapes, true);
+			//Collections.sort(canvasShapes, new CanvasShapeXYComparator());
+			return true;
+		}
+		catch (Exception e) {
+			logger.error("Could not sort canvas shapes by XY, exception = "+e.getMessage() +" - not sorting!");
+			return false;
+		}
+	}
+	
 	public static ICanvasShape copyShape(ITrpShapeType st) {
 		ICanvasShape shape = CanvasShapeUtil.getCanvasShape(st);
 		if (shape == null) {

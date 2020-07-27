@@ -12,6 +12,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
@@ -57,10 +58,16 @@ public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 			currentTanscriptRadio.addSelectionListener(radioSelection);
 		}
 		updateGui();
+		
+		if (!withCurrentTranscript) {
+			selectPagesRadio();
+		}
 	}
 	
 	public void updateGui() {
-		ps.setEnabled(pagesRadio.getSelection());
+		if (ps != null) {
+			ps.setEnabled(pagesRadio.getSelection());	
+		}
 	}
 	
 	public boolean isCurrentTranscript() {
@@ -80,8 +87,8 @@ public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 	}
 	
 	public void selectPagesRadio(){
-		pagesRadio.setSelection(true);
-		currentTanscriptRadio.setSelection(false);
+		SWTUtil.setSelection(pagesRadio, true);
+		SWTUtil.setSelection(currentTanscriptRadio, false);
 		updateGui();
 	}
 	
