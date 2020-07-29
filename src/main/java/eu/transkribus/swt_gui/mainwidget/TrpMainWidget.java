@@ -4778,6 +4778,8 @@ public class TrpMainWidget {
 
 		try {
 			PcGtsType p = PageXmlUtils.unmarshal(new File(fn));
+			//currently loaded TrpTranscriptMetadata will be set in PcGtsType by setPageData()
+			//see https://github.com/Transkribus/TranskribusSwtGui/issues/310
 			storage.getTranscript().setPageData(p);
 			storage.setCurrentTranscriptEdited(true);
 			//saveTranscription(false);

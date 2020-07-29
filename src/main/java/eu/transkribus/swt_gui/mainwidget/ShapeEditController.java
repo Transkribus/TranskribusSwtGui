@@ -225,8 +225,7 @@ public class ShapeEditController extends AMainWidgetController {
 								res.affectedPageIndices.add(i);
 								
 								if (!dryRun) {
-									mw.getStorage().saveTranscript(mw.getStorage().getCurrentDocumentCollectionId(), 
-											tr.getPage(), md.getStatus(), md.getTsId(), msg);									
+									mw.getStorage().saveTranscript(mw.getStorage().getCurrentDocumentCollectionId(), tr, msg);									
 								}
 							}
 							

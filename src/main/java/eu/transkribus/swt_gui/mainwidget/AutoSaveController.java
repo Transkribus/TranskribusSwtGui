@@ -245,6 +245,7 @@ public class AutoSaveController extends AMainWidgetController {
     		JAXBPageTranscript jxtr = new JAXBPageTranscript();
     		jxtr.setPageData(pcLocal);
     		storage.getTranscript().setPageData(pcLocal);
+    		//FIXME jxtr.getMd() will return null here. May be related to https://github.com/Transkribus/TranskribusSwtGui/issues/310
     		storage.getTranscript().setMd(jxtr.getMd());
     		storage.setLatestTranscriptAsCurrent();
 			mw.loadJAXBTranscriptIntoView(storage.getTranscript());
