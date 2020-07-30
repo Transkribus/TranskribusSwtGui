@@ -353,17 +353,13 @@ public class DocumentManager extends Dialog {
 				}	
 			}
 		} catch (SessionExpiredException | IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);		
 		} catch (UnsupportedFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		} catch (NoConnectionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 
 		updateColors();
@@ -385,8 +381,7 @@ public class DocumentManager extends Dialog {
 				}
 			}
 		} catch (SessionExpiredException | IllegalArgumentException | ServerErrorException | NoConnectionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 
 		updateColors();
@@ -628,7 +623,7 @@ public class DocumentManager extends Dialog {
 					Storage.getInstance().reloadCurrentDocument(colId);
 					totalReload(colId);
 				} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException e1) {
-					e1.printStackTrace();
+					logger.error(e1.getMessage(), e1);
 				}
 				
 			}
@@ -743,8 +738,7 @@ public class DocumentManager extends Dialog {
 						 
 					 }
 				 } catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					 logger.error(e1.getMessage(), e1);
 				 }finally{
 					 totalReload(colId);
 				 }
@@ -790,7 +784,7 @@ public class DocumentManager extends Dialog {
 						totalReload(colId);
 						//mw.getUi().getThumbnailWidget().reload();
 					} catch (IllegalArgumentException e1) {
-						e1.printStackTrace();
+						logger.error(e1.getMessage(), e1);
 					}
 
 				}
@@ -996,7 +990,7 @@ public class DocumentManager extends Dialog {
 
 						} catch (ServerErrorException | ClientErrorException
 								| IllegalArgumentException | SessionExpiredException ex) {
-								ex.printStackTrace();
+								logger.error(ex.getMessage(), ex);
 							}
 						}
 					}
@@ -1220,14 +1214,11 @@ public class DocumentManager extends Dialog {
 				storage.reloadCollections();
 			}
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		} catch (NoConnectionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 
 	}
@@ -1288,8 +1279,7 @@ public class DocumentManager extends Dialog {
 				try {
 					Storage.getInstance().reloadCurrentDocument(colId);
 				} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error(e.getMessage(), e);
 				}
 				tv.getTree().redraw();
 				reload();
@@ -1408,7 +1398,7 @@ public class DocumentManager extends Dialog {
 						reload();
 						mw.getUi().getThumbnailWidget().reload();
 					} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException e) {
-						e.printStackTrace();
+						logger.error(e.getMessage(), e);
 					}
 
 				}
@@ -1431,8 +1421,7 @@ public class DocumentManager extends Dialog {
 					tv.getTree().redraw();
 
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error(e.getMessage(), e);
 				}
 			}
 		});
@@ -1454,8 +1443,7 @@ public class DocumentManager extends Dialog {
 					tv.getTree().redraw();
 
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error(e.getMessage(), e);
 				}
 			}
 
@@ -1496,8 +1484,7 @@ public class DocumentManager extends Dialog {
 							tv.getTree().redraw();
 						} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 								| IllegalArgumentException | NoConnectionException | IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							logger.error(e.getMessage(), e);
 						}
 
 					}
@@ -1549,8 +1536,7 @@ public class DocumentManager extends Dialog {
 			try {
 				setup_layout_recognition(pages);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(e.getMessage(), e);
 			}
 		});
 		
@@ -1686,9 +1672,9 @@ public class DocumentManager extends Dialog {
 		
 		try {
 			store.reloadCurrentDocument(colId);
+			//FIXME reload page too here. If pages have been moved, shifting the currently loaded page, any save will store stuff to the wrong page! issue 310
 		} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			logger.error(e1.getMessage(), e1);
 		}
 
 		docList = store.getDocList();
@@ -1731,8 +1717,7 @@ public class DocumentManager extends Dialog {
 					break;
 				}
 			} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(e.getMessage(), e);
 			}
 			
 			int totalCollectionPages = 0;
