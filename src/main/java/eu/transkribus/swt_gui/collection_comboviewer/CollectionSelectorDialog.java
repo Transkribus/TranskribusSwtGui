@@ -27,9 +27,8 @@ public class CollectionSelectorDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(CollectionSelectorDialog.class);
 
 	TrpCollection selectedCollection;
-//	List<TrpCollection> collections;
 	CollectionsTableWidgetPagination collectionTable;
-	Button createBtn, deleteBtn, modifyBtn, addUsersBtn, strayDocsBtn;
+	Button createBtn, deleteBtn, modifyBtn, addUsersBtn, strayDocsBtn, openCreditManagerBtn;
 	TrpCollection initColl;
 	
 	Predicate<TrpCollection> collectionPredicate;
@@ -76,7 +75,7 @@ public class CollectionSelectorDialog extends Dialog {
 		
 		Composite btns = new Composite(container, 0);
 		btns.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
-		btns.setLayout(new GridLayout(5, true));
+		btns.setLayout(new GridLayout(6, true));
 				
 		createBtn = new Button(btns, SWT.PUSH);
 		createBtn.setText("Create");
@@ -104,7 +103,12 @@ public class CollectionSelectorDialog extends Dialog {
 		strayDocsBtn.setImage(Images.FOLDER_PAGE_WHITE);
 		strayDocsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-
+		openCreditManagerBtn = new Button(btns, SWT.PUSH);
+		openCreditManagerBtn.setText("Credit Manager");
+		openCreditManagerBtn.setToolTipText("View your credit packages and assign them to collections.");
+		openCreditManagerBtn.setImage(Images.COINS_ICON);
+		openCreditManagerBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
 		SelectionAdapter btnsListener = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -129,6 +133,9 @@ public class CollectionSelectorDialog extends Dialog {
 				else if (e.getSource() == strayDocsBtn){
 					TrpMainWidget.getInstance().openStrayDocsDialog();
 				}
+				else if (e.getSource() == openCreditManagerBtn) {
+					TrpMainWidget.getInstance().openCreditManager();
+				}
 			}
 		};
 		createBtn.addSelectionListener(btnsListener);
@@ -136,6 +143,7 @@ public class CollectionSelectorDialog extends Dialog {
 		modifyBtn.addSelectionListener(btnsListener);
 		addUsersBtn.addSelectionListener(btnsListener);
 		strayDocsBtn.addSelectionListener(btnsListener);
+		openCreditManagerBtn.addSelectionListener(btnsListener);
 
 		return container;
 	}
