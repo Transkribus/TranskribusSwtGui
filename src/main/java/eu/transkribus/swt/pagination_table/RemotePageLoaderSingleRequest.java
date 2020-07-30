@@ -54,6 +54,9 @@ public class RemotePageLoaderSingleRequest<T extends JaxbPaginatedList<R>, R> im
 				if(logger.isTraceEnabled()) {
 					currentData.getList().stream().map(e -> "" + e).forEach(logger::trace);
 				}
+			} else {
+				//JAXBPaginatedList currently does not initialize its list field by default. Set an empty list, otherwise the table will no clear properly.
+				currentData.setList(new ArrayList<R>(0));
 			}
 			return new PageResult<R>(currentData.getList(), currentData.getTotal());
 		} catch (Exception e) {
