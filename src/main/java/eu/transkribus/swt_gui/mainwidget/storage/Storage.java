@@ -1147,27 +1147,27 @@ public class Storage {
 //		}
 //	}
 
-	public void reloadCurrentDocument(int colId) throws SessionExpiredException, IllegalArgumentException, NoConnectionException, UnsupportedFormatException,
-			IOException, NullValueException {
-
-		// public void loadLocalDoc(String folder) throws Exception {
-		// public void loadRemoteDoc(int docId) throws Exception {
-
-		if (doc != null) {
-			if (isLocalDoc()) {
-				loadLocalDoc(doc.getMd().getLocalFolder().getAbsolutePath(), null);
-			} else {
-				loadRemoteDoc(colId, doc.getMd().getDocId());
-			}
-
-			logger.debug("nr of pages: " + getNPages());
-			setCurrentPage(0);
-			/*
-			 * FIXME page index is now set but Storage state is inconsistent due to missing page reload
-			 * Causes https://github.com/Transkribus/TranskribusSwtGui/issues/310
-			 */
-		}
-	}
+//	/**
+//	 * @deprecated
+//	 * FIXME page index is now set but Storage state is inconsistent due to missing page reload Causes
+//	 * https://github.com/Transkribus/TranskribusSwtGui/issues/310
+//	 * 
+//	 * Solution: remove and use TrpMainWidget::reloadCurrentDocument instead!
+//	 */
+//	private void reloadCurrentDocument(int colId) throws SessionExpiredException, IllegalArgumentException, NoConnectionException, UnsupportedFormatException,
+//			IOException, NullValueException {
+//		if (doc != null) {
+//			if (isLocalDoc()) {
+//				loadLocalDoc(doc.getMd().getLocalFolder().getAbsolutePath(), null);
+//			} else {
+//				loadRemoteDoc(colId, doc.getMd().getDocId());
+//			}
+//
+//			logger.debug("nr of pages: " + getNPages());
+//			setCurrentPage(0);
+//
+//		}
+//	}
 
 	public String[][] getWordgraphMatrix(boolean fromCache, final int docId, final int pageNr, final String lineId) throws IOException {
 		if (fromCache)

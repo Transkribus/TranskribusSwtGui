@@ -379,9 +379,9 @@ public class ThumbnailManagerVirtual extends Dialog{
 				//mw.addPage();
 				mw.addSeveralPages2Doc();
 				try {
-					Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
-				} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException e) {
-					// TODO Auto-generated catch block
+//					Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+					mw.reloadCurrentDocument();
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 				tw.setDoc(Storage.getInstance().getDoc(), false);
@@ -405,12 +405,13 @@ public class ThumbnailManagerVirtual extends Dialog{
 					List<TrpPage> selection = tw.getSelection();
 					deletePages(selection);
 					try {
-						Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+//						Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+						mw.reloadCurrentDocument();
 						tw.setDoc(Storage.getInstance().getDoc(), false);
 						reload();
 						mw.getUi().getThumbnailWidget().reload();
-					} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException e) {
-						e.printStackTrace();
+					} catch (Exception e) {
+						logger.error(e.getMessage(), e);
 					}
 					
 				}
@@ -435,16 +436,14 @@ public class ThumbnailManagerVirtual extends Dialog{
 //						i++;
 //					}
 					movePages(selection,1);
-					Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+//					Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+					mw.reloadCurrentDocument();
 					tw.setDoc(Storage.getInstance().getDoc(), false);
 					reload();
 					mw.getUi().getThumbnailWidget().reload();		    		
 					tw.getGallery().redraw();
-					
-					
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error(e.getMessage(), e);
 				}				
 			}	   	    	
 	    });   
@@ -463,22 +462,19 @@ public class ThumbnailManagerVirtual extends Dialog{
 //						i++;						
 //					}
 					movePages(selection, NPages);
-					Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+//					Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+					mw.reloadCurrentDocument();
 					tw.setDoc(Storage.getInstance().getDoc(), false);
 					reload();
 					mw.getUi().getThumbnailWidget().reload();		    		
 					tw.getGallery().redraw();
-					
-					
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error(e.getMessage(), e);
 				}				
 			}	   	    	
 	    });
 	    
-	    moveSpecific.addListener(SWT.Selection, new Listener(){
-
+	    moveSpecific.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
 				Shell shell = new Shell(Display.getCurrent());
@@ -505,25 +501,19 @@ public class ThumbnailManagerVirtual extends Dialog{
 						}
 						try {
 							movePages(tw.getSelection(), targetPage);
-							Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+//							Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+							mw.reloadCurrentDocument();
 							tw.setDoc(Storage.getInstance().getDoc(), false);
 							reload();
 							mw.getUi().getThumbnailWidget().reload();		    		
 							tw.getGallery().redraw();
-						} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-								| IllegalArgumentException | NoConnectionException | IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+						} catch (Exception e) {
+							logger.error(e.getMessage(), e);
 						}
-						
 					}
-					
 				});
-				
 			}
-	    	
 	    });
-		
 	}	
 	
 	private void movePage(int fromPageNr, int toPageNr) {
@@ -614,27 +604,14 @@ public class ThumbnailManagerVirtual extends Dialog{
 				}
 				try {
 					storage.getConnection().updatePageStatus(colId, docId, pageNr, transcriptId, EditStatus.fromString(text), "");
-					storage.reloadCurrentDocument(colId);
+//					storage.reloadCurrentDocument(colId);
+					mw.reloadCurrentDocument();
 					tw.setDoc(Storage.getInstance().getDoc(), false);
 					enableEdits(false);
 					//logger.debug("status is changed to : " + storage.getDoc().getPages().get(pageNr-1).getCurrentTranscript().getStatus());
-						
-				} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (UnsupportedFormatException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (NoConnectionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+				} 
 			}
 		}
 

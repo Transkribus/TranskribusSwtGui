@@ -44,7 +44,6 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 	TableViewer dtv;
 	
 	Storage storage = Storage.getInstance();
-	DocumentManager ac;
 	
 	/**
 	 * Counts all DocListLoadEvents until the collection is changed.
@@ -166,22 +165,31 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		
 		sw.updateLoggedIn();
 		
+		TrpMainWidget mw = TrpMainWidget.getInstance();
+		
 		if (arg.login) {
-			TrpMainWidget.getInstance().reloadCollections();
+			mw.reloadCollections();
 		}
 		
 		if (arg.login && TrpConfig.getTrpSettings().isLoadMostRecentDocOnLogin()) {
-			TrpMainWidget.getInstance().loadMostRecentDoc();
+			mw.loadMostRecentDoc();
 		}
+		
+//		if (!arg.login) {
+			mw.closeDocumentManager();
+//		}
 	}
 	
 	@Override public void handleDocListLoadEvent(DocListLoadEvent e) {
+		TrpMainWidget mw = TrpMainWidget.getInstance();
 		if(e.isCollectionChange) {
 			logger.debug("Collection changed to ID = " + e.collId);
 			docListLoadEventCounter = 0;
 		}
 		logger.debug("Handling DocListLoadEvent #" + ++docListLoadEventCounter + " in collection " + e.collId + " sent by " + e.getSource());
 		sw.refreshDocListFromStorage();
+		
+		mw.reloadDocumentManager();
 	}
 	
 	@Override public void handleHtrListLoadEvent(HtrListLoadEvent e) {
@@ -212,14 +220,14 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 					//no action
 					return;
 				}
-				TrpMainWidget.getInstance().loadHtrGroundTruth(set, storage.getCollId(), 0);
+				mw.loadHtrGroundTruth(set, storage.getCollId(), 0);
 			} else if (el instanceof HtrGtDataSetElement) {
 				HtrGtDataSetElement page = (HtrGtDataSetElement)el;
 				if(!storage.isUserAllowedToViewDataSets(page.getParentGtDataSet().getModel())) {
 					//no action
 					return;
 				}
-				TrpMainWidget.getInstance().loadHtrGroundTruth(page.getParentGtDataSet(), 
+				mw.loadHtrGroundTruth(page.getParentGtDataSet(), 
 						storage.getCollId(), page.getGroundTruthPage().getPageNr() - 1);
 			}
 		}
@@ -264,8 +272,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 			mw.removeDocumentsFromCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments());
 		}
 		else if (s == sw.administerCollectionTi || s == sw.docManager){
-			ac = new DocumentManager(mw.getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
-			ac.open();
+			mw.openDocumentManager();
 		}	
 		else if (s == sw.recycleBin){
 			mw.openRecycleBin();
@@ -312,14 +319,10 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 
 	@Override
 	public void mouseEnter(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void mouseExit(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -374,11 +377,6 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 			TrpMainWidget mw = TrpMainWidget.getInstance();
 			if(mw.getStorage().isDocLoaded() && mw.getStorage().isRemoteDoc()) {
 				mw.closeCurrentDocument(false);
-			}
-			
-			//now: if the document manager is open it gets refreshed with the data of the new collection
-			if (ac != null && !ac.getShell().isDisposed() && ac.getShell().isVisible()){
-				ac.totalReload(sw.getSelectedCollectionId());
 			}
 
 			//last and least: the role of a user in this collection must be taken into account for visibility of buttons, tabs, tools,...

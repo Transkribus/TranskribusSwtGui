@@ -156,6 +156,7 @@ import eu.transkribus.core.util.ZipUtils;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.CreateThumbsService;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.DocumentManager;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LoginDialog;
@@ -295,6 +296,7 @@ public class TrpMainWidget {
 
 	
 	// Dialogs
+	DocumentManager docManDiag;
 	SearchDialog searchDiag;
 	TrpVirtualKeyboardsDialog vkDiag;
 	TranscriptsDialog versionsDiag;
@@ -4790,9 +4792,7 @@ public class TrpMainWidget {
 	}
 
 	public void openSearchDialog() {
-//		SebisStopWatch.SW.start();
 		checkSession(true);
-//		SebisStopWatch.SW.stop(true);
 		if (!storage.isLoggedIn()) {
 			logger.debug("not logged in!");
 			return;
@@ -4814,6 +4814,33 @@ public class TrpMainWidget {
 		else{		
 			searchDiag = new SearchDialog(getShell());
 			searchDiag.open();
+		}
+	}
+	
+	public void openDocumentManager() {
+		checkSession(true);
+		if (!storage.isLoggedIn()) {
+			return;
+		}
+		
+		if (docManDiag!=null && !SWTUtil.isDisposed(docManDiag.getShell())) {
+			docManDiag.getShell().setVisible(true);
+			SWTUtil.centerShell(docManDiag.getShell());
+		} else {
+			docManDiag = new DocumentManager(getShell());
+			docManDiag.open();
+		}
+	}
+	
+	public void reloadDocumentManager() {
+		if (docManDiag != null && !SWTUtil.isDisposed(docManDiag.getShell()) && docManDiag.getShell().isVisible()){
+			docManDiag.totalReload(ui.getServerWidget().getSelectedCollectionId());
+		}		
+	}
+	
+	public void closeDocumentManager() {
+		if (docManDiag != null && !SWTUtil.isDisposed(docManDiag.getShell()) && docManDiag.getShell().isVisible()) {
+			docManDiag.getShell().close();
 		}
 	}
 	
@@ -6625,5 +6652,6 @@ public class TrpMainWidget {
 			rids.add(st.getId());
 		}
 		return rids;
-	}	
+	}
+	
 }
