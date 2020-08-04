@@ -44,7 +44,7 @@ public class ToolsWidget extends Composite {
 	
 	TextRecognitionComposite trComp;
 	
-	Button polygon2baselinesBtn, baseline2PolygonBtn, p2palaBtn, p2palaTrainBtn;
+	Button polygon2baselinesBtn, baseline2PolygonBtn, p2palaBtn, p2palaTrainBtn, duButton;
 	CurrentTranscriptOrCurrentDocPagesSelector otherToolsPagesSelector;
 	
 	Button t2iBtn;
@@ -466,6 +466,14 @@ public class ToolsWidget extends Composite {
 		t2iBtn.setToolTipText("Tries to match the text contained in the transcriptions to a line segmentation");
 		t2iBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		t2iBtn.setData(new Text2ImageConf());
+
+		Composite duContainer = new Composite(c, 0);
+		duContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
+		duContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		duButton = new Button(duContainer, SWT.PUSH);
+		duButton.setText("Document Understanding");
+		duButton.setToolTipText("Automatically adds annotations.");
+		duButton.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));	
 		
 		Group otherOtherToolsGroup = new Group(c, 0);
 		otherOtherToolsGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -482,7 +490,7 @@ public class ToolsWidget extends Composite {
 		baseline2PolygonBtn = new Button(otherOtherToolsGroup, SWT.PUSH);
 		baseline2PolygonBtn.setText("Add Polygons to Baselines");
 		baseline2PolygonBtn.setToolTipText("Creates polygons for all baselines - warning: existing polygons will be lost (text is retained however!)");
-		baseline2PolygonBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));		
+		baseline2PolygonBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));	
 		
 		expOther.setClient(c);
 		new Label(c, SWT.NONE);

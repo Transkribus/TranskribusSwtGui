@@ -11,6 +11,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.MessageBox;
+import org.mozilla.universalchardet.prober.EscCharsetProber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +44,7 @@ import eu.transkribus.swt_gui.dialogs.CITlabAdvancedLaConfigDialog;
 import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.dialogs.SamplesCompareDialog;
+import eu.transkribus.swt_gui.htr.DUDecodeDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
@@ -99,6 +101,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.p2palaBtn, this);
 		SWTUtil.addSelectionListener(tw.p2palaTrainBtn, this);
 		SWTUtil.addSelectionListener(tw.t2iBtn, this);
+		SWTUtil.addSelectionListener(tw.duButton, this);
 		
 		Storage.getInstance().addListener(new IStorageListener() {
 			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
@@ -700,6 +703,17 @@ public class ToolsWidgetListener implements SelectionListener {
 					}
 					od = null;
 				}
+			} else if(s == tw.duButton){
+				if(Storage.getInstance().isLoggedInAtTestServer()){
+					DUDecodeDialog duDecodeDialog = new DUDecodeDialog(mw.getShell());
+					duDecodeDialog.open();
+				}else{
+					MessageBox naDialog = new MessageBox(mw.getShell(), SWT.OK);
+					naDialog.setText("Not available");
+					naDialog.setMessage("This tool is currently only available on the Test Server.");
+					naDialog.open();
+				}
+
 			}
 
 			showSuccessMessage(jobIds);

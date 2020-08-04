@@ -3049,6 +3049,10 @@ public class Storage {
 		}
 		return conn.runCitLabText2Image(config);
 	}
+
+	public String runDocUnderstanding(int docId, String pages, int model) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
+		return conn.getDuCalls().runDocUnderstandingDecode(getCurrentDocumentCollectionId(), docId, pages, model);
+	}
 	
 	/**
 	 * @deprecated datasets are no longer duplicated to documents but stored as ground truth
