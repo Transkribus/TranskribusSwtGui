@@ -65,7 +65,7 @@ public class ThumbnailWidgetVirtual extends Composite {
 	static ThumbnailManagerVirtual tm;
 	ThumbnailWidgetVirtualMinimal tw;
 	
-	static DocumentManager ac;
+//	static DocumentManager ac;
 	
 	TrpMainWidget mw;
 	
@@ -173,30 +173,14 @@ public class ThumbnailWidgetVirtual extends Composite {
 			return;
 		}
 		
-		if (isAdministrativeCenterIsOpen(ac)){
-			ac.getShell().setVisible(true);
-		} else {
-			ac = new DocumentManager(getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
-			ac.open();
-		}
+		mw.openDocumentManager();
 		
-		
-		//if shell is open {
-//		if(isManagerOpen(tm)){
-//			tm.getShell().setVisible(true);
+//		if (isAdministrativeCenterIsOpen(ac)){
+//			ac.getShell().setVisible(true);
 //		} else {
-//			tm = new ThumbnailManagerVirtual(getShell(), SWT.NONE, mw);
-//
-//			tm.addListener(SWT.Selection, new Listener() {
-//				@Override public void handleEvent(Event event) {
-//					logger.debug("loading page " + event.index);
-//					mw.jumpToPage(event.index);
-//				}
-//			});
-//
-//			tm.open();
+//			ac = new DocumentManager(getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
+//			ac.open();
 //		}
-
 	}
 	
 	private boolean isManagerOpen(ThumbnailManagerVirtual tm){

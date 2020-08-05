@@ -368,7 +368,12 @@ public class Storage {
 		}
 
 		if (includeCurrent && hasTranscriptMetadata() && findTranscriptWithTimeStamp(trlist, transcript.getMd()) == null) {
-			// logger.debug("adding transcription!!");
+			logger.debug("adding transcription to list: {}", transcript.getMd());
+			if(!StorageUtil.isTranscriptMdConsistent(transcript)) {
+				logger.error("Blocked attempt to add a transcript of page with nr. {} to page with nr. {}", 
+						transcript.getMd().getPageNr() , page.getPageNr());
+				throw new IllegalStateException("Inconsistent state in storage. Reload page to continue.");
+			}
 			trlist.add(transcript.getMd());
 		}
 
@@ -683,6 +688,7 @@ public class Storage {
 		if (transcript.getMd()!=null && transcript.getMd().equals(md))
 			return false;
 		
+		//FIXME only md is set but not the pageData! https://github.com/Transkribus/TranskribusSwtGui/issues/310
 		transcript.setMd(md);
 		return true;
 	}
@@ -1145,27 +1151,27 @@ public class Storage {
 //		}
 //	}
 
-	public void reloadCurrentDocument(int colId) throws SessionExpiredException, IllegalArgumentException, NoConnectionException, UnsupportedFormatException,
-			IOException, NullValueException {
-
-		// public void loadLocalDoc(String folder) throws Exception {
-		// public void loadRemoteDoc(int docId) throws Exception {
-
-		if (doc != null) {
-			if (isLocalDoc()) {
-				loadLocalDoc(doc.getMd().getLocalFolder().getAbsolutePath(), null);
-			} else {
-				loadRemoteDoc(colId, doc.getMd().getDocId());
-			}
-
-			logger.debug("nr of pages: " + getNPages());
-			setCurrentPage(0);
-
-			// if (!hasPageIndex(0)) {
-			// currentPage = 0;
-			// }
-		}
-	}
+//	/**
+//	 * @deprecated
+//	 * FIXME page index is now set but Storage state is inconsistent due to missing page reload Causes
+//	 * https://github.com/Transkribus/TranskribusSwtGui/issues/310
+//	 * 
+//	 * Solution: remove and use TrpMainWidget::reloadCurrentDocument instead!
+//	 */
+//	private void reloadCurrentDocument(int colId) throws SessionExpiredException, IllegalArgumentException, NoConnectionException, UnsupportedFormatException,
+//			IOException, NullValueException {
+//		if (doc != null) {
+//			if (isLocalDoc()) {
+//				loadLocalDoc(doc.getMd().getLocalFolder().getAbsolutePath(), null);
+//			} else {
+//				loadRemoteDoc(colId, doc.getMd().getDocId());
+//			}
+//
+//			logger.debug("nr of pages: " + getNPages());
+//			setCurrentPage(0);
+//
+//		}
+//	}
 
 	public String[][] getWordgraphMatrix(boolean fromCache, final int docId, final int pageNr, final String lineId) throws IOException {
 		if (fromCache)
@@ -1789,15 +1795,43 @@ public class Storage {
 		
 		logger.debug("saving transcription " + (getPageIndex() + 1) + " for doc " + doc.getMd().getDocId());
 //		saveTranscript(colId, page, transcript, EditStatus.IN_PROGRESS);
+		if(!StorageUtil.isTranscriptMdConsistent(transcript)) {
+			logger.error("Inconsistent storage state!");
+			logger.error("Transcript md: {}", transcript.getMd());
+			logger.error("PageData transcript md: {}", transcript.getPage().getMd());
+//			throw new IllegalStateException("Transcript metadata is not consistent! Reload document to continue.");
+		}
 		saveTranscript(colId, transcript.getPage(), transcript.getMd().getStatus(), transcript.getMd().getTsId(), commitMessage);
 	}
 	
-//	public void saveTranscript(int colId, TrpPageType page) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {
-//		saveTranscript(coldId, page.getMd().getPage(), page.getPcGtsType())
-//		
-//		
-//	}
+	public void saveTranscript(int colId, JAXBPageTranscript transcript, String commitMessage) 
+			throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {
+		if (transcript == null)
+			throw new Exception("No page or metadata given");
+		if (transcript.getMd() == null)
+			throw new Exception("No page metadata set");
+		if (transcript.getPage() == null)
+			throw new Exception("No page transcript set");
+		if(!StorageUtil.isTranscriptMdConsistent(transcript)) {
+			//FIXME saveTranscript will use the pageNr embedded in TrpPageType. 
+			logger.error("Transcript md: {}", transcript.getMd());
+			logger.error("PageData md: {}", transcript.getPage().getMd());
+//			throw new IllegalStateException("Transcript metadata is not consistent!");
+		}
+		saveTranscript(colId, transcript.getPage(), transcript.getMd().getStatus(), transcript.getMd().getTsId(), commitMessage);
+	}	
 	
+	/**
+	 * @param colId
+	 * @param page
+	 * @param status
+	 * @param parentId
+	 * @param commitMessage
+	 * @throws SessionExpiredException
+	 * @throws ServerErrorException
+	 * @throws IllegalArgumentException
+	 * @throws Exception
+	 */
 	public void saveTranscript(int colId, TrpPageType page, EditStatus status, int parentId, String commitMessage) 
 			throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {
 		if (page == null)
@@ -1805,19 +1839,32 @@ public class Storage {
 		if (page.getMd() == null)
 			throw new Exception("No page metadata set");
 		
-//		logger.debug("docId = "+docId);
-				
-		int docId = page.getMd().getDocId();
-		
-		if (docId != -1) {
-			checkConnection(true);	
+		if (page.getMd().getTsId() != parentId) {
+			logger.warn("Current tsId = {} is not equal to parentTsId argument = {}", 
+					page.getMd().getTsId(), parentId);
+			// the save might affect the wrong page. See https://github.com/Transkribus/TranskribusPersistence/issues/21
+//			throw new IllegalStateException("Inconsistent state in Storage. Saving is not possible.");
 		}
 		
 		if (status == null || status.equals(EditStatus.NEW)){
 			status = EditStatus.IN_PROGRESS;
 		}
-			
+		
+		int docId = page.getMd().getDocId();
+		
+		//the save will use the pageNr embedded in page argument
+		final int pageNrSave = page.getMd().getPageNr();
+		//reloadTranscriptsList(colId) will load the transcripts for storage.page field value. Check consistency
+		final int pageNrTranscriptReload = getPageIndex() + 1;
+		if(pageNrSave != pageNrTranscriptReload) {
+			logger.error("PageNr differs in page data ({}) and storage.page field ({})!", pageNrSave, pageNrTranscriptReload);
+//			throw new IllegalStateException("Inconsistent state in Storage. Saving is not possible.");
+		}
+		
 		if (docId != -1) {
+			checkConnection(true);	
+			//info level to make iit show up in release builds' log files 
+			logger.info("Saving transcript: docId = {}, pageNr = {}, status = {}, parentId = {}", docId, page.getMd().getPageNr(), status, parentId);
 			page.writeCustomTagsToPage();
 			TrpTranscriptMetadata res = conn.updateTranscript(colId, docId, page.getMd().getPageNr(), status, page.getPcGtsType(), parentId, commitMessage);
 		} else {
@@ -1827,7 +1874,7 @@ public class Storage {
 		
 		sendEvent(new TranscriptSaveEvent(this, colId, page.getMd()));
 		reloadTranscriptsList(colId);
-	}	
+	}
 
 //	@Deprecated
 //	// Too much fuzz
@@ -1898,7 +1945,7 @@ public class Storage {
 			
 			String msg = "Applied affine transformation: "+trTxt;
 			
-			saveTranscript(getCurrentDocumentCollectionId(), tr.getPage(), md.getStatus(), md.getParentTsId(), msg);
+			saveTranscript(getCurrentDocumentCollectionId(), tr, msg);
 			
 			if (monitor != null)
 				monitor.worked(++worked);
@@ -3005,6 +3052,10 @@ public class Storage {
 			throw new IllegalArgumentException("Config is null!");
 		}
 		return conn.runCitLabText2Image(config);
+	}
+
+	public String runDocUnderstanding(int docId, String pages, int model) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
+		return conn.getDuCalls().runDocUnderstandingDecode(getCurrentDocumentCollectionId(), docId, pages, model);
 	}
 	
 	/**
