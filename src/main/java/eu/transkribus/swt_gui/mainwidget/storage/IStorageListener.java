@@ -19,25 +19,25 @@ import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 
 public interface IStorageListener {
 
-	default void handleMainImageLoadEvent(MainImageLoadEvent mile) {}
+	default void handleMainImageLoadEvent(MainImageLoadEvent e) {}
 	
-	default void handleTranscriptSaveEvent(TranscriptSaveEvent tse) {}
+	default void handleTranscriptSaveEvent(TranscriptSaveEvent e) {}
 	
-	default void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {}
+	default void handleCollectionsLoadEvent(CollectionsLoadEvent e) {}
 	
-	default void handleJobUpdate(JobUpdateEvent jue) {}
+	default void handleJobUpdate(JobUpdateEvent e) {}
 	
-	default void handleDocLoadEvent(DocLoadEvent dle) {}
+	default void handleDocLoadEvent(DocLoadEvent e) {}
 	
-	default void handleGroundTruthLoadEvent(GroundTruthLoadEvent gtle) {}
+	default void handleGroundTruthLoadEvent(GroundTruthLoadEvent e) {}
 	
-	default void handleTranscriptListLoadEvent(TranscriptListLoadEvent arg) {}
+	default void handleTranscriptListLoadEvent(TranscriptListLoadEvent e) {}
 
-	default void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {}
+	default void handleTranscriptLoadEvent(TranscriptLoadEvent e) {}
 	
-	default void handleLoginOrLogout(LoginOrLogoutEvent arg) {}
+	default void handleLoginOrLogout(LoginOrLogoutEvent e) {}
 
-	default void handlePageLoadEvent(PageLoadEvent arg) {}
+	default void handlePageLoadEvent(PageLoadEvent e) {}
 	
 	default void handleDocMetadataUpdateEvent(DocMetadataUpdateEvent e) {}
 	
