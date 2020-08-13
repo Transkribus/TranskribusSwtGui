@@ -125,7 +125,7 @@ public class DocJobUpdater {
 //		logger.debug("job pages " + job.getPages());
 		if (isThisDocOpen && job.isFinished()) {
 			Display.getDefault().asyncExec(() -> {
-				if (!job.isSuccess()) {
+				if (job.isFailed()) {
 					logger.error("A job for the current document failed: "+job);
 
 					TrpMessageDialog.showErrorDialog(mw.getShell(), "A job for this document failed", job.getDescription(), job.getStackTrace(), null);
