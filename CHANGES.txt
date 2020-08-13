@@ -702,5 +702,6 @@ CHANGES AND BUGFIXES
 	-> (PyLaia) training from compressed viewing files 
 	-> bugfix: reading order after merge
 	-> PDF export: PDFs are much smaller now! for binarized images choosing 'Original' as image type delivers the smallest size, in most other cases 'JPEG'
+	-> add collection doclist export as CSV (via green arrow-down button in the doclist toolbar)
 	
 	
