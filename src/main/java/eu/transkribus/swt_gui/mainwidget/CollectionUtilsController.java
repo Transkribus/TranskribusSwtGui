@@ -41,14 +41,14 @@ public class CollectionUtilsController extends AMainWidgetController {
 		
 		try (FileWriter writer = new FileWriter(fn)) {
 			CSVUtils.writeLineWoEncoding(writer, "sep="+CSVUtils.DEFAULT_SEPARATOR);
-			CSVUtils.writeLine(writer, Arrays.asList("ID", "Title", "Uploader", "Uploaded", "Collections"));
+			CSVUtils.writeLine(writer, "ID", "Title", "Pages", "Uploader", "Uploaded", "Collections");
 			for (TrpDocMetadata md : storage.getDocList()) {
-				CSVUtils.writeLine(writer, Arrays.asList(
-											""+md.getDocId(),
-											strOrEmpty(md.getTitle()), 
+				CSVUtils.writeLine(writer,  ""+md.getDocId(),
+											strOrEmpty(md.getTitle()),
+											strOrEmpty(md.getNrOfPages()),
 											strOrEmpty(md.getUploader()), 
 											strOrEmpty(md.getUploadTime()),
-											md.getColString()));
+											md.getColString());
 			}
 			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully exported doclist to: "+fn);
 		} catch (Exception e) {
