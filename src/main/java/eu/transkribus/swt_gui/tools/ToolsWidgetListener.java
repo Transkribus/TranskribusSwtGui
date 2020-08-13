@@ -52,6 +52,7 @@ import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage.StorageException;
 import eu.transkribus.swt_gui.p2pala.P2PaLAConfDialog;
 import eu.transkribus.swt_gui.p2pala.P2PaLAConfDialog.P2PaLARecogUiConf;
@@ -59,7 +60,7 @@ import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.util.OcrConfig;
 import eu.transkribus.util.TextRecognitionConfig;
 
-public class ToolsWidgetListener implements SelectionListener {
+public class ToolsWidgetListener implements SelectionListener, IStorageListener {
 	private final static Logger logger = LoggerFactory.getLogger(ToolsWidgetListener.class);
 
 	TrpMainWidget mw;
@@ -103,12 +104,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.t2iBtn, this);
 		SWTUtil.addSelectionListener(tw.duButton, this);
 		
-		Storage.getInstance().addListener(new IStorageListener() {
-			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
-				tw.refVersionChooser.setToGT();
-				tw.hypVersionChooser.setToCurrent();
-			}
-		});
+		Storage.getInstance().addListener(this);
 	}
 
 //	List<String> getSelectedRegionIds() {
@@ -706,7 +702,11 @@ public class ToolsWidgetListener implements SelectionListener {
 			} else if(s == tw.duButton){
 				if(Storage.getInstance().isLoggedInAtTestServer()){
 					DUDecodeDialog duDecodeDialog = new DUDecodeDialog(mw.getShell());
-					duDecodeDialog.open();
+					if (duDecodeDialog.open() == IDialogConstants.OK_ID) {
+			            String jobId = store.runDocUnderstanding(store.getDocId(), "", 2);
+			            logger.debug("started DU job: "+jobId);
+			            jobIds.add(jobId);
+					}
 				}else{
 					MessageBox naDialog = new MessageBox(mw.getShell(), SWT.OK);
 					naDialog.setText("Not available");
@@ -761,4 +761,14 @@ public class ToolsWidgetListener implements SelectionListener {
 	//// mw.saveDocMetadata();
 	// }
 	// }
+	
+	public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
+		tw.refVersionChooser.setToGT();
+		tw.hypVersionChooser.setToCurrent();
+	}
+	
+	public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+		boolean duVisible = Storage.getInstance().isLoggedInAtTestServer();		
+		tw.setDuVisible(duVisible);
+	}
 }

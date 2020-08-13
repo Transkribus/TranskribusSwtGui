@@ -8,22 +8,17 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class DUDecodeDialog extends Dialog {
@@ -57,35 +52,36 @@ public class DUDecodeDialog extends Dialog {
 
     @Override
     protected void createButtonsForButtonBar(Composite parent) {
-        super.createButtonsForButtonBar(parent);
-
-        Button ok = getButton(IDialogConstants.OK_ID);
-        ok.setText("Start");
-        setButtonLayoutData(ok);
-
-        Button cancel = getButton(IDialogConstants.CANCEL_ID);
-        cancel.setText("Cancel");
-        setButtonLayoutData(cancel);
+		createButton(parent, IDialogConstants.CANCEL_ID, "Cancel", false);
+		
+		Button helpBtn = createButton(parent, IDialogConstants.HELP_ID, "Help", false);
+		helpBtn.setImage(Images.HELP);
+		SWTUtil.onSelectionEvent(helpBtn, e -> {
+			org.eclipse.swt.program.Program.launch("https://transkribus.eu/wiki/index.php/Document_Understanding_Tool");
+		});    
+		
+	    Button runBtn = createButton(parent, IDialogConstants.OK_ID, "Run", false);
+	    runBtn.setImage(Images.ARROW_RIGHT);
     }
 
-    @Override
-    protected void okPressed() {
-        runRecognition();
-        super.okPressed();
-    }
+//    @Override
+//    protected void okPressed() {
+////        runRecognition();
+//        super.okPressed();
+//    }
 
-    void runRecognition(){
-        logger.debug("Button pressed");
-        try {
-            String result = storage.getInstance().runDocUnderstanding(storage.getInstance().getDocId(), "", 2);
-            logger.debug(result);
-            MessageDialog.openInformation(this.getShell(), "Info", "Job started with id: " + result);
-        } catch (SessionExpiredException | ServerErrorException | ClientErrorException
-                | NoConnectionException e) {                    
-            logger.debug("Something went wrong", e);
-            MessageDialog.openError(this.getShell(), "Error", ""+e);
-
-        }
-    }
+//    void runRecognition(){
+//        logger.debug("Button pressed");
+//        try {
+//            String result = storage.getInstance().runDocUnderstanding(storage.getInstance().getDocId(), "", 2);
+//            logger.debug(result);
+//            MessageDialog.openInformation(this.getShell(), "Info", "Job started with id: " + result);
+//        } catch (SessionExpiredException | ServerErrorException | ClientErrorException
+//                | NoConnectionException e) {                    
+//            logger.debug("Something went wrong", e);
+//            MessageDialog.openError(this.getShell(), "Error", ""+e);
+//
+//        }
+//    }
     
 }

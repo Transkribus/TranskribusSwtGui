@@ -117,7 +117,7 @@ public class ServerWidget extends Composite {
 	MenuItem deleteDocMenuItem;
 	MenuItem duplicateDocMenuItem;
 	
-	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, manageUsersTi, duplicateDocTi, administerCollectionTi, recycleBin;
+	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, manageUsersTi, duplicateDocTi, administerCollectionTi, recycleBin, exportCollInfoTi;
 	TextToolItem quickLoadByDocId;
 	
 	HtrDetailsDialog htrDetailsDialog;
@@ -475,6 +475,10 @@ public class ServerWidget extends Composite {
 		recycleBin.setImage(Images.BIN);
 		recycleBin.setToolTipText("Contains deleted documents!");
 		
+		exportCollInfoTi = new ToolItem(tb, SWT.PUSH);
+		exportCollInfoTi.setImage(Images.ARROW_DOWN);
+		exportCollInfoTi.setToolTipText("Export document list as CSV...");		
+		
 		quickLoadByDocId = new TextToolItem(tb, SWT.NONE);
 		quickLoadByDocId.setAutoSelectTextOnFocus();
 		quickLoadByDocId.setMessage("Doc-ID");
@@ -679,6 +683,7 @@ public class ServerWidget extends Composite {
 		duplicateDocTi.setEnabled(canManage);
 		administerCollectionTi.setEnabled(canManage);
 		recycleBin.setEnabled(canManage);
+		exportCollInfoTi.setEnabled(canManage);
 		
 		addToCollectionMenuItem.setEnabled(canManage);
 		removeFromCollectionMenuItem.setEnabled(canManage);

@@ -348,6 +348,7 @@ public class TrpMainWidget {
 	ShapeEditController shapeEditController;
 	DocPageLoadController docPageController;
 //	TaggingController taggingController;
+	CollectionUtilsController collectionUtilsController;
 
 	private Runnable updateThumbsWidgetRunnable = new Runnable() {
 		@Override public void run() {
@@ -388,6 +389,7 @@ public class TrpMainWidget {
 		docSyncController = new DocSyncController(this);
 		shapeEditController = new ShapeEditController(this);
 		docPageController = new DocPageLoadController(this);
+		collectionUtilsController = new CollectionUtilsController(this);
 //		taggingController = new TaggingController(this);
 		updateToolBars();
 		
@@ -448,6 +450,10 @@ public class TrpMainWidget {
 	
 	public ShapeEditController getShapeEditController() {
 		return shapeEditController;
+	}
+	
+	public CollectionUtilsController getCollectionUtilsController() {
+		return collectionUtilsController;
 	}
 	
 	public String getLastLocalDocFolder() {
