@@ -91,6 +91,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.addSelectionListener(sw.removeFromCollectionTi, this);
 		SWTUtil.addSelectionListener(sw.administerCollectionTi, this);
 		SWTUtil.addSelectionListener(sw.recycleBin, this);
+		SWTUtil.addSelectionListener(sw.exportCollInfoTi, this);
 		
 		SWTUtil.addSelectionListener(sw.docManager, this);
 		SWTUtil.addSelectionListener(sw.userManager, this);
@@ -138,6 +139,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.removeSelectionListener(sw.removeFromCollectionTi, this);		
 		SWTUtil.removeSelectionListener(sw.administerCollectionTi, this);
 		SWTUtil.removeSelectionListener(sw.recycleBin, this);
+		SWTUtil.removeSelectionListener(sw.exportCollInfoTi, this);
 		
 		SWTUtil.removeSelectionListener(sw.docManager, this);
 		SWTUtil.removeSelectionListener(sw.userManager, this);
@@ -276,6 +278,9 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		}	
 		else if (s == sw.recycleBin){
 			mw.openRecycleBin();
+		}
+		else if (s == sw.exportCollInfoTi) {
+			mw.getCollectionUtilsController().exportCurrentCollectionStats();
 		}
 		else if (s == sw.userManager){
 			mw.openCollectionUsersDialog(mw.getUi().getServerWidget().getSelectedCollection());
