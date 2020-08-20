@@ -77,13 +77,14 @@ public class HtrPagedTreeWidget extends ATreeWidgetPagination<TrpHtr> {
 	
 	public final static String[] providerValues = { HtrCITlabUtils.PROVIDER_CITLAB, HtrCITlabUtils.PROVIDER_CITLAB_PLUS, HtrPyLaiaUtils.PROVIDER_PYLAIA };	
 	
-	public final static ColConfig NAME_COL = new ColConfig("Name", 240, "name");
-	public final static ColConfig SIZE_COL = new ColConfig("Size", 150, "size");
-	public final static ColConfig CURATOR_COL = new ColConfig("Curator", 240, "userName");
-	public final static ColConfig DATE_COL = new ColConfig("Date", 100, "created");
-	public final static ColConfig ID_COL = new ColConfig("HTR ID", 100, "htrId");
+	public final static ColConfig NAME_COL = new ColConfig("Name", 210, "name");
+	public final static ColConfig SIZE_COL = new ColConfig("Size", 100, "size");
+	public final static ColConfig CURATOR_COL = new ColConfig("Curator", 120, "userName");
+	public final static ColConfig DATE_COL = new ColConfig("Date", 80, "created");
+	public final static ColConfig ID_COL = new ColConfig("HTR ID",50, "htrId");
+	public final static ColConfig WORD_COL = new ColConfig("nrOfWords", 80, "NR_OF_WORDS");
 
-	public final static ColConfig[] COLUMNS = new ColConfig[] { NAME_COL, SIZE_COL, DATE_COL, CURATOR_COL, ID_COL };
+	public final static ColConfig[] COLUMNS = new ColConfig[] { NAME_COL, SIZE_COL, CURATOR_COL, ID_COL, WORD_COL, DATE_COL };
 	
 	// filter:
 	Composite filterAndReloadComp;

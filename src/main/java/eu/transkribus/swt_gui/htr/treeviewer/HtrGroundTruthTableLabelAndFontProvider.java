@@ -95,6 +95,10 @@ public class HtrGroundTruthTableLabelAndFontProvider extends CellLabelProvider i
 			if(element instanceof TrpHtr) {
 				return createDateFormat.format(((TrpHtr)element).getCreated());
 			}
+		} else if(HtrPagedTreeWidget.WORD_COL.equals(col)) {
+			if(element instanceof TrpHtr) {
+				return Integer.toString(((TrpHtr)element).getNrOfWords());
+			}
 	}
 	
 		
