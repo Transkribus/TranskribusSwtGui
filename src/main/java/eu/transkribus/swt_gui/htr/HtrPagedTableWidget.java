@@ -54,6 +54,8 @@ public class HtrPagedTableWidget extends ATableWidgetPagination<TrpHtr> {
 	public static final String HTR_TECH_COL = "Technology";
 	public static final String HTR_DATE_COL = "Created";
 	public static final String HTR_ID_COL = "ID";
+	public static final String HTR_WORDS_COL = "Words contained";
+	//public static final String HTR_CER_COL = "CER";
 	
 	// filter:
 	Composite filterAndReloadComp;
@@ -249,5 +251,15 @@ public class HtrPagedTableWidget extends ATableWidgetPagination<TrpHtr> {
 			}
 		});			
 		createDefaultColumn(HTR_ID_COL, 50, "htrId", true);
+//		createColumn(HTR_CER_COL, 50, "cer", new CellLabelProvider() {
+//			@Override
+//			public void update(ViewerCell cell) {
+//				if (cell.getElement() instanceof TrpHtr) {
+//					cell.setText(lp.getColumnText((TrpHtr)cell.getElement(), HTR_CER_COL));
+//				}
+//			}
+//		});
+		
+		createDefaultColumn(HTR_WORDS_COL, 75, "nrOfWords", true);
 	}	
 }

@@ -142,9 +142,12 @@ public class ToolsWidgetListener implements SelectionListener, IStorageListener 
 			store.checkLoggedIn();
 
 			if (htd != null) {
+				logger.debug("set the training dialog visible");
 				htd.setVisible();
 			} else {
-				htd = new HtrTrainingDialog(mw.getShell(), store.getHtrs(null, true), store.getHtrTrainingJobImpls());
+				logger.debug("new training dialog");
+				htd = new HtrTrainingDialog(mw.getShell(), store.getHtrTrainingJobImpls());
+				
 				if (htd.open() == IDialogConstants.OK_ID) {
 					// new: check here if user wants to store or not
 					// if (!mw.saveTranscriptDialogOrAutosave()) {

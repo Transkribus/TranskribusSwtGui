@@ -31,6 +31,7 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DocumentManager;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.TrpConfig;
+import eu.transkribus.swt_gui.htr.HtrTreeLabelProvider;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -69,8 +70,8 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		dtv.addDoubleClickListener(this);
 		dtv.getTable().addMouseTrackListener(this);
 		dtv.getTable().addKeyListener(this);
-		sw.groundTruthTreeWidget.getTreeViewer().addDoubleClickListener(this);
-		sw.groundTruthTreeWidget.getReloadButton().addSelectionListener(this);
+		sw.htrTreeWidget.getTreeViewer().addDoubleClickListener(this);
+		sw.htrTreeWidget.getReloadButton().addSelectionListener(this);
 
 //		sw.collectionComboViewerWidget.collectionCombo.addSelectionListener(this);
 		sw.collectionSelectorWidget.addListener(SWT.Selection, this);
@@ -119,7 +120,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		dtv.removeDoubleClickListener(this);
 		dtv.getTable().removeMouseTrackListener(this);
 		dtv.getTable().removeKeyListener(this);
-		sw.groundTruthTreeWidget.getTreeViewer().removeDoubleClickListener(this);
+		sw.htrTreeWidget.getTreeViewer().removeDoubleClickListener(this);
 		
 //		sw.collectionComboViewerWidget.collectionCombo.removeSelectionListener(this);
 		sw.collectionSelectorWidget.removeListener(SWT.Selection, this);
@@ -195,7 +196,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 	}
 	
 	@Override public void handleHtrListLoadEvent(HtrListLoadEvent e) {
-		sw.updateGroundTruthTreeViewer();
+		//sw.updateGroundTruthTreeViewer();
 	}
 
 	@Override public void doubleClick(DoubleClickEvent event) {
@@ -309,8 +310,8 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		else if (s == sw.findBtn) {
 			mw.openSearchDialog();
 		}
-		else if (s == sw.groundTruthTreeWidget.getReloadButton()) {
-			mw.getStorage().reloadHtrs();
+		else if (s == sw.htrTreeWidget.getReloadButton()) {
+			sw.htrTreeWidget.refreshPage(false);
 		}
 	}
 

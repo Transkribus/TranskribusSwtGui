@@ -25,11 +25,10 @@ import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.util.ThumbnailWidgetVirtualMinimal;
-import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionSashForm;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 /**
- * This composite for composing datasets was part of {@link HtrTrainingDialog} but was replaced with {@link DataSetSelectionSashForm}..
+ * This composite for composing datasets was part of {@link HtrTrainingDialog} but was replaced with {@link DataSetSelectionSashForm_old}..
  * Code is just copied here but was not tested in this form! That's why it's marked as deprecated and visibility is reduced
  */
 @Deprecated

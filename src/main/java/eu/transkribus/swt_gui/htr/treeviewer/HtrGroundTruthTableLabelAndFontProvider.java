@@ -1,5 +1,7 @@
 package eu.transkribus.swt_gui.htr.treeviewer;
 
+import java.text.DateFormat;
+
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.IFontProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -12,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.ReleaseLevel;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
@@ -28,16 +31,19 @@ public class HtrGroundTruthTableLabelAndFontProvider extends CellLabelProvider i
 	
 	protected final Font boldFont;
 	protected Storage store;
+	DateFormat createDateFormat;
+	
 	public HtrGroundTruthTableLabelAndFontProvider(Font defaultFont) {
 		super();
 		this.store = Storage.getInstance();
 		this.boldFont = Fonts.createBoldFont(defaultFont);
+		this.createDateFormat = CoreUtils.newDateFormatddMMYY();
 	}
 	
 	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
-		ColConfig col = GroundTruthTreeWidget.COLUMNS[columnIndex];
-		if(!GroundTruthTreeWidget.NAME_COL.equals(col)) {
+		ColConfig col = HtrPagedTreeWidget.COLUMNS[columnIndex];
+		if(!HtrPagedTreeWidget.NAME_COL.equals(col)) {
 			return null;
 		}
 		if(element instanceof HtrGtDataSetElement) {
@@ -55,12 +61,12 @@ public class HtrGroundTruthTableLabelAndFontProvider extends CellLabelProvider i
 	
 	@Override
 	public String getColumnText(Object element, int columnIndex) {
-		ColConfig col = GroundTruthTreeWidget.COLUMNS[columnIndex];
-		if(GroundTruthTreeWidget.ID_COL.equals(col)) {
+		ColConfig col = HtrPagedTreeWidget.COLUMNS[columnIndex];
+		if(HtrPagedTreeWidget.ID_COL.equals(col)) {
 			if(element instanceof TrpHtr) {
 				return "" + ((TrpHtr)element).getHtrId();
 			}
-		} else if(GroundTruthTreeWidget.NAME_COL.equals(col)) {
+		} else if(HtrPagedTreeWidget.NAME_COL.equals(col)) {
 			if(element instanceof TrpHtr) {
 				return ((TrpHtr)element).getName();
 			} else if (element instanceof HtrGtDataSet) {
@@ -74,18 +80,24 @@ public class HtrGroundTruthTableLabelAndFontProvider extends CellLabelProvider i
 			} else if (element instanceof HtrGtDataSetElement) {
 				return "Page " + ((HtrGtDataSetElement)element).getGroundTruthPage().getPageNr();
 			}
-		} else if(GroundTruthTreeWidget.SIZE_COL.equals(col)) {
+		} else if(HtrPagedTreeWidget.SIZE_COL.equals(col)) {
 			if (element instanceof HtrGtDataSet) {
 				return((HtrGtDataSet)element).getSize() + " pages" ;
 			} else if (element instanceof HtrGtDataSetElement) {
 				TrpGroundTruthPage p = ((HtrGtDataSetElement)element).getGroundTruthPage();
 				return p.getNrOfLines() + " lines, " + p.getNrOfWordsInLines() + " words";
 			}
-		} else if(GroundTruthTreeWidget.CURATOR_COL.equals(col)) {
+		} else if(HtrPagedTreeWidget.CURATOR_COL.equals(col)) {
 			if(element instanceof TrpHtr) {
 				return ((TrpHtr)element).getUserName();
 			}
-		}
+		} else if(HtrPagedTreeWidget.DATE_COL.equals(col)) {
+			if(element instanceof TrpHtr) {
+				return createDateFormat.format(((TrpHtr)element).getCreated());
+			}
+	}
+	
+		
 		return null;
 	}
 	

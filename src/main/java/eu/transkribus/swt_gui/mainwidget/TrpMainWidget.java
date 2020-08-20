@@ -761,7 +761,7 @@ public class TrpMainWidget {
 		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
 		ui.getDocInfoWidget().getCurrentCollectionText().setText(currentCollectionStr);
 		if(storage.isGtDoc()) {
-			ui.getServerWidget().updateHighlightedGroundTruthTreeViewerRow();
+			//ui.getServerWidget().updateHighlightedGroundTruthTreeViewerRow();
 		} else {
 			ui.getServerWidget().updateHighlightedRow();
 		}
