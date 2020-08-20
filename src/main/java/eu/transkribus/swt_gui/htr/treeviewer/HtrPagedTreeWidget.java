@@ -105,8 +105,7 @@ public class HtrPagedTreeWidget extends ATreeWidgetPagination<TrpHtr> {
 		
 		this.providerFilter = providerFilter;
 		this.setLayout(new GridLayout(1, false));
-	
-		
+
 		contextMenu = new Menu(tv.getTree());
 		tv.getTree().setMenu(contextMenu);
 		
@@ -119,8 +118,7 @@ public class HtrPagedTreeWidget extends ATreeWidgetPagination<TrpHtr> {
 			}
 		};
 		this.addListener(SWT.Modify, filterModifyListener);
-		
-		
+
 		initListener();
 	}
 	

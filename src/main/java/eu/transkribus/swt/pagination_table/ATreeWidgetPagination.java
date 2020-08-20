@@ -5,20 +5,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.nebula.widgets.pagination.IPageLoaderHandler;
 import org.eclipse.nebula.widgets.pagination.MyPageSizeComboRenderer;
 import org.eclipse.nebula.widgets.pagination.PageableController;
 import org.eclipse.nebula.widgets.pagination.collections.PageResult;
 import org.eclipse.nebula.widgets.pagination.collections.PageResultContentProvider;
-import org.eclipse.nebula.widgets.pagination.table.SortTableColumnSelectionListener;
 import org.eclipse.nebula.widgets.pagination.tree.PageableTree;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -33,10 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.swt.util.TreeViewerUtils;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthTableLabelAndFontProvider;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public abstract class ATreeWidgetPagination<T> extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(ATreeWidgetPagination.class);
@@ -227,7 +221,6 @@ public abstract class ATreeWidgetPagination<T> extends Composite {
 			treeStyle |= SWT.SINGLE;
 		}
 				
-		
 		pageableTree = new PageableTree(this, SWT.BORDER, treeStyle, initialPageSize
 				, PageResultContentProvider.getInstance(),
 				PagingToolBarNavigationRendererFactory.getFactory(),
@@ -281,14 +274,11 @@ public abstract class ATreeWidgetPagination<T> extends Composite {
 		tv = pageableTree.getViewer();
 		tv.setLabelProvider(labelProvider);
 		tv.setContentProvider(treeContentProvider);
-//		tv.setContentProvider(new HtrGroundTruthContentProvider(Storage.getInstance().getCollId()));
-//		tv.setLabelProvider(new HtrGroundTruthTableLabelAndFontProvider(tv.getControl().getFont()));
 		
 		Tree tree = tv.getTree();
 		tree.setHeaderVisible(true);
 		tree.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
-		
+
 		setPageLoader();
 		
 		pageableTree.setPageLoaderHandler(new IPageLoaderHandler<PageableController>() {
