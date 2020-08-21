@@ -51,7 +51,6 @@ public class DiffCompareTool {
 //        	for (String htrText : htrTextArray){
         		String htrText = i<htrTextArray.size() ? htrTextArray.get(i) : "";
         		String correctText = i<correctTextArray.size() ? correctTextArray.get(i) : "";
-        		i++;
         		
                 htrText = normalizeText(htrText);
                 correctText = normalizeText(correctText);

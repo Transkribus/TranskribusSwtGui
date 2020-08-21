@@ -294,20 +294,30 @@ public class ToolsWidgetListener implements SelectionListener, IStorageListener 
 				}
 				
 				if (tw.laComp.isDocsSelection() && tw.laComp.getDocs() != null && Storage.getInstance().isAdminLoggedIn()){
-					// NEW: use DocSelection objects
-					for (DocSelection docSel : tw.laComp.getDocs()){
-						logger.debug("start LA for docs: " + docSel.getDocId());
-						List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
-						// as LA call does not support specifying a docId & pagesStr (TODO!) we have to get the pageIds from the server to construct a DSD object
-						DocumentSelectionDescriptor dsd = store.getDocumentSelectionDescriptor(colId, docSel);
-						logger.debug("nr of pages in la descriptor: "+dsd.getPages().size());
-						dsds.add(dsd);
-						List<String> tmp = store.analyzeLayoutOnDocumentSelectionDescriptor(
-								dsds, tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), 
-								false, false, tw.laComp.getJobImpl().toString(), tw.laComp.getParameters()
-								);
-						jobIds.addAll(tmp);
-					}					
+					JobImpl jobImpl = tw.laComp.getJobImpl();
+					if(JobImpl.FinereaderLaJob.equals(jobImpl)) {
+						//OCR is another endpoint and it can't yet handle descriptors...
+						for (DocSelection docSel : tw.laComp.getDocs()){
+							logger.debug("Start printed block detection for docs: " + docSel.getDocId());
+							String jobIdStr = store.getConnection().runTypewrittenBlockSegmentation(colId, docSel.getDocId(), docSel.getPages());
+							jobIds.add(jobIdStr);
+						}
+					} else {
+						// NEW: use DocSelection objects
+						for (DocSelection docSel : tw.laComp.getDocs()){
+							logger.debug("start LA for docs: " + docSel.getDocId());
+							List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
+							// as LA call does not support specifying a docId & pagesStr (TODO!) we have to get the pageIds from the server to construct a DSD object
+							DocumentSelectionDescriptor dsd = store.getDocumentSelectionDescriptor(colId, docSel);
+							logger.debug("nr of pages in la descriptor: "+dsd.getPages().size());
+							dsds.add(dsd);
+							List<String> tmp = store.analyzeLayoutOnDocumentSelectionDescriptor(
+									dsds, tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), 
+									false, false, tw.laComp.getJobImpl().toString(), tw.laComp.getParameters()
+									);
+							jobIds.addAll(tmp);
+						}
+					}
 					
 					// OLD
 //					/*
