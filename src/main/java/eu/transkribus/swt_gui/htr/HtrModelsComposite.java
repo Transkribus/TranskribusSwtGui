@@ -299,11 +299,11 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 		htw.refreshPage(false);
 	}
 	
-	@Override
-	public void handleHtrListLoadEvent(HtrListLoadEvent e) {
-		htw.resetProviderFilter();
-		htw.refreshList(e.htrs.getList());
-	}
+//	@Override
+//	public void handleHtrListLoadEvent(HtrListLoadEvent e) {
+//		htw.resetProviderFilter();
+//		htw.refreshList(e.htrs.getList());
+//	}
 	
 	/*
 	 * private void reloadHtrsFromServer() { //reload HTRs and show busy indicator

@@ -195,9 +195,9 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		mw.reloadDocumentManager();
 	}
 	
-	@Override public void handleHtrListLoadEvent(HtrListLoadEvent e) {
-		//sw.updateGroundTruthTreeViewer();
-	}
+//	@Override public void handleHtrListLoadEvent(HtrListLoadEvent e) {
+//		//sw.updateGroundTruthTreeViewer();
+//	}
 
 	@Override public void doubleClick(DoubleClickEvent event) {
 		TrpMainWidget mw = TrpMainWidget.getInstance();

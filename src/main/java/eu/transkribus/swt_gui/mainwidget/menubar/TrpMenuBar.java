@@ -3,12 +3,19 @@ package eu.transkribus.swt_gui.mainwidget.menubar;
 import java.util.Locale;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Decorations;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
 
@@ -23,8 +30,18 @@ public class TrpMenuBar {
 		public MenuItem mi;
 	}
 	
+	Point point;
+	
 //	TrpMainWidget mw;
 	
+	public Point getPoint() {
+		return point;
+	}
+
+	public void setPoint(Point point) {
+		this.point = point;
+	}
+
 	Menu menuBar;
 	
 	//
@@ -96,6 +113,7 @@ public class TrpMenuBar {
 //	MenuItem tipsOfTheDayMenuItem;
 	MenuItem bugReportItem;
 	
+	MenuItem loadLastDoc;
 
 
 	public TrpMenuBar(Decorations parent) {		
@@ -171,6 +189,20 @@ public class TrpMenuBar {
 //		
 //		helpMenu = new Menu(mntmhelp);
 //		mntmhelp.setMenu(helpMenu);
+		
+		loadLastDoc = createItem(menuBar, SWT.CHECK, null,  "Load last modified doc at start");
+		loadLastDoc.setToolTipText("Choose this if you want to load the last modified document everytime you start Transkribus");
+		loadLastDoc.setSelection(TrpConfig.getTrpSettings().isLoadMostRecentDocOnLogin());
+		
+//		loadLastDoc.addSelectionListener(new SelectionAdapter() {
+//
+//	        @Override
+//	        public void widgetSelected(SelectionEvent event) {
+//	            MenuItem btn = (MenuItem) event.getSource();
+//	            System.out.println(btn.getSelection());
+//	        }
+//	    });
+
 
 		proxySettingsMenuItem = createItem(menuBar, SWT.PUSH, Images.getOrLoad("/icons/server_connect.png"), "Proxy settings...");
 		
