@@ -117,8 +117,8 @@ public class TrpMenuBarListener implements SelectionListener {
 //                    mb.getMenuBar().setVisible( true );
                     
     	            MenuItem btn = (MenuItem) e.getSource();
-                    
-                    TrpConfig.getTrpSettings().firePropertyChange(TrpConfig.getTrpSettings().LOAD_MOST_RECENT_DOC_PROPERTY, null, btn.getSelection());
+
+    	            TrpConfig.getTrpSettings().setloadMostRecentDocOnLogin(btn.getSelection());
                 }
             } );
 		});
