@@ -706,5 +706,6 @@ CHANGES AND BUGFIXES
 	-> add collection doclist export as CSV (via green arrow-down button in the doclist toolbar)
 	-> main menu: user can choose to load last modified document in Transkribus at start time
 	-> HTR model lists are now all represented as tree or table widget pagination
+	-> Undo a job (see the 'Jobs Overview': 'Undo button' will be enabled if the docID of the job corresponds to the ID of the currently loaded document)
 	
 	
