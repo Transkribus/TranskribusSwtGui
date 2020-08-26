@@ -82,7 +82,7 @@ public class HtrPagedTreeWidget extends ATreeWidgetPagination<TrpHtr> {
 	public final static ColConfig CURATOR_COL = new ColConfig("Curator", 120, "userName");
 	public final static ColConfig DATE_COL = new ColConfig("Date", 80, "created");
 	public final static ColConfig ID_COL = new ColConfig("HTR ID",50, "htrId");
-	public final static ColConfig WORD_COL = new ColConfig("nrOfWords", 80, "NR_OF_WORDS");
+	public final static ColConfig WORD_COL = new ColConfig("nrOfWords", 80, "nrOfWords");
 
 	public final static ColConfig[] COLUMNS = new ColConfig[] { NAME_COL, SIZE_COL, CURATOR_COL, ID_COL, WORD_COL, DATE_COL };
 	
