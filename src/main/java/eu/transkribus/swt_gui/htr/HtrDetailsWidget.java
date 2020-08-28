@@ -425,10 +425,13 @@ public class HtrDetailsWidget extends SashForm {
 		if(referenceSeries != null && referenceSeries.length > 0) {
 			
 			int storedNetEpoch;
-			if(HtrCITlabUtils.PROVIDER_CITLAB_PLUS.equals(htr.getProvider())) {
+			if(HtrCITlabUtils.PROVIDER_CITLAB_PLUS.equals(htr.getProvider()) || HtrPyLaiaUtils.PROVIDER_PYLAIA.equals(htr.getProvider())) {
 				//HTR+ always uses model from last training iteration
 				storedNetEpoch = referenceSeries.length;
-			} else {
+			}
+			
+			else {
+				
 				//legacy routine, working for HTR and PyLaia but not HTR+! Find min value in referenceSeries
 				storedNetEpoch = getMinCerEpoch(htr, referenceSeries);
 			}
