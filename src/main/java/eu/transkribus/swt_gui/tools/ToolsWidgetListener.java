@@ -298,7 +298,7 @@ public class ToolsWidgetListener implements SelectionListener, IStorageListener 
 					if(JobImpl.FinereaderLaJob.equals(jobImpl)) {
 						//OCR is another endpoint and it can't yet handle descriptors...
 						for (DocSelection docSel : tw.laComp.getDocs()){
-							logger.debug("Start printed block detection for docs: " + docSel.getDocId());
+							logger.debug("Start printed block detection for doc {}, pages = {}", docSel.getDocId(), docSel.getPages());
 							String jobIdStr = store.getConnection().runTypewrittenBlockSegmentation(colId, docSel.getDocId(), docSel.getPages());
 							jobIds.add(jobIdStr);
 						}
