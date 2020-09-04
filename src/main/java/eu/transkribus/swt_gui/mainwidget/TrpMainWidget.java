@@ -5576,20 +5576,23 @@ public class TrpMainWidget {
 				listOfDocIdsOfRunningJobs.add(job.getDocId());
 			}
 		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			logger.error("Could not query unfinished jobs.", e1);
 		}
 		
 		int N = docs.size();
 		
 		if (N > 1) {
-			String msg = reallyDelete ? "Do you really want to delete " + N + " selected documents irreversible? " : "Do you really want to delete " + N + " selected documents?" + "\nAfter deletion you can find your documents in the recycle bin!";
+			String msg = reallyDelete ? "Do you really want to delete " + N + " selected documents irreversible? " : "Do you really want to delete " + N + " selected documents?\n" 
+					+ "After deletion you can find your documents in the recycle bin.\n"
+					+ "Documents in the recycle bin are automatically discarded after two weeks.";
 			if (DialogUtil.showYesNoDialog(getShell(), "Delete Documents", msg)!=SWT.YES) {
 				return false;
 			}
 		}
 		else{
-			String msg = reallyDelete ? "Do you really want to delete document '"+docs.get(0).getTitle()+"' irreversible?" : "Do you really want to delete document '"+docs.get(0).getTitle()+"'\nAfter deletion you can find your document in the recycle bin!";
+			String msg = reallyDelete ? "Do you really want to delete document '"+docs.get(0).getTitle()+"' irreversible?" : "Do you really want to delete document '"+docs.get(0).getTitle()+"'?\n"
+					+ "After deletion you can find your document in the recycle bin!\n"
+					+ "Documents in the recycle bin are automatically discarded after two weeks.";
 			if (DialogUtil.showYesNoDialog(getShell(), "Delete Document", msg)!=SWT.YES) {
 				return false;
 			}
@@ -5611,7 +5614,7 @@ public class TrpMainWidget {
 						logger.debug("deleting document: "+d);
 						
 						if (listOfDocIdsOfRunningJobs.contains(d.getDocId())){
-							String errorMsg = "Already delete job running for document: "+d.getDocId();
+							String errorMsg = "A job is currently running on document: "+d.getDocId();
 							logger.warn(errorMsg);
 							error.add(errorMsg);
 						}
