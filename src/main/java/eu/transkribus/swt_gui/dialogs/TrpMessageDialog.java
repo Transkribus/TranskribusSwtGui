@@ -45,6 +45,7 @@ public class TrpMessageDialog extends Dialog {
 	StyledText exceptionText;
 	
 	boolean hasDetails = false;
+	static boolean useBugReport = true;
 	
 	ExpandableComposite ec;
 
@@ -65,6 +66,9 @@ public class TrpMessageDialog extends Dialog {
 	public static int showInfoDialog(Shell parentShell, String title, String message, String detailedMessage, Throwable exception) {
 		TrpMessageDialog d = new TrpMessageDialog(parentShell, title, message, detailedMessage, exception);
 		d.setSwtIcon(SWT.ICON_INFORMATION);
+		if (exception == null) {
+			useBugReport = false;
+		}
 		return d.open();
 	}	
 	
@@ -88,17 +92,20 @@ public class TrpMessageDialog extends Dialog {
 	@Override protected void createButtonsForButtonBar(Composite parent) {
 		Button b = createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
 		b.setFocus();
-		b = createButton(parent, IDialogConstants.HELP_ID, "Bug...", false);
-		b.setImage(Images.BUG);
-		b.setToolTipText("Send a bug report");
 		
-		// close dialog and return HELP_ID when user pushes bug report button:
-		getButton(IDialogConstants.HELP_ID).addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				setReturnCode(IDialogConstants.HELP_ID);
-				close();
-			}
-		});
+		if(useBugReport) {
+			b = createButton(parent, IDialogConstants.HELP_ID, "Bug...", false);
+			b.setImage(Images.BUG);
+			b.setToolTipText("Send a bug report");
+			
+			// close dialog and return HELP_ID when user pushes bug report button:
+			getButton(IDialogConstants.HELP_ID).addSelectionListener(new SelectionAdapter() {
+				@Override public void widgetSelected(SelectionEvent e) {
+					setReturnCode(IDialogConstants.HELP_ID);
+					close();
+				}
+			});
+		}
 		
 		updateSize();
 	}

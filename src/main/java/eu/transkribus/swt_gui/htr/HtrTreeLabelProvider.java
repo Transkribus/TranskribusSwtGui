@@ -4,13 +4,17 @@ import java.text.DateFormat;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ILabelProviderListener;
-import org.eclipse.jface.viewers.ITableFontProvider;
-import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.ITreePathLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.ViewerLabel;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeColumn;
 
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.CoreUtils;
@@ -18,17 +22,17 @@ import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.core.util.HtrPyLaiaUtils;
 import eu.transkribus.swt.util.Images;
 
-public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontProvider {
+public class HtrTreeLabelProvider implements ITreePathLabelProvider{
 
 	private final static String NOT_AVAILABLE_LABEL = "N/A";
 
-	Table table;
-	TableViewer tableViewer;
+	Tree tree;
+	TreeViewer treeViewer;
 	DateFormat createDateFormat;
 
-	public HtrTableLabelProvider(TableViewer tableViewer) {
-		this.tableViewer = tableViewer;
-		this.table = tableViewer.getTable();
+	public HtrTreeLabelProvider(TreeViewer treeViewer) {
+		this.treeViewer = treeViewer;
+		this.tree = treeViewer.getTree();
 		this.createDateFormat = CoreUtils.newDateFormatddMMYY();
 	}
 
@@ -53,9 +57,8 @@ public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontPro
 
 	}
 
-	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
-		TableColumn column = table.getColumn(columnIndex);
+		TreeColumn column = tree.getColumn(columnIndex);
 		String ct = column.getText();
 		if (element instanceof TrpHtr) {
 			switch (ct) {
@@ -71,12 +74,11 @@ public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontPro
 		return null;
 	}
 
-	@Override
 	public String getColumnText(Object element, int columnIndex) {
 		if (element instanceof TrpHtr) {
 			TrpHtr htr = (TrpHtr) element;
 
-			TableColumn column = table.getColumn(columnIndex);
+			TreeColumn column = tree.getColumn(columnIndex);
 			String ct = column.getText();
 			
 			return getColumnText(htr, ct);
@@ -87,24 +89,18 @@ public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontPro
 	
 	public String getColumnText(TrpHtr htr, String columnName) {
 		switch (columnName) {
-		case HtrPagedTableWidget.HTR_NAME_COL:
+		case HtrTableWidget.HTR_NAME_COL:
 			return htr.getName();
-		case HtrPagedTableWidget.HTR_LANG_COL:
+		case HtrTableWidget.HTR_LANG_COL:
 			return htr.getLanguage();
-		case HtrPagedTableWidget.HTR_ID_COL:
+		case HtrTableWidget.HTR_ID_COL:
 			return "" + htr.getHtrId();
-		case HtrPagedTableWidget.HTR_CREATOR_COL:
+		case HtrTableWidget.HTR_CREATOR_COL:
 			return htr.getUserName() == null ? "Unknown" : htr.getUserName();
-		case HtrPagedTableWidget.HTR_TECH_COL:
+		case HtrTableWidget.HTR_TECH_COL:
 			return getLabelForHtrProvider(htr.getProvider());
-		case HtrPagedTableWidget.HTR_DATE_COL:
+		case HtrTableWidget.HTR_DATE_COL:
 			return createDateFormat.format(htr.getCreated());
-		case HtrPagedTableWidget.HTR_WORDS_COL:
-			return createDateFormat.format(htr.getNrOfWords());
-//		case HtrPagedTableWidget.HTR_CER_COL:
-//			double[] referenceSeries = htr.getCerTestLog();
-//			double storedHtrValCer = htr.getCerTestLog()[referenceSeries.length - 1];
-//			return HtrCITlabUtils.formatCerVal(storedHtrValCer);
 		default:
 			return NOT_AVAILABLE_LABEL;
 		}
@@ -126,9 +122,10 @@ public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontPro
 		}
 	}
 
+
 	@Override
-	public Font getFont(Object element, int columnIndex) {
+	public void updateLabel(ViewerLabel arg0, TreePath arg1) {
 		// TODO Auto-generated method stub
-		return null;
+		
 	}
 }

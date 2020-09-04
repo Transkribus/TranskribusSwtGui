@@ -238,7 +238,7 @@ public class Storage {
 	private static int reloadHtrListCounter=0;
 	
 //	private List<TrpP2PaLA> p2palaModels = new ArrayList<>();
-	private List<TrpHtr> htrList = new ArrayList<>();
+//	private List<TrpHtr> htrList = new ArrayList<>();
 	
 	private List<TrpCreditCosts> creditCostsList;
 	
@@ -1089,7 +1089,7 @@ public class Storage {
 			logger.error("Error logging out: " + th.getMessage(), th);
 		} finally {
 			clearCollections();
-			htrList = new ArrayList<>(0);
+//			htrList = new ArrayList<>(0);
 //			clearP2PaLAModels();
 			conn = null;
 			user = null;
@@ -2906,41 +2906,30 @@ public class Storage {
 	 * Retrieve HTR models linked to the current collection from the server.
 	 * @return Future object representing the reload task or null if no connection to the server can be established.
 	 */
-	public Future<TrpHtrList> reloadHtrs() {
-		logger.debug("Reloading HTRs (call #{}: colId = {})", ++reloadHtrListCounter, this.getCollId());
-		final Integer currentColId;
-		if(isAdminLoggedIn()) {
-			//for now emulate behavior of old endpoint here: Admin gets to see all HTR models
-			currentColId = null;
-		} else {
-			//filter by collection ID by default
-			currentColId = this.getCollId();
-		}
-		
-		try {
-			checkConnection(true);
-			return conn.getHtrs(currentColId, null, new InvocationCallback<TrpHtrList>() {
-				
-				@Override
-				public void completed(TrpHtrList htrList) {					
-					logger.debug("async loaded HTR list: total = {}, size = {}, index = {}, nValues = {}, thread = {} ", 
-							htrList.getTotal(), htrList.getList().size(), htrList.getIndex(), 
-							htrList.getnValues(), Thread.currentThread().getName());
-					Storage.this.htrList = htrList.getList();
-					sendEvent(new HtrListLoadEvent(this, Storage.this.collId, htrList));
-				}
-
-				@Override public void failed(Throwable throwable) {
-					logger.error("Error loading HTR models: " + throwable.getMessage(), throwable);
-					htrList.clear();
-				}
-			});
-		} catch (NoConnectionException e) {
-			Storage.this.htrList = new ArrayList<>(0);
-			logger.error("No connection to server!", e);
-			return null;
-		}
-	}
+	/*
+	 * public Future<TrpHtrList> reloadHtrs() {
+	 * logger.debug("Reloading HTRs (call #{}: colId = {})", ++reloadHtrListCounter,
+	 * this.getCollId()); final Integer currentColId; if(isAdminLoggedIn()) { //for
+	 * now emulate behavior of old endpoint here: Admin gets to see all HTR models
+	 * currentColId = null; } else { //filter by collection ID by default
+	 * currentColId = this.getCollId(); }
+	 * 
+	 * try { checkConnection(true); return conn.getHtrs(currentColId, null, new
+	 * InvocationCallback<TrpHtrList>() {
+	 * 
+	 * @Override public void completed(TrpHtrList htrList) { logger.
+	 * debug("async loaded HTR list: total = {}, size = {}, index = {}, nValues = {}, thread = {} "
+	 * , htrList.getTotal(), htrList.getList().size(), htrList.getIndex(),
+	 * htrList.getnValues(), Thread.currentThread().getName()); Storage.this.htrList
+	 * = htrList.getList(); sendEvent(new HtrListLoadEvent(this,
+	 * Storage.this.collId, htrList)); }
+	 * 
+	 * @Override public void failed(Throwable throwable) {
+	 * logger.error("Error loading HTR models: " + throwable.getMessage(),
+	 * throwable); htrList.clear(); } }); } catch (NoConnectionException e) {
+	 * Storage.this.htrList = new ArrayList<>(0);
+	 * logger.error("No connection to server!", e); return null; } }
+	 */
 	
 	public void deleteHtr(TrpHtr htr) throws NoConnectionException, TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
 		checkConnection(true);
@@ -2958,26 +2947,27 @@ public class Storage {
 			return;
 		}
 		conn.updateHtrMetadata(getCollId(), htr);
-		reloadHtrs();
+		
+		//reloadHtrs();
 	}
 	
-	public List<TrpHtr> getHtrs(String provider) {
-		if(provider == null) {
-			return htrList;
-		}
-		return htrList.stream()
-				.filter(h -> h.getProvider().equals(provider))
-				.collect(Collectors.toList());
-	}
-	
-	public List<TrpHtr> getHtrs(String provider, boolean excludeHtrsWithoutGTData) {
-		//filter by provider
-		List<TrpHtr> htrs = getHtrs(provider);
-		//return HTRs with disclosed train GT only 
-		return htrs.stream()
-				.filter(h -> h.hasTrainGt() && this.isUserAllowedToViewDataSets(h))
-				.collect(Collectors.toList());
-	}
+//	public List<TrpHtr> getHtrs(String provider) {
+//		if(provider == null) {
+//			return htrList;
+//		}
+//		return htrList.stream()
+//				.filter(h -> h.getProvider().equals(provider))
+//				.collect(Collectors.toList());
+//	}
+//	
+//	public List<TrpHtr> getHtrs(String provider, boolean excludeHtrsWithoutGTData) {
+//		//filter by provider
+//		List<TrpHtr> htrs = getHtrs(provider);
+//		//return HTRs with disclosed train GT only 
+//		return htrs.stream()
+//				.filter(h -> h.hasTrainGt() && this.isUserAllowedToViewDataSets(h))
+//				.collect(Collectors.toList());
+//	}
 
 	public String runHtr(String pages, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
 		checkConnection(true);

@@ -39,8 +39,7 @@ public class HtrTrainingDialogTest {
 //				getStorage().reloadHtrs();
 				parent.pack();
 				HtrTrainingDialog htd = new HtrTrainingDialog(
-						parent.getShell(), 
-						showGtData ? getStorage().getHtrs(null) : null, 
+						parent.getShell(),
 						getStorage().getHtrTrainingJobImpls()
 						);
 				

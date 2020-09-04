@@ -199,6 +199,7 @@ import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
 import eu.transkribus.swt_gui.dialogs.TrpLoginDialog;
+import eu.transkribus.swt_gui.dialogs.TrpMessageDialog;
 import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
@@ -761,7 +762,7 @@ public class TrpMainWidget {
 		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
 		ui.getDocInfoWidget().getCurrentCollectionText().setText(currentCollectionStr);
 		if(storage.isGtDoc()) {
-			ui.getServerWidget().updateHighlightedGroundTruthTreeViewerRow();
+			//ui.getServerWidget().updateHighlightedGroundTruthTreeViewerRow();
 		} else {
 			ui.getServerWidget().updateHighlightedRow();
 		}
@@ -5573,20 +5574,23 @@ public class TrpMainWidget {
 				listOfDocIdsOfRunningJobs.add(job.getDocId());
 			}
 		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			logger.error("Could not query unfinished jobs.", e1);
 		}
 		
 		int N = docs.size();
 		
 		if (N > 1) {
-			String msg = reallyDelete ? "Do you really want to delete " + N + " selected documents irreversible? " : "Do you really want to delete " + N + " selected documents?" + "\nAfter deletion you can find your documents in the recycle bin!";
+			String msg = reallyDelete ? "Do you really want to delete " + N + " selected documents irreversible? " : "Do you really want to delete " + N + " selected documents?\n" 
+					+ "After deletion you can find your documents in the recycle bin.\n"
+					+ "Documents in the recycle bin are automatically discarded after two weeks.";
 			if (DialogUtil.showYesNoDialog(getShell(), "Delete Documents", msg)!=SWT.YES) {
 				return false;
 			}
 		}
 		else{
-			String msg = reallyDelete ? "Do you really want to delete document '"+docs.get(0).getTitle()+"' irreversible?" : "Do you really want to delete document '"+docs.get(0).getTitle()+"'\nAfter deletion you can find your document in the recycle bin!";
+			String msg = reallyDelete ? "Do you really want to delete document '"+docs.get(0).getTitle()+"' irreversible?" : "Do you really want to delete document '"+docs.get(0).getTitle()+"'?\n"
+					+ "After deletion you can find your document in the recycle bin!\n"
+					+ "Documents in the recycle bin are automatically discarded after two weeks.";
 			if (DialogUtil.showYesNoDialog(getShell(), "Delete Document", msg)!=SWT.YES) {
 				return false;
 			}
@@ -5608,7 +5612,7 @@ public class TrpMainWidget {
 						logger.debug("deleting document: "+d);
 						
 						if (listOfDocIdsOfRunningJobs.contains(d.getDocId())){
-							String errorMsg = "Already delete job running for document: "+d.getDocId();
+							String errorMsg = "A job is currently running on document: "+d.getDocId();
 							logger.warn(errorMsg);
 							error.add(errorMsg);
 						}
@@ -6396,6 +6400,168 @@ public class TrpMainWidget {
 			}
 		}
 
+	}
+	
+	public void undoJob(TrpJobStatus job) {
+			
+		try {
+			
+			String pagesStr = job.getPages();
+			logger.debug("undo job for pages " + pagesStr);
+			
+			if (DialogUtil.showYesNoDialog(mw.getShell(), "Undo job", "Do you really want to undo this job and reset these pages: " + pagesStr )!=SWT.YES) {
+				return;
+			}
+
+			Set<Integer> noReset = new HashSet<Integer>();
+			Set<Integer> pageIndices = CoreUtils.parseRangeListStr(pagesStr, Integer.MAX_VALUE);
+			//get doc to have all transcripts for all pages available to change
+			Storage storage = Storage.getInstance();
+			//to get all transcripts
+			TrpDoc currDoc = storage.getRemoteDoc(storage.getCurrentDocumentCollectionId(), job.getDocId(), -1);
+
+//			for (Integer i : pageIndices) {
+//				logger.debug(" page as Integer " + i);
+//			}
+			
+			Set<String> debugMessages = new HashSet<String>();
+			
+			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					try {
+						monitor.beginTask("Undo the job: affected pages: " + pageIndices.size(), pageIndices.size());
+						int i = 1;
+						for (TrpPage page : currDoc.getPages()) {
+							monitor.subTask("Undo page " + page.getPageNr());
+
+							int pageIdx = -1;
+							if (page.getPageNr() > 0) {
+								pageIdx = page.getPageNr()-1;
+							}
+
+							if (!pageIndices.contains(pageIdx)) {
+								logger.debug("this page nr " + pageIdx + " is not contained in job pages!");
+								continue;
+							}
+							else{
+								logger.debug("this page nr " + pageIdx + " is contained in job pages!");
+							}
+											
+							TrpTranscriptMetadata jobTranscript = page.getTranscriptByJobId(job.getJobIdAsInt());
+							TrpTranscriptMetadata latestTranscript = page.getCurrentTranscript();
+							TrpTranscriptMetadata parentTranscript = null;
+							if (jobTranscript != null && latestTranscript != null && (jobTranscript.getTsId() == latestTranscript.getTsId()) ) {
+								//for 'OcrModule' job no parent available - in that case use the previous transcript
+								if (job.getModuleName().equals("OcrModule")) {
+									//is second youngest transcript
+									parentTranscript = page.getTranscriptInCreationHistoryAtPosition(1);
+								}
+								else {
+									parentTranscript = page.getTranscriptById(jobTranscript.getParentTsId());
+								}
+							}
+							else {
+								logger.debug("No reset possible: probably no jobId in transcript or the transcript of the job is not the latest!");
+								debugMessages.add("Page: " + page.getPageNr() + " - no reset possible: probably no jobId in transcript or the transcript of the job is not the latest!" + System.lineSeparator());
+								noReset.add(page.getPageNr());
+								continue;
+							}
+
+							//if there is a toolname != null we can revert the job of that tool
+							if(parentTranscript != null){
+								logger.debug("parent exists - set current version to version of parent!");
+								debugMessages.add("Page: " + page.getPageNr() + " - parent exists, set current version to version of parent!" + System.lineSeparator());
+								JAXBPageTranscript tr = new JAXBPageTranscript(parentTranscript);
+								tr.build();
+								storage.getConnection().updateTranscript(storage.getCurrentDocumentCollectionId(), parentTranscript.getDocId(), parentTranscript.getPageNr(), parentTranscript.getStatus(), tr.getPageData(), parentTranscript.getParentTsId(), "job undone: job ID " + job.getJobId());
+								
+							}
+							else {
+								if (parentTranscript == null) {
+									logger.debug("no parent/predecessor found - no reset!!");
+									debugMessages.add("Page: " + page.getPageNr() + " - no parent/predecessor found, no reset!" + System.lineSeparator());
+									noReset.add(page.getPageNr());
+									continue;
+								}
+							}
+							
+							//for loaded page do a reload: does not work since because it runs in a separate thread and there are some resource conflicts
+//							if (storage.getPage().getPageId() == page.getPageId()){
+//								logger.debug("page id = " + storage.getPage().getPageId());
+//								Storage.getInstance().setLatestTranscriptAsCurrent();
+//								mw.reloadCurrentPage(true);
+//							}
+
+							if (monitor.isCanceled())
+								throw new InterruptedException();
+
+							monitor.worked(i + 1);
+							++i;
+						}
+					} catch (InterruptedException ie) {
+						throw ie;
+					} catch (Exception e) {
+						throw new InvocationTargetException(e, e.getMessage());
+					}
+				}
+			}, "Undo selected job", true);
+			
+			String message = noReset.size() > 0? "Not all pages of the job (" + pageIndices.size() + " pages) could be undone" : "All pages of the job were undone";
+			String detailMessage = noReset.size() > 0? "The following pages of the job could not be undone: " + CoreUtils.getRangeListStrFromSet(noReset) : "All pages of the job were undone - in total " + pageIndices.size() + " pages.";
+			//TrpMessageDialog.showInfoDialog(getShell(), "Undo feedback", message, detailMessage, null);
+			detailMessage = detailMessage.concat(System.lineSeparator());
+			
+			Iterator it = debugMessages.iterator();
+			while (it.hasNext()) {
+				detailMessage += it.next();
+			}
+			
+//			for (int i = 0; i < 1000; i++) {
+//				detailMessage += "test " +i + System.lineSeparator();
+//			}
+			
+			TrpMessageDialog.showInfoDialog(getShell(), "Undo feedback", message, detailMessage, null);
+			
+			try {
+				storage.reloadDocWithAllTranscripts();
+				reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH, () -> {
+					if (getTrpSets().getAutoSaveEnabled() && getTrpSets().isCheckForNewerAutosaveFile()) {
+						autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
+					}
+					getCanvas().fitWidth();
+					adjustReadingOrderDisplayToImageSize();				
+				}, null);
+
+			} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			//DialogUtil.showInfoMessageBox(getShell(), "Undo feedback", detailMessage);
+			//DialogUtil.showCustomMessageDialog(getShell(), "Undo feedback", detailMessage, null, SWT.ICON_INFORMATION | SWT.V_SCROLL, new String[] {"OK"}, 0, null);
+			
+			//DialogUtil.showInfoMessageBox(getShell(), "Undo feedback", detailMessage);
+			
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+				| IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoConnectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		finally{
+
+		}
 	}
 
 	public void revertVersions() {

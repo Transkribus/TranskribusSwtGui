@@ -88,7 +88,10 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 
 		sashForm.setWeights(new int[] { 60, 40 });
 		
-		updateHtrs(htw.getProviderComboValue());
+		//updateHtrs(htw.getProviderComboValue());
+		
+		//shows the first page in the paged HTR view
+		htw.refreshPage(true);
 		
 		addListeners();
 	}
@@ -131,7 +134,8 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 		htw.getReloadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				store.reloadHtrs();
+				htw.refreshPage(false);
+				//store.reloadHtrs();
 			}
 		});
 		
@@ -185,7 +189,8 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 				TrpHtr htr = htw.getSelectedHtr();
 				try {
 					store.removeHtrFromCollection(htr);
-					reloadHtrsFromServer();
+					//reloadHtrsFromServer();
+					htw.refreshPage(false);
 					clearTableSelection();
 				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 						| NoConnectionException e1) {
@@ -217,7 +222,8 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 				try {
 					store.deleteHtr(htr);
 					//if that worked update the list in Storage
-					reloadHtrsFromServer();
+					
+					htw.refreshPage(false);
 					clearTableSelection();
 				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 						| NoConnectionException e1) {
@@ -286,27 +292,32 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 	}
 
 	private void updateHtrs(final String providerFilter) {
-		List<TrpHtr> uroHtrs = store.getHtrs(providerFilter);
-		htw.refreshList(uroHtrs);
-	}
-	
-	@Override
-	public void handleHtrListLoadEvent(HtrListLoadEvent e) {
-		htw.resetProviderFilter();
-		htw.refreshList(e.htrs.getList());
-	}
-	
-	private void reloadHtrsFromServer() {
-		//reload HTRs and show busy indicator in the meantime.
-		ReloadHtrListRunnable reloadRunnable = new ReloadHtrListRunnable();
-		BusyIndicator.showWhile(getDisplay(), reloadRunnable);
+		//all htrs are paged now - omit to get all htrs
+//		List<TrpHtr> uroHtrs = store.getHtrs(providerFilter);
+//		htw.refreshList(uroHtrs);
 		
-		if(reloadRunnable.hasError()) {
-			logger.error("Reload of HTR models failed!", reloadRunnable.getError());
-			DialogUtil.showDetailedErrorMessageBox(getShell(), "Error loading HTR models",
-					"Could not reload the HTR model list from the server.", reloadRunnable.getError());
-		}
+		htw.refreshPage(false);
 	}
+	
+//	@Override
+//	public void handleHtrListLoadEvent(HtrListLoadEvent e) {
+//		htw.resetProviderFilter();
+//		htw.refreshList(e.htrs.getList());
+//	}
+	
+	/*
+	 * private void reloadHtrsFromServer() { //reload HTRs and show busy indicator
+	 * in the meantime. ReloadHtrListRunnable reloadRunnable = new
+	 * ReloadHtrListRunnable(); BusyIndicator.showWhile(getDisplay(),
+	 * reloadRunnable);
+	 * 
+	 * if(reloadRunnable.hasError()) { logger.error("Reload of HTR models failed!",
+	 * reloadRunnable.getError());
+	 * DialogUtil.showDetailedErrorMessageBox(getShell(),
+	 * "Error loading HTR models",
+	 * "Could not reload the HTR model list from the server.",
+	 * reloadRunnable.getError()); } }
+	 */
 	
 	private void clearTableSelection() {
 		//remove any selection in table
@@ -320,33 +331,21 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 	 * Any error can be retrieved from it and handled after BusyIndicator.showWhile() completes.
 	 * Opening dialogs within the Runnable would block the BusyIndicator from completing.
 	 */
-	private class ReloadHtrListRunnable implements Runnable {
-		private Throwable error;
-		
-		ReloadHtrListRunnable() {
-			error = null;
-		}
-		
-		public void run() {
-			//update of the view is done in the handleHtrListLoadEvent method
-			Future<TrpHtrList> future = store.reloadHtrs();
-			try {
-				//after 60 seconds we can assume that something is wrong
-				future.get(60, TimeUnit.SECONDS);
-			} catch(ExecutionException e) {
-				//extract the exception thrown within the future's task
-				error = e.getCause();
-			} catch(Exception e) {
-				error = e;
-			}
-		}
-		
-		boolean hasError() {
-			return error != null;
-		}
-		
-		Throwable getError() {
-			return error;
-		}
-	}
+	/*
+	 * private class ReloadHtrListRunnable implements Runnable { private Throwable
+	 * error;
+	 * 
+	 * ReloadHtrListRunnable() { error = null; }
+	 * 
+	 * public void run() { //update of the view is done in the
+	 * handleHtrListLoadEvent method Future<TrpHtrList> future = store.reloadHtrs();
+	 * try { //after 60 seconds we can assume that something is wrong future.get(60,
+	 * TimeUnit.SECONDS); } catch(ExecutionException e) { //extract the exception
+	 * thrown within the future's task error = e.getCause(); } catch(Exception e) {
+	 * error = e; } }
+	 * 
+	 * boolean hasError() { return error != null; }
+	 * 
+	 * Throwable getError() { return error; } }
+	 */
 }

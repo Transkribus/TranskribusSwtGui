@@ -704,5 +704,9 @@ CHANGES AND BUGFIXES
 	-> bugfix: editing pagination in the document manager dialog could lead to errors in the following save operations 
 	-> PDF export: PDFs are much smaller now! for binarized images choosing 'Original' as image type delivers the smallest size, in most other cases 'JPEG'
 	-> add collection doclist export as CSV (via green arrow-down button in the doclist toolbar)
+	-> main menu: user can choose to load last modified document in Transkribus at start time
+	-> HTR model lists are now all represented as tree or table widget pagination
+	-> Undo a job (see the 'Jobs Overview': 'Undo button' will be enabled if the docID of the job corresponds to the ID of the currently loaded document)
+	-> Documents moved to the recycle bin are automatically discarded after two weeks
 	
 	

@@ -471,6 +471,7 @@ public class TrpMainWidgetView extends Composite {
 	        @Override
 	        public void widgetSelected(SelectionEvent e) {
 	                Point point = toolBar.toDisplay(new Point(menuButton.getBounds().x, menuButton.getBounds().y+menuButton.getBounds().height));
+	                menu.setPoint(point);
 	                menu.getMenuBar().setLocation(point.x, point.y);
 	                menu.getMenuBar().setVisible(true);
 	        }

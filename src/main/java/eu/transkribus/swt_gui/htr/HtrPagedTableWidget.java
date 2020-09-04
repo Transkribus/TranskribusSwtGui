@@ -54,6 +54,8 @@ public class HtrPagedTableWidget extends ATableWidgetPagination<TrpHtr> {
 	public static final String HTR_TECH_COL = "Technology";
 	public static final String HTR_DATE_COL = "Created";
 	public static final String HTR_ID_COL = "ID";
+	public static final String HTR_WORDS_COL = "nrOfWords";
+	//public static final String HTR_CER_COL = "CER";
 	
 	// filter:
 	Composite filterAndReloadComp;
@@ -221,7 +223,7 @@ public class HtrPagedTableWidget extends ATableWidgetPagination<TrpHtr> {
 	@Override
 	protected void createColumns() {
 		HtrTableLabelProvider lp = new HtrTableLabelProvider(tv);
-		createDefaultColumn(HTR_NAME_COL, 220, "name", true);
+		createDefaultColumn(HTR_NAME_COL, 210, "name", true);
 		createDefaultColumn(HTR_LANG_COL, 100, "language", true);
 		
 		createColumn(HTR_CREATOR_COL, 120, "userName", new CellLabelProvider() {
@@ -232,7 +234,7 @@ public class HtrPagedTableWidget extends ATableWidgetPagination<TrpHtr> {
 				}
 			}
 		});
-		createColumn(HTR_TECH_COL, 100, "provider", new CellLabelProvider() {
+		createColumn(HTR_TECH_COL, 80, "provider", new CellLabelProvider() {
 			@Override
 			public void update(ViewerCell cell) {
 				if (cell.getElement() instanceof TrpHtr) {
@@ -240,7 +242,7 @@ public class HtrPagedTableWidget extends ATableWidgetPagination<TrpHtr> {
 				}
 			}
 		});
-		createColumn(HTR_DATE_COL, 70, "created", new CellLabelProvider() {
+		createColumn(HTR_DATE_COL, 60, "created", new CellLabelProvider() {
 			@Override
 			public void update(ViewerCell cell) {
 				if (cell.getElement() instanceof TrpHtr) {
@@ -249,5 +251,15 @@ public class HtrPagedTableWidget extends ATableWidgetPagination<TrpHtr> {
 			}
 		});			
 		createDefaultColumn(HTR_ID_COL, 50, "htrId", true);
+//		createColumn(HTR_CER_COL, 50, "cer", new CellLabelProvider() {
+//			@Override
+//			public void update(ViewerCell cell) {
+//				if (cell.getElement() instanceof TrpHtr) {
+//					cell.setText(lp.getColumnText((TrpHtr)cell.getElement(), HTR_CER_COL));
+//				}
+//			}
+//		});
+		
+		createDefaultColumn(HTR_WORDS_COL, 80, "nrOfWords", true);
 	}	
 }

@@ -4,10 +4,14 @@ import java.util.Locale;
 
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MenuItem;
 
+import ch.qos.logback.classic.Logger;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import junit.framework.Assert;
@@ -99,6 +103,25 @@ public class TrpMenuBarListener implements SelectionListener {
 		SWTUtil.onSelectionEvent(mb.bugReportItem, (e) -> { mw.sendBugReport(); });
 		
 		SWTUtil.onSelectionEvent(mb.exitItem, (e) -> { mw.getShell().close(); });	
+		
+		SWTUtil.onSelectionEvent(mb.loadLastDoc, (e) -> { 
+			
+            Display.getDefault( ).asyncExec( new Runnable( )
+            {
+                @Override
+                public void run( )
+                {
+                	//this way the menu bar could be forced to stay open
+//                	Point p = mb.getPoint();
+//                	mb.getMenuBar().setLocation(p);
+//                    mb.getMenuBar().setVisible( true );
+                    
+    	            MenuItem btn = (MenuItem) e.getSource();
+
+    	            TrpConfig.getTrpSettings().setloadMostRecentDocOnLogin(btn.getSelection());
+                }
+            } );
+		});
 		
 		SWTUtil.onSelectionEvent(mb.movePagesByFilelistItem, (e) -> { mw.getDocSyncController().movePagesByFilelist(); });
 	}

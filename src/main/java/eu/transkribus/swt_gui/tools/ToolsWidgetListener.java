@@ -142,9 +142,12 @@ public class ToolsWidgetListener implements SelectionListener, IStorageListener 
 			store.checkLoggedIn();
 
 			if (htd != null) {
+				logger.debug("set the training dialog visible");
 				htd.setVisible();
 			} else {
-				htd = new HtrTrainingDialog(mw.getShell(), store.getHtrs(null, true), store.getHtrTrainingJobImpls());
+				logger.debug("new training dialog");
+				htd = new HtrTrainingDialog(mw.getShell(), store.getHtrTrainingJobImpls());
+				
 				if (htd.open() == IDialogConstants.OK_ID) {
 					// new: check here if user wants to store or not
 					// if (!mw.saveTranscriptDialogOrAutosave()) {
@@ -295,7 +298,7 @@ public class ToolsWidgetListener implements SelectionListener, IStorageListener 
 					if(JobImpl.FinereaderLaJob.equals(jobImpl)) {
 						//OCR is another endpoint and it can't yet handle descriptors...
 						for (DocSelection docSel : tw.laComp.getDocs()){
-							logger.debug("Start printed block detection for docs: " + docSel.getDocId());
+							logger.debug("Start printed block detection for doc {}, pages = {}", docSel.getDocId(), docSel.getPages());
 							String jobIdStr = store.getConnection().runTypewrittenBlockSegmentation(colId, docSel.getDocId(), docSel.getPages());
 							jobIds.add(jobIdStr);
 						}

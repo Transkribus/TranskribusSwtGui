@@ -45,7 +45,7 @@ public interface IStorageListener {
 	
 	default void handleUserDocListLoadEvent(UserDocListLoadEvent e) {}
 	
-	default void handleHtrListLoadEvent(HtrListLoadEvent e) {}
+	//default void handleHtrListLoadEvent(HtrListLoadEvent e) {}
 	
 	default void handlTagSpecsChangedEvent(TagSpecsChangedEvent e) {}
 	
@@ -91,9 +91,9 @@ public interface IStorageListener {
 		else if (event instanceof UserDocListLoadEvent) {
 			handleUserDocListLoadEvent((UserDocListLoadEvent) event);
 		}
-		else if (event instanceof HtrListLoadEvent) {
-			handleHtrListLoadEvent((HtrListLoadEvent) event);
-		}
+//		else if (event instanceof HtrListLoadEvent) {
+//			handleHtrListLoadEvent((HtrListLoadEvent) event);
+//		}
 		else if (event instanceof TagSpecsChangedEvent) {
 			handlTagSpecsChangedEvent((TagSpecsChangedEvent) event);
 		}
