@@ -6,9 +6,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.ui.internal.dnd.SwtUtil;
 
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
 
 public class LoadingComposite extends Composite {
 	public Label label;
@@ -30,7 +30,7 @@ public class LoadingComposite extends Composite {
 	}
 
 	public void setText(String text) {
-		if (isDisposed() || SwtUtil.isDisposed(label))
+		if (isDisposed() || SWTUtil.isDisposed(label))
 			return;
 		
 		label.setText(text);
