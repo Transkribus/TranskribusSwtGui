@@ -172,7 +172,7 @@ public class CreditManagerListener implements IStorageListener {
 				notModifiedCount++;
 			} catch (SessionExpiredException e1) {
 				//TODO abort and show login dialog
-			} catch (TrpServerErrorException e2) {
+			} catch (TrpServerErrorException | TrpClientErrorException e2) {
 				logger.error(e2.getMessageToUser());
 				fails.add(e2);
 			}
