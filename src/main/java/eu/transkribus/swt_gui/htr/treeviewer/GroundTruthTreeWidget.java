@@ -232,7 +232,7 @@ public class GroundTruthTreeWidget extends Composite {
 		GroundTruthSelectionDescriptor desc = new GroundTruthSelectionDescriptor(gtSet.getId(), gtSet.getDataSetType().toString());
 		
 		try {
-			TrpMainWidget.getInstance().duplicateGtToDocument(col, desc, title);
+			TrpMainWidget.getInstance().duplicateGtToDocument(Storage.getInstance().getCollId(), col, desc, title);
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e1) {
 			logger.debug("Could copy dataset to collection!", e1);
 			String errorMsg = "The data set could not be copied to this collection.";
