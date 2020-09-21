@@ -6807,10 +6807,10 @@ public class TrpMainWidget {
 		}
 	}
 
-	public void duplicateGtToDocument(TrpCollection col, GroundTruthSelectionDescriptor desc, String title) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+	public void duplicateGtToDocument(int sourceColId, TrpCollection targetCol, GroundTruthSelectionDescriptor desc, String title) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
 		List<GroundTruthSelectionDescriptor> descList = new ArrayList<>(1);
 		descList.add(desc);
-		String jobId = storage.getConnection().duplicateGtToDocument(col.getColId(), descList, title, null);
+		String jobId = storage.getConnection().duplicateGtToDocument(sourceColId, targetCol.getColId(), descList, title, null);
 		registerJobStatusUpdateAndShowSuccessMessage(jobId);
 	}
 	
