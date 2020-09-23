@@ -29,7 +29,7 @@
 		<swt.groupId>org.eclipse.swt</swt.groupId>
 <!-- 		<swt.version>4.7.1</swt.version> -->
 <!-- 		<swt.version>4.9</swt.version> -->
-		<swt.version>4.16</swt.version>
+		<swt.version>4.17</swt.version>
 
 <!-- 		<jface.groupId>org.eclipse.ui</jface.groupId> -->
 <!-- 		<jface.version>3.7.1.v20120104-1859</jface.version> -->
