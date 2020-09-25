@@ -708,5 +708,6 @@ CHANGES AND BUGFIXES
 	-> HTR model lists are now all represented as tree or table widget pagination
 	-> Undo a job (see the 'Jobs Overview': 'Undo button' will be enabled if the docID of the job corresponds to the ID of the currently loaded document)
 	-> Documents moved to the recycle bin are automatically discarded after two weeks
+	-> New cool feature ;) can be found here: 'Canvas tool bar' - 'Other segmentation tools' - 'Copy shapes to other pages': after the user has drawn table or text regions he wants to copy this table/text regions for all the other pages as well because they look pretty much the same
 	
 	
