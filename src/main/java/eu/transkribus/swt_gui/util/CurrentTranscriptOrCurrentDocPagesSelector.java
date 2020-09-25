@@ -20,6 +20,8 @@ public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 	Button currentTanscriptRadio;
 	Button pagesRadio;
 	
+	boolean withCurrTranscript;
+	
 	CurrentDocPagesSelector ps;
 
 	public CurrentTranscriptOrCurrentDocPagesSelector(Composite parent, int style, boolean oneRow, boolean withCurrentTranscript) {
@@ -29,6 +31,8 @@ public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 		GridLayout gl = new GridLayout(nColumns, false);
 		gl.marginHeight = gl.marginWidth = 0;
 		this.setLayout(gl);
+		
+		withCurrTranscript = withCurrentTranscript;
 		
 		if(withCurrentTranscript) {
 			currentTanscriptRadio = new Button(this, SWT.RADIO);
@@ -71,7 +75,12 @@ public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 	}
 	
 	public boolean isCurrentTranscript() {
-		return currentTanscriptRadio.getSelection();
+		if (withCurrTranscript) {
+			return currentTanscriptRadio.getSelection();
+		}
+		else {
+			return false;
+		}
 	}
 	
 	public Button getCurrentTranscriptButton() {
