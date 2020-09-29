@@ -260,9 +260,9 @@ public class CanvasToolBarNew {
 		ToolItem moveItem = new ToolItem(tb, SWT.CHECK);
 //		moveItem.setImage(Images.getOrLoad("/icons/arrow_inout.png"));
 		moveItem.setText("...");
-		moveItem.setToolTipText("Other image transformations...");
+		moveItem.setToolTipText("Other view transformations...");
 		
-		ToolBox imgTransformsToolBox = new ToolBox(canvasWidget.mainWidgetUi.getShell(), true, "Image transformations");
+		ToolBox imgTransformsToolBox = new ToolBox(canvasWidget.mainWidgetUi.getShell(), true, "View transformations");
 		imgTransformsToolBox.addTriggerWidget(moveItem);
 		rotateLeftBtn = imgTransformsToolBox.addButton("Rotate left", Images.getOrLoad("/icons/arrow_turn_left.png"), SWT.PUSH);
 		rotateRightBtn = imgTransformsToolBox.addButton("Rotate right", Images.getOrLoad("/icons/arrow_turn_right.png"), SWT.PUSH);
