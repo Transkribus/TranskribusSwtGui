@@ -2975,7 +2975,7 @@ public class Storage {
 		case UPVLC:
 			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), getDocId(), pages, 
 					config.getHtrId(), config.getLanguageModel(),
-					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
+					config.isUseExistingLinePolygons(), config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
 					config.getBatchSize(),
 					config.getStructures());			
 		default:
@@ -2993,7 +2993,7 @@ public class Storage {
 					);
 		case UPVLC:
 			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), descriptor, config.getHtrId(), config.getLanguageModel(), 
-					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
+					config.isUseExistingLinePolygons(), config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
 					config.getBatchSize(),
 					config.getStructures()
 					);		
@@ -3011,7 +3011,7 @@ public class Storage {
 		case UPVLC:
 			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), docId, pages, 
 					config.getHtrId(), config.getLanguageModel(), 
-					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
+					config.isUseExistingLinePolygons(), config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
 					config.getBatchSize(),
 					config.getStructures());
 		default:

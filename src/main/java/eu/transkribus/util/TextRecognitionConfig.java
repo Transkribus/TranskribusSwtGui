@@ -18,6 +18,7 @@ public class TextRecognitionConfig {
 	private String htrName;
 	private List<String> structures;
 
+	private boolean useExistingLinePolygons = false;
 	private boolean doLinePolygonSimplification = true;
 	private boolean keepOriginalLinePolygons = false;
 	private boolean doStoreConfMats = true;
@@ -37,7 +38,13 @@ public class TextRecognitionConfig {
 		this.doLinePolygonSimplification = doLinePolygonSimplification;
 	}
 
+	public boolean isUseExistingLinePolygons() {
+		return useExistingLinePolygons;
+	}
 
+	public void setUseExistingLinePolygons(boolean useExistingLinePolygons) {
+		this.useExistingLinePolygons = useExistingLinePolygons;
+	}
 
 	public boolean isKeepOriginalLinePolygons() {
 		return keepOriginalLinePolygons;
@@ -193,4 +200,6 @@ public class TextRecognitionConfig {
 	public enum Mode {
 		CITlab, UPVLC;
 	}
+
+
 }
