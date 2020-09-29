@@ -128,6 +128,7 @@ public class CanvasToolBarNew {
 	MenuItem simplifySelectedLinesItem;
 	MenuItem simplifyAllLinesItem;
 	MenuItem removeSmallTextRegionsItem;
+	MenuItem removeSmallTextLinesItem;
 	MenuItem copyShapesItem;
 	MenuItem rectifyAllRegionsItem;
 	
@@ -477,6 +478,7 @@ public class CanvasToolBarNew {
 		simplifySelectedLinesItem = otherSegmentationToolsDropDown.addItem("Simplify shape of selected lines", Images.getOrLoad("/icons/vector.png"), null);
 		simplifyAllLinesItem = otherSegmentationToolsDropDown.addItem("Simplify shape of all lines on this page", Images.getOrLoad("/icons/vector.png"), null);
 		removeSmallTextRegionsItem = otherSegmentationToolsDropDown.addItem("Remove small text regions...", null, null);
+		removeSmallTextLinesItem = otherSegmentationToolsDropDown.addItem("Remove small text lines...", null, null);
 		copyShapesItem = otherSegmentationToolsDropDown.addItem("Copy shapes to other pages...", null, "Copy selected regions or tables - including lines and text if available. Copy only lines is not possible.");
 		rectifyAllRegionsItem = otherSegmentationToolsDropDown.addItem("Convert all region shapes to rectangles", null, null);
 		}
