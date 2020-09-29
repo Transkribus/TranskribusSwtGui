@@ -713,19 +713,16 @@ public class ToolsWidgetListener implements SelectionListener, IStorageListener 
 					od = null;
 				}
 			} else if(s == tw.duButton){
-				if(Storage.getInstance().isLoggedInAtTestServer()){
-					DUDecodeDialog duDecodeDialog = new DUDecodeDialog(mw.getShell());
-					if (duDecodeDialog.open() == IDialogConstants.OK_ID) {
-			            String jobId = store.runDocUnderstanding(store.getDocId(), "", 2);
-			            logger.debug("started DU job: "+jobId);
-			            jobIds.add(jobId);
-					}
-				}else{
-					MessageBox naDialog = new MessageBox(mw.getShell(), SWT.OK);
-					naDialog.setText("Not available");
-					naDialog.setMessage("This tool is currently only available on the Test Server.");
-					naDialog.open();
+				DUDecodeDialog duDecodeDialog = new DUDecodeDialog(mw.getShell());
+				int ret = duDecodeDialog.open();
+
+				if (ret == IDialogConstants.OK_ID) {
+					String pageString = duDecodeDialog.getPages();
+					String jobId = store.runDocUnderstanding(store.getDocId(), pageString, 2);
+					logger.debug("started DU job: "+jobId);
+					jobIds.add(jobId);
 				}
+
 
 			}
 
@@ -782,6 +779,6 @@ public class ToolsWidgetListener implements SelectionListener, IStorageListener 
 	
 	public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
 		boolean duVisible = Storage.getInstance().isLoggedInAtTestServer();		
-		tw.setDuVisible(duVisible);
+		//tw.setDuVisible(duVisible);
 	}
 }
