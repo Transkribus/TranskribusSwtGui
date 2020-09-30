@@ -47,6 +47,7 @@ import eu.transkribus.core.model.beans.TextFeatsCfg;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.DataSetType;
+import eu.transkribus.core.model.beans.enums.DocType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.core.util.HtrPyLaiaUtils;
@@ -73,6 +74,7 @@ public class HtrDetailsWidget extends SashForm {
 	
 	Text nameTxt, langTxt, descTxt, nrOfLinesTxt, nrOfWordsTxt, finalTrainCerTxt, finalValCerTxt;
 	Combo publishStateCombo;
+	Combo docTypeCombo;
 	Table paramTable;
 	Button updateMetadataBtn, showTrainSetBtn, showValSetBtn, showCharSetBtn, showAdvancedParsBtn;
 	ChartComposite jFreeChartComp;
@@ -112,9 +114,17 @@ public class HtrDetailsWidget extends SashForm {
 		Label paramLbl = new Label(mdComp, SWT.NONE);
 		paramLbl.setText("Parameters:");
 
-		descTxt = new Text(mdComp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP);
-		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		Composite descMdContainer = new Composite(mdComp, 0);
+		descMdContainer.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
+		descMdContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		descTxt = new Text(descMdContainer, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP);
+		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		validator.attach("Description", descTxt, 1, 2048, h -> h.getDescription());
+		
+		Label docTypeLabel = new Label(descMdContainer, SWT.NONE);
+		docTypeLabel.setText("Document Type:");
+		createDocTypeCombo(descMdContainer);
 		
 		Composite paramsContainer = new Composite(mdComp, 0);
 		paramsContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
@@ -232,6 +242,21 @@ public class HtrDetailsWidget extends SashForm {
 		}
 		validator.attach("Visibility", publishStateCombo, -1, -1, h -> "" + h.getReleaseLevel());
 	}
+	
+	private void createDocTypeCombo(Composite parent) {
+		docTypeCombo = new Combo(parent, SWT.READ_ONLY);
+		docTypeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		List<Pair<String, Integer>> docTypes = new ArrayList<>(2);
+		docTypes.add(Pair.of("Handwritten", DocType.HANDWRITTEN.getValue()));
+		docTypes.add(Pair.of("Print", DocType.PRINT.getValue()));
+		
+		for(Pair<String, Integer> e : docTypes) {
+			docTypeCombo.add(e.getKey());
+			docTypeCombo.setData(e.getKey(), e.getValue());
+		}
+		docTypeCombo.setEnabled(false);
+	}
 
 	void updateDetails(TrpHtr htr) {		
 		this.htr = htr;
@@ -276,6 +301,13 @@ public class HtrDetailsWidget extends SashForm {
 		nrOfWordsTxt.setText(htr.getNrOfWords() > 0 ? "" + htr.getNrOfWords() : NOT_AVAILABLE);
 		nrOfLinesTxt.setText(htr.getNrOfLines() > 0 ? "" + htr.getNrOfLines() : NOT_AVAILABLE);
 
+		for(int i = 0; i < docTypeCombo.getItemCount(); i++) {
+			if(docTypeCombo.getData(docTypeCombo.getItem(i)).equals(htr.getDocType())) {
+				docTypeCombo.select(i);
+				break;
+			}
+		}
+		
 		if(publishStateCombo != null) {
 			for(int i = 0; i < publishStateCombo.getItemCount(); i++) {
 				if(publishStateCombo.getData(publishStateCombo.getItem(i)).equals(htr.getReleaseLevel())) {

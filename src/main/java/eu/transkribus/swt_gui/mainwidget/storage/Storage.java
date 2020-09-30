@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -73,6 +74,7 @@ import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
 import eu.transkribus.core.model.beans.ReleaseLevel;
 import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpCreditCosts;
 import eu.transkribus.core.model.beans.TrpCrowdProject;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMessage;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMilestone;
@@ -237,6 +239,8 @@ public class Storage {
 	
 //	private List<TrpP2PaLA> p2palaModels = new ArrayList<>();
 //	private List<TrpHtr> htrList = new ArrayList<>();
+	
+	private List<TrpCreditCosts> creditCostsList;
 	
 	private AsyncExecutor loadPageAsyncExecutor = new AsyncExecutor();
 	private AsyncExecutor loadTranscriptAsyncExecutor = new AsyncExecutor();
@@ -3555,6 +3559,23 @@ public class Storage {
 			logger.debug("pagesStr is empty for DocSelection -> leaving pages empty s.t. all pages get processed!");
 		}
 		return dsd;
+	}
+
+	public List<TrpCreditCosts> getCreditCosts(Date time, boolean forceRefresh) {
+		try {
+			if(time != null) {
+				//return time-specific costs, do not cache
+				return conn.getCreditCalls().getCreditCosts(time);
+			}
+			if(creditCostsList == null || forceRefresh) {
+				creditCostsList = conn.getCreditCalls().getCreditCosts(null);
+			}
+		} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e) {
+			logger.error("Could not load cost model from server.", e);
+			creditCostsList = new ArrayList<>(0);
+		}
+		logger.debug("Returning credit costs list with {} entries", creditCostsList.size());
+		return creditCostsList;
 	}
 	
 //	public void reloadP2PaLAModels() {
