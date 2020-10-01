@@ -85,6 +85,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		SWTUtil.addSelectionListener(tb.simplifySelectedLinesItem, this);
 		SWTUtil.addSelectionListener(tb.simplifyAllLinesItem, this);
 		SWTUtil.addSelectionListener(tb.removeSmallTextRegionsItem, this);
+		SWTUtil.addSelectionListener(tb.removeSmallTextLinesItem, this);
 		SWTUtil.addSelectionListener(tb.copyShapesItem, this);
 		SWTUtil.addSelectionListener(tb.rectifyAllRegionsItem, this);
 		
@@ -180,6 +181,9 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		}
 		else if (s == toolbar.removeSmallTextRegionsItem) {
 			mw.getShapeEditController().removeSmallTextRegionsFromLoadedDoc();
+		}
+		else if (s == toolbar.removeSmallTextLinesItem) {
+			mw.getShapeEditController().removeSmallTextLinesFromLoadedDoc();
 		}
 		else if (s == toolbar.copyShapesItem) {
 			mw.getShapeEditController().copyShapesToOtherPagesInLoadedDoc();
