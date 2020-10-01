@@ -70,7 +70,7 @@ public class PagingToolBarNavigationRenderer extends AbstractPageControllerCompo
 			PageableController c = getController();
 			
 			int nStart = c.getPageOffset()+1;
-			int nEnd = (int) Math.min(c.getPageOffset()+1+c.getPageSize(), c.getTotalElements());
+			int nEnd = (int) Math.min(c.getPageOffset()+c.getPageSize(), c.getTotalElements());
 			
 			tb.getLabelItem().setText(""+nStart+"-"+nEnd+" / "+c.getTotalElements()+" ");
 			tb.setCurrentPageValue((c.getCurrentPage()+1)+"");
