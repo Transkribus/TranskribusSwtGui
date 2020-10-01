@@ -38,6 +38,7 @@ import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeUtil;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.CopyShapesConfDialog;
+import eu.transkribus.swt_gui.dialogs.MergeTextLinesConfDialog;
 import eu.transkribus.swt_gui.dialogs.RemoveTextLinesConfDialog;
 import eu.transkribus.swt_gui.dialogs.RemoveTextRegionsConfDialog;
 
@@ -271,6 +272,130 @@ public class ShapeEditController extends AMainWidgetController {
 			}, "Removing small lines", true);
 			
 			DialogUtil.showInfoMessageBox(getShell(), "Removed lines", res.msg+"\nPage numbers of affected pages: "+CoreUtils.getRangeListStrFromList(res.affectedPageIndices));
+			
+			if (!dryRun) {
+				mw.reloadCurrentPage(true, null, null);	
+			}
+		} catch (Throwable e) {
+			mw.onError("Error", e.getMessage(), e);
+		}		
+	}
+	
+	public void mergeSmallTextLinesFromLoadedDoc() {
+		try {
+			logger.debug("mergeSmallTextLinesFromLoadedDoc!");
+
+			if (!storage.isDocLoaded()) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "No document loaded!");
+				return;
+			}
+			MergeTextLinesConfDialog d = new MergeTextLinesConfDialog(getShell());
+			if (d.open() != IDialogConstants.OK_ID) {
+				return;
+			}
+			
+			double horizontalThreshold = d.getThreshPixel();
+			Set<Integer> pageIndices = d.getPageIndices();
+			boolean dryRun = d.isDryRun();
+			final double threshold = horizontalThreshold;
+			
+			class Result {
+				public int nPagesTotal=0;
+				public int nLinesTotal=0;
+				public int nPagesChanged=0;
+				public int nShapesMerged=0;
+				public String msg;
+				public List<Integer> affectedPageIndices=new ArrayList<>();
+			}
+			final Result res = new Result();
+
+			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					try {
+						logger.debug("mergeSmallTextLinesFromLoadedDoc");
+						TrpDoc doc = storage.getDoc();
+						int worked=0;				
+						
+						int N;
+						if (d.isApplySelected() && d.isDoCurrentPage()) {						
+							pageIndices.clear();
+							pageIndices.add(storage.getPageIndex());
+							N=1;
+						}				
+						else {
+							N = pageIndices==null ? doc.getNPages() : pageIndices.size();
+						}
+
+						res.nPagesTotal = N;
+						res.nLinesTotal = 0;
+						
+						MonitorUtil.beginTask(monitor, "Removing small text lines, threshold = "+threshold, N);
+
+						for (int i=0; i<doc.getNPages(); ++i) {
+							if (pageIndices!=null && !pageIndices.contains(i)) {
+								continue;
+							}
+							
+							if (MonitorUtil.isCanceled(monitor)) {
+								return;
+							}
+							
+							MonitorUtil.subTask(monitor, "Processing page "+(worked+1)+" / "+N);
+						
+							TrpPage p = doc.getPages().get(i);
+							TrpTranscriptMetadata md = p.getCurrentTranscript();
+							
+							JAXBPageTranscript tr = new JAXBPageTranscript(md);
+							tr.build();
+							
+							List<TrpRegionType> trpShapes = null;
+							if (d.isApplySelected() && d.isDoCurrentPage()) {
+								//neu: process only selected shapes 
+								List<ICanvasShape> shapes = mw.getCanvas().getScene().getSelected();
+								if (shapes.isEmpty()) {
+									shapes = mw.getCanvas().getScene().getShapes();
+								}
+								
+								trpShapes = new ArrayList<TrpRegionType>();
+								for (ICanvasShape shape : shapes) {
+									
+									ITrpShapeType type = shape.getTrpShapeType();
+									//if (!(type instanceof TrpTextLineType) && !(type instanceof TrpWordType)) {
+									if (type instanceof TrpTextRegionType || type instanceof TableCellType || type instanceof TableRegionType) {
+										//logger.debug("instance of trpregiontype");
+										trpShapes.add((TrpRegionType)type);
+									}
+								}
+							}
+							
+							int merged = PageXmlUtils.mergeSmallLines(tr.getPageData(), threshold, trpShapes);
+							
+							res.nShapesMerged += merged;
+							logger.debug("nMerged = "+merged);
+//							PageXmlUtils.filterOutSmallRegions(md.getUrl().toString(), threshold);
+							if (merged > 0) {
+								++res.nPagesChanged;
+								String msg = "After merge "+merged+" lines are left";
+								
+								res.affectedPageIndices.add(i);
+								
+								if (!dryRun) {
+									mw.getStorage().saveTranscript(mw.getStorage().getCurrentDocumentCollectionId(), tr, msg);									
+								}
+							}
+							
+							MonitorUtil.worked(monitor, ++worked);
+						}
+						
+						res.msg = "After merging "+res.nShapesMerged+" lines caare left over. "+res.nPagesChanged+"/"+res.nPagesTotal+" pages";
+						logger.info(res.msg);
+					} catch (Exception e) {
+						throw new InvocationTargetException(e, e.getMessage());
+					}
+				}
+			}, "Merging small lines", true);
+			
+			DialogUtil.showInfoMessageBox(getShell(), "Merging lines", res.msg+"\nPage numbers of affected pages: "+CoreUtils.getRangeListStrFromList(res.affectedPageIndices));
 			
 			if (!dryRun) {
 				mw.reloadCurrentPage(true, null, null);	
