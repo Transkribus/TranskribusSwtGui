@@ -120,6 +120,8 @@ public class CommonExportDialog extends Dialog {
 	
 	Button btnTei;
 	
+	Button b40_iobBtn;
+	
 	Button lineTagsRadio, lineBreaksRadio;
 	
 	CommonExportPars commonPars;
@@ -128,11 +130,10 @@ public class CommonExportDialog extends Dialog {
 	PdfExportPars pdfPars;
 	DocxExportPars docxPars;
 
-	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, 
+	boolean docxExport, pdfExport, teiExport, altoExport, singleTextFilesExport, splitUpWords, imgExport, metsExport, 
 	pageExport, tagXlsxExport, tagIOBExport, tableXlsxExport, zipExport, txtExport;
 
 //	String fileNamePattern = ExportFilePatternUtils.FILENAME_PATTERN;
-	
 	Button addExtraTextPagesBtn;
 	boolean addExtraTextPages2PDF;
 	Button imagesOnlyBtn;
@@ -176,6 +177,7 @@ public class CommonExportDialog extends Dialog {
 	
 	Combo imgQualityCmb = null;
 	Combo fontDropDown = null;
+	Combo statusCombo = null;
 	String font = "";
 	/*
 	 * TODO add image quality choice to PDF export too
@@ -320,6 +322,26 @@ public class CommonExportDialog extends Dialog {
 				boolean isServerTabSelected = exportTypeTabFolder.getSelection() == serverExportItem;
 				//logger.debug("setting server type export: "+isServerTabSelected);
 				setDoServerExport(isServerTabSelected);
+				//iob export only on server possible
+				if (b40_iobBtn.getSelection()){
+					b40_iobBtn.setSelection(isServerTabSelected);
+				}
+				b40_iobBtn.setEnabled(isServerTabSelected);
+				
+				/*
+				 * on server 'the currently loaded page' cannot be exported!
+				 * hence we remove this combo entry in that case
+				 */
+				if (isServerTabSelected){
+					if (versionStatus.equals(statusCombo.getItem(1))){
+						statusCombo.select(0);
+					}
+					statusCombo.remove(1);
+				}
+				else{
+					statusCombo.add("Loaded version (for current page)",1);
+				}
+				
 
 //				if (!isDoServerExport() && btnTei.getSelection()){
 //					btnTei.setSelection(false); 
@@ -382,9 +404,9 @@ public class CommonExportDialog extends Dialog {
 	    final Button b30 = new Button(group1, SWT.CHECK);
 	    b30.setText("Simple TXT");
 	    final Button b4 = new Button(group1, SWT.CHECK);
-	    b4.setText("Tag Export (Excel and IOB)");
-//	    final Button b40 = new Button(group1, SWT.CHECK);
-//	    b40.setText("Tag Export (IOB)");
+	    b4.setText("Tag Export (Excel)");
+	    b40_iobBtn = new Button(group1, SWT.CHECK);
+	    b40_iobBtn.setText("Tag Export (IOB)");
 	    final Button b41 = new Button(group1, SWT.CHECK);
 	    b41.setText("Table Export into Excel");
 	    // Create a horizontal separator
@@ -592,7 +614,7 @@ public class CommonExportDialog extends Dialog {
 	        public void widgetSelected(SelectionEvent event) {
 	            Button btn = (Button) event.getSource();
             	setTagXlsxExport(btn.getSelection());
-            	setTagIOBExport(true);
+            	//setTagIOBExport(true);
 	            showPageChoice();
 	            showTagChoice();
 	            shell.layout();
@@ -600,18 +622,18 @@ public class CommonExportDialog extends Dialog {
 	        }
 	    });
 	    
-//	    b40.addSelectionListener(new SelectionAdapter() {
-//
-//	        @Override
-//	        public void widgetSelected(SelectionEvent event) {
-//	            Button btn = (Button) event.getSource();
-//	            setTagIOBExport(btn.getSelection());
-//	            showPageChoice();
-//	            showTagChoice();
-//	            shell.layout();
-//	            
-//	        }
-//	    });
+	    b40_iobBtn.addSelectionListener(new SelectionAdapter() {
+
+	        @Override
+	        public void widgetSelected(SelectionEvent event) {
+	            Button btn = (Button) event.getSource();
+	            setTagIOBExport(btn.getSelection());
+	            showPageChoice();
+	            showTagChoice();
+	            shell.layout();
+	            
+	        }
+	    });
 	    
 	    b41.addSelectionListener(new SelectionAdapter() {
 
@@ -819,17 +841,17 @@ public class CommonExportDialog extends Dialog {
 	    group2.setText("Version status");
 	    group2.setLayout(new GridLayout(1, false));
 	    
-	    final Combo statusCombo = new Combo(group2, SWT.DROP_DOWN | SWT.READ_ONLY);
+	    statusCombo = new Combo(group2, SWT.DROP_DOWN | SWT.READ_ONLY);
 
 	    int size = EnumUtils.stringsArray(EditStatus.class).length + 2;
 	    
 	    //String items[] = new String[size];
 	    //String[] items = statusCombo.getItems();
-	    
-	    statusCombo.add("Latest version",0);
+	    int a = 0;
+	    statusCombo.add("Latest version",a++);
 	    setVersionStatus(statusCombo.getItem(0));
-	    statusCombo.add("Loaded version (for current page)",1);
-	    int a = 2;
+	    //statusCombo.add("Loaded version (for current page)",a++);
+	    
 
 	    for (String s : EnumUtils.stringsArray(EditStatus.class)){
 	    	statusCombo.add(s,a++);
@@ -980,7 +1002,7 @@ public class CommonExportDialog extends Dialog {
 			final Button e2 = new Button(metsComposite, SWT.CHECK);
 			final Button e21 = new Button(metsComposite, SWT.CHECK);
 			final Button e3 = new Button(metsComposite, SWT.CHECK);
-//			final Button e4 = new Button(metsComposite, SWT.CHECK);
+			final Button e4 = new Button(metsComposite, SWT.CHECK);
 			final Composite imgComp = new Composite(metsComposite, SWT.NONE);
 			imgComp.setLayout(new GridLayout(2, false));
 			Label imgQualLbl = new Label(imgComp, SWT.NONE);
@@ -999,12 +1021,11 @@ public class CommonExportDialog extends Dialog {
 			e21.setText("Export ALTO (Split Lines Into Words)");
 			e21.setToolTipText("Words get determined from the lines with some degree of fuzziness");
 			e3.setText("Export Image");
+			e4.setText("Export text files");
 			
 			imgQualityCmb.setItems(imgQualityChoices);
 			imgQualityCmb.select(0);
 			imgQualityCmb.pack();
-			
-//			e4.setText("Standardized Filenames");
 			
 			e1.addSelectionListener(new SelectionAdapter() {
 			
@@ -1071,18 +1092,13 @@ public class CommonExportDialog extends Dialog {
 			    }
 			});
 			
-//			e4.addSelectionListener(new SelectionAdapter() {
-//			    @Override
-//			    public void widgetSelected(SelectionEvent event) {
-//			        Button btn = (Button) event.getSource();
-//			        if (btn.getSelection()){
-//			        	setFileNamePattern(ExportFilenameUtils.STANDARDIZED_PATTERN);
-//			        }
-//			        else{
-//			        	setFileNamePattern(ExportFilenameUtils.FILENAME_PATTERN);
-//			        }
-//			    }
-//			});
+			e4.addSelectionListener(new SelectionAdapter() {
+			    @Override
+			    public void widgetSelected(SelectionEvent event) {
+			        Button btn = (Button) event.getSource();
+			        setSingleTextFilesExport(btn.getSelection());
+			    }
+			});
 			
 			return metsComposite;
 	}
@@ -1183,6 +1199,8 @@ public class CommonExportDialog extends Dialog {
 	    fontDropDown.add("FreeSerif");
 	    fontDropDown.add("Junicode");
 	    fontDropDown.add("NotoSans-Regular");
+	    //arabic
+	    fontDropDown.add("Scheherazade");
 	    //fontDropDown.add("DejaVuSansMono");
 	    fontDropDown.select(2);
 	    setFont(fontDropDown.getText());
@@ -1568,15 +1586,21 @@ public class CommonExportDialog extends Dialog {
 		updateAltoPars();
 		if (!isDoServerExport()){
 			updateTeiPars();
+			
 		}
 		updatePdfPars();
 		updateDocxPars();
 	}
 		
 	private void updateCommonPars() {
-		commonPars = new CommonExportPars(getPagesStr(), metsExport, imgExport, pageExport, altoExport, 
+
+		commonPars = new CommonExportPars(getPagesStr(), metsExport, imgExport, pageExport, altoExport, singleTextFilesExport,
 				pdfExport, teiExport, docxExport, txtExport, tagXlsxExport, tagIOBExport, tableXlsxExport, createTitlePage, versionStatus, wordBased, doBlackening, getSelectedTagsList(), font);
-		commonPars.setFileNamePattern(filenamePatternComp.pattern.text.getText());
+		
+		String fileNamePattern = filenamePatternComp.pattern.text.getText();
+		if(fileNamePattern != null) {
+			commonPars.setFileNamePattern(fileNamePattern);
+		}
 		
 		if(isImgExport() && imgQualityCmb != null) {
 			ImgType type = getSelectedImgType(imgQualityCmb);
@@ -1746,6 +1770,14 @@ public class CommonExportDialog extends Dialog {
 
 	public void setPageExport(boolean pageExport) {
 		this.pageExport = pageExport;
+	}
+
+	public boolean isSingleTextFilesExport() {
+		return singleTextFilesExport;
+	}
+
+	public void setSingleTextFilesExport(boolean singleTextFilesExport) {
+		this.singleTextFilesExport = singleTextFilesExport;
 	}
 
 	public boolean isAddExtraTextPages2PDF() {

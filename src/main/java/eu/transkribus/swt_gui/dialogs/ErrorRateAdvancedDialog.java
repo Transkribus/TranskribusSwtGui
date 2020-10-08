@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,8 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
+import eu.transkribus.core.model.beans.TrpBaselineErrorRate;
+import eu.transkribus.core.model.beans.TrpBaselineErrorRateListEntry;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpErrorRate;
@@ -51,16 +54,22 @@ import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
+import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.JobDataUtils;
+import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.kws.AJobResultTableEntry;
+import eu.transkribus.swt_gui.search.kws.KwsResultTableLabelProvider;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
+import eu.transkribus.swt_gui.tool.error.TrpBaselineErrorResultTableEntry;
 import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
 import eu.transkribus.swt_gui.tools.ToolsWidget.TranscriptVersionChooser;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
@@ -77,7 +86,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	private KwsResultTableWidget resultTable;
 	private Group resultGroup;
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
-	private LabeledCombo options;
+	private LabeledCombo type, options;
+	private Button blHelpBtn;
 	private Button compare, wikiOptions, tableCheck;
 	private ParameterMap params = new ParameterMap();
 	ResultLoader rl;
@@ -164,18 +174,41 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		Composite config = new Composite(sashFormAdvance,SWT.NONE);
 		
-		config.setLayout(new GridLayout(3,false));
+		config.setLayout(new GridLayout(2,false));
+		
+		type = new LabeledCombo(config, "Type: ");
+		type.combo.setItems("HTR", "Baselines");
+		type.combo.select(0);
+		
+		blHelpBtn = new Button(config, 0);
+		blHelpBtn.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
+		blHelpBtn.setText("");
+		blHelpBtn.setImage(Images.HELP);
+		SWTUtil.onSelectionEvent(blHelpBtn, e -> {
+			DesktopUtil.browse("https://github.com/Transkribus/TranskribusBaseLineEvaluationScheme", "https://github.com/Transkribus/TranskribusBaseLineEvaluationScheme",
+					getParentShell());
+		});
 		
 		dps = new CurrentTranscriptOrCurrentDocPagesSelector(config, SWT.NONE, true,false);
-		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
+		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 2, 1));
 
-		options = new LabeledCombo(config, "Options");
+		options = new LabeledCombo(config, "Options: ");
 		options.combo.setItems("default (case sensitive) ","case insensitive");
 		options.combo.select(0);
+		
+		updateConfigUi();
+		SWTUtil.onSelectionEvent(type.combo, e -> {
+			updateConfigUi();
+		});
 		
 //		tableCheck = new Button(config, SWT.CHECK);
 //		tableCheck.setText("Exclude tables");
 	
+	}
+	
+	private void updateConfigUi() {
+		options.setEnabled(type.combo.getSelectionIndex()==0);
+		blHelpBtn.setVisible(type.combo.getSelectionIndex()==1);
 	}
 	
 	public void refAndHypChooser() {
@@ -219,6 +252,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		compare = new Button(comp,SWT.PUSH);
 		compare.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 4, 4));
 		compare.setText("Compare");
+		compare.setImage(Images.ARROW_RIGHT);
 		
 		if(comboHyp.getItemCount() != 0) {
 			comboHyp.select(0);
@@ -260,6 +294,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				super.widgetSelected(e);
 				int optionIndex = options.combo.getSelectionIndex();
 				logger.debug("Option index : "+optionIndex);
+				params.addParameter("type", type.combo.getSelectionIndex());
 				params.addParameter("option", options.combo.getSelectionIndex());
 				params.addParameter("hyp", comboHyp.getItem(comboHyp.getSelectionIndex()));
 				params.addParameter("ref", comboRef.getItem(comboRef.getSelectionIndex()));
@@ -370,20 +405,61 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		resultTable = new KwsResultTableWidget(resultGroup,0);
 		resultTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		// adding new columns + customizing label provider:
+		resultTable.getTableViewer().addColumns(new ColumnConfig("Type", 70));
+		resultTable.getTableViewer().addColumns(new ColumnConfig("Results", 400));
+		resultTable.getTableViewer().setLabelProvider(new KwsResultTableLabelProvider(resultTable.getTableViewer()) {
+			@Override
+			public String getColumnText(Object element, int columnIndex) {
+				TableColumn column = resultTable.getTableViewer().getTable().getColumn(columnIndex);
+				String ct = column.getText();
+				
+				if (ct.equals("Type")) {
+					if (element instanceof TrpBaselineErrorResultTableEntry) {
+						return "Baselines";
+					}
+					if (element instanceof TrpErrorResultTableEntry) {
+						return "HTR";
+					}
+				}
+				else if (ct.equals("Results")) {
+					if (element instanceof TrpBaselineErrorResultTableEntry) {
+						TrpBaselineErrorResultTableEntry res = (TrpBaselineErrorResultTableEntry) element;
+						return res.getResult()==null ? "" : res.getResult().getSummary();
+					}
+					if (element instanceof TrpErrorResultTableEntry) {
+						TrpErrorResultTableEntry res = (TrpErrorResultTableEntry) element;
+						return res.getResult()==null ? "" : "CER/WER: "+res.getResult().getCer()+"/"+res.getResult().getWer();
+					}	
+				}
+
+				return super.getColumnText(element, columnIndex);
+			}
+		});
+		// ---
 		
 		resultTable.getTableViewer().addDoubleClickListener(new IDoubleClickListener(){
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
-				TrpErrorResultTableEntry entry = (TrpErrorResultTableEntry) resultTable.getSelectedEntry();
+				AJobResultTableEntry<?> entry = resultTable.getSelectedEntry();
+				logger.debug("entry = "+entry);
 				if(entry != null && entry.getStatus().equals("Completed") ) {
 					int docId = store.getDocId();
 					String query = entry.getQuery();
-					TrpErrorRate result = entry.getResult();
-					ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), result,docId,query);
-					stats.open();
+					if (entry instanceof TrpErrorResultTableEntry) {
+						TrpErrorRate result = (TrpErrorRate) entry.getResult();
+						ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), result, docId, query);
+						stats.open();
+					}
+					else if (entry instanceof TrpBaselineErrorResultTableEntry) {
+						logger.debug("here!");
+						TrpBaselineErrorRate result = (TrpBaselineErrorRate) entry.getResult();
+						BaselineErrorRateStatsDiag d = new BaselineErrorRateStatsDiag(getShell(), result, docId, query);
+						d.open();
 					}
 				}
-			});
+			}
+		});
 	}
 	
 	public TrpCollection getCurrentCollection() {
@@ -407,6 +483,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				
 		computeWerBtn = new Button(werGroup, SWT.PUSH);
 		computeWerBtn.setText("Compare");
+		computeWerBtn.setImage(Images.ARROW_RIGHT);
 		computeWerBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 0, 1));
 		computeWerBtn.setToolTipText("Compares the two selected transcripts and computes word error rate and character error rate.");
 		
@@ -427,11 +504,41 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 	}
 	
+	private AJobResultTableEntry<?> createResultTableEntry(TrpJobStatus job) {
+		try {
+//			logger.debug("params = "+job.getJobData());
+			ParameterMap params = JobDataUtils.getParameterMap(job.getJobDataProps().getProperties(), JobConst.PROP_PARAMETERS);
+//			logger.debug("typeStr = "+params.getParameterValue("type"));
+			Integer type = params.getIntParam("type", 0);
+//			logger.debug("type = "+type);
+			if (type == 0) {
+				return new TrpErrorResultTableEntry(job);
+			}
+			else if (type == 1) {
+				return new TrpBaselineErrorResultTableEntry(job);
+			}
+			else {
+				return null;
+			}			
+		}
+		catch (Exception e) {
+			logger.error("Error creating table entry: "+e.getMessage(), e);
+			return null;
+		}
+
+	}
+	
 	private void updateResultTable(List<TrpJobStatus> jobs) {
-		List<TrpErrorResultTableEntry> errorList = new LinkedList<>();
+//		List<TrpErrorResultTableEntry> errorList = new LinkedList<>();
+		List<AJobResultTableEntry<?>> errorList = new LinkedList<>();
 
 		for(TrpJobStatus j : jobs) {
-			errorList.add(new TrpErrorResultTableEntry(j));
+			AJobResultTableEntry<?> e = createResultTableEntry(j);
+			if (e != null) {
+				errorList.add(e);	
+			}
+			
+//			errorList.add(new TrpErrorResultTableEntry(j));
 		}
 		
 		if(jobs != null && jobs.size() != 0 && jobs.get(0).isFinished()) {

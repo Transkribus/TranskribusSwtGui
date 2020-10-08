@@ -2,10 +2,12 @@ package eu.transkribus.swt_gui.tool.error;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.io.util.TrpProperties;
+import eu.transkribus.core.model.beans.TrpBaselineErrorRateListEntry;
 import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
@@ -26,11 +28,11 @@ public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>
 	protected TrpErrorRate extractResult(TrpProperties props) {
 		final String xmlStr = props.getString(JobConst.PROP_RESULT);
 		TrpErrorRate res = null;
-		if(xmlStr != null) {
+		if(!StringUtils.isEmpty(xmlStr)) {
 			try {
 				res = JaxbUtils.unmarshal(xmlStr, TrpErrorRate.class);
 			} catch (JAXBException e) {
-				logger.error("Could not unmarshal error result result from job!");
+				logger.warn("Could not unmarshal error result result from job - skipping");
 			}
 		}
 		return res;	

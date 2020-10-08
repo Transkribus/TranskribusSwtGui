@@ -82,7 +82,7 @@ public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<
 			new ColumnConfig(ID_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 			new ColumnConfig(RESULT_COL, 100, false, DefaultTableColumnViewerSorter.ASC),};
 
-	protected Button showAllJobsBtn, cancelBtn, allowUsersForJobBtn;
+	protected Button showAllJobsBtn, cancelBtn, allowUsersForJobBtn, undoJobBtn;
 	protected Combo stateCombo;
 	protected Text docIdText;
 	protected Text typeFilterTxt;
@@ -99,7 +99,7 @@ public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<
 		pageableTable.getController().setSort("createTime", SWT.UP);
 		
 		Composite topBtns = new Composite(this, 0);
-		topBtns.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
+		topBtns.setLayout(SWTUtil.createGridLayout(4, false, 0, 0));
 		topBtns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		topBtns.moveAbove(pageableTable);
 		
@@ -114,13 +114,18 @@ public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<
 		allowUsersForJobBtn = new Button(topBtns, 0);
 		allowUsersForJobBtn.setText("Allow users for job...");
 		
+		undoJobBtn = new Button(topBtns, 0);
+		undoJobBtn.setText("Undo job");
+		undoJobBtn.setToolTipText("Undo this job on the loaded document. First load the document of the job to enable the button");
+		undoJobBtn.setEnabled(false);
+		
 		boolean visible = Storage.getInstance().isLoggedIn() && Storage.getInstance().getUser().isAdmin();
 		showAllJobsBtn.setVisible(visible);
 		allowUsersForJobBtn.setVisible(visible);		
 
 		Composite btns = new Composite(this, 0);
 		btns.setLayout(new GridLayout(2, false));
-		topBtns.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
+		topBtns.setLayout(SWTUtil.createGridLayout(4, false, 0, 0));
 
 		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 //		btns.moveAbove(pageableTable);
@@ -234,6 +239,10 @@ public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<
 	
 	public Button getAllowUsersForJobBtn() {
 		return allowUsersForJobBtn;
+	}
+
+	public Button getUndoJobBtn() {
+		return undoJobBtn;
 	}
 
 	@Override
@@ -510,4 +519,13 @@ public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<
 			errorDiag.open();
 		}
 	}
+
+	public void setUndoVisible() {
+		undoJobBtn.setEnabled(true);
+	}
+
+	public void setUndoInvisible() {
+		undoJobBtn.setEnabled(false);		
+	}
+	
 }

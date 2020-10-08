@@ -687,4 +687,30 @@ CHANGES AND BUGFIXES
 	-> P2PaLA train dialog - "Analyze structure types" fixes
 	-> HTR configuration dialog bugfix: did not load when stored configuration contained a deleted model
 	-> fix a memory leak in CanvasImage
+	-> xlsx export: concat continued tags
+	
+1.11.0:
+	-> integrate baseline error rate tool
+	-> improve P2PaLA train dialog - check structures and merged-structures consistency
+	-> status change of one page is checked for reasonableness and creates new transcript version
+	-> label existing layouts using P2PaLA
+	-> Export option to export a text file for each selected page
+	-> severe bugfix: update JRE for MacOS to version 8u251 to support server certificate 
+	-> paged htr model tables
+	
+1.12.0:
+	-> (PyLaia) training from compressed viewing files 
+	-> bugfix: reading order after merge
+	-> bugfix: editing pagination in the document manager dialog could lead to errors in the following save operations 
+	-> PDF export: PDFs are much smaller now! for binarized images choosing 'Original' as image type delivers the smallest size, in most other cases 'JPEG'
+	-> add collection doclist export as CSV (via green arrow-down button in the doclist toolbar)
+	-> main menu: user can choose to load last modified document in Transkribus at start time
+	-> HTR model lists are now all represented as tree or table widget pagination
+	-> Undo a job (see the 'Jobs Overview': 'Undo button' will be enabled if the docID of the job corresponds to the ID of the currently loaded document)
+	-> Documents moved to the recycle bin are automatically discarded after two weeks
+	-> New cool feature ;) can be found here: 'Canvas tool bar' - 'Other segmentation tools' - 'Copy shapes to other pages': after the user has drawn tables or text regions he wants to copy this table/text regions for all the other pages as well because they look pretty much the same
+	-> And another one: same same but different: 'Canvas tool bar' - 'Other segmentation tools' - 'Remove small text lines': deletes lines which are very small in relation to their region - needs to be checked afterwards
+	-> Last but not least in this series: 'Canvas tool bar' - 'Other segmentation tools' - 'Merge small text lines': automatically merges small text lines in the same row (should be used carefully)
+	-> Editorial Declaration: export your selected transcription options directly in the 'Editorial Declaration Dialog' into XLSX
+	
 	

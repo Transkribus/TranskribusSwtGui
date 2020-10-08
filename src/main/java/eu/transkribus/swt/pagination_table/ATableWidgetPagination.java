@@ -396,6 +396,10 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 		}
 	}
 	
+	public void clearSelection() {
+		getTableViewer().setSelection(null);
+	}
+	
 	public T getFirstSelected() {
 		if(tv == null) {
 			return null;
@@ -413,6 +417,10 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	
 	public IStructuredSelection getSelectedAsIStructuredSelection() {
 		return ((IStructuredSelection) tv.getSelection());
+	}
+	
+	public List<T> getItemsOfCurrentPage() {
+		return (List<T>) pageableTable.getViewer().getInput();
 	}
 	
 	protected abstract void createColumns();

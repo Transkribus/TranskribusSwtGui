@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.ClientErrorException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -46,6 +47,7 @@ import eu.transkribus.core.model.beans.TextFeatsCfg;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.DataSetType;
+import eu.transkribus.core.model.beans.enums.DocType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.core.util.HtrPyLaiaUtils;
@@ -73,6 +75,7 @@ public class HtrDetailsWidget extends SashForm {
 	
 	Text nameTxt, langTxt, descTxt, nrOfLinesTxt, nrOfWordsTxt, finalTrainCerTxt, finalValCerTxt;
 	Combo publishStateCombo;
+	Combo docTypeCombo;
 	Table paramTable;
 	Button updateMetadataBtn, showTrainSetBtn, showValSetBtn, showCharSetBtn, showAdvancedParsBtn;
 	ChartComposite jFreeChartComp;
@@ -112,9 +115,17 @@ public class HtrDetailsWidget extends SashForm {
 		Label paramLbl = new Label(mdComp, SWT.NONE);
 		paramLbl.setText("Parameters:");
 
-		descTxt = new Text(mdComp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP);
-		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		Composite descMdContainer = new Composite(mdComp, 0);
+		descMdContainer.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
+		descMdContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		descTxt = new Text(descMdContainer, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP);
+		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		validator.attach("Description", descTxt, 1, 2048, h -> h.getDescription());
+		
+		Label docTypeLabel = new Label(descMdContainer, SWT.NONE);
+		docTypeLabel.setText("Document Type:");
+		createDocTypeCombo(descMdContainer);
 		
 		Composite paramsContainer = new Composite(mdComp, 0);
 		paramsContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
@@ -232,6 +243,21 @@ public class HtrDetailsWidget extends SashForm {
 		}
 		validator.attach("Visibility", publishStateCombo, -1, -1, h -> "" + h.getReleaseLevel());
 	}
+	
+	private void createDocTypeCombo(Composite parent) {
+		docTypeCombo = new Combo(parent, SWT.READ_ONLY);
+		docTypeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		List<Pair<String, Integer>> docTypes = new ArrayList<>(2);
+		docTypes.add(Pair.of("Handwritten", DocType.HANDWRITTEN.getValue()));
+		docTypes.add(Pair.of("Print", DocType.PRINT.getValue()));
+		
+		for(Pair<String, Integer> e : docTypes) {
+			docTypeCombo.add(e.getKey());
+			docTypeCombo.setData(e.getKey(), e.getValue());
+		}
+		docTypeCombo.setEnabled(false);
+	}
 
 	void updateDetails(TrpHtr htr) {		
 		this.htr = htr;
@@ -276,6 +302,13 @@ public class HtrDetailsWidget extends SashForm {
 		nrOfWordsTxt.setText(htr.getNrOfWords() > 0 ? "" + htr.getNrOfWords() : NOT_AVAILABLE);
 		nrOfLinesTxt.setText(htr.getNrOfLines() > 0 ? "" + htr.getNrOfLines() : NOT_AVAILABLE);
 
+		for(int i = 0; i < docTypeCombo.getItemCount(); i++) {
+			if(docTypeCombo.getData(docTypeCombo.getItem(i)).equals(htr.getDocType())) {
+				docTypeCombo.select(i);
+				break;
+			}
+		}
+		
 		if(publishStateCombo != null) {
 			for(int i = 0; i < publishStateCombo.getItemCount(); i++) {
 				if(publishStateCombo.getData(publishStateCombo.getItem(i)).equals(htr.getReleaseLevel())) {
@@ -355,6 +388,17 @@ public class HtrDetailsWidget extends SashForm {
 					addTableItem(paramTable, "Normalized height", ""+textFeatsCfg.getNormheight());
 				}
 				
+				String baseModelStr = "";
+				if (paramsProps.containsKey(HtrPyLaiaUtils.BASE_MODEL_ID_KEY)) {
+					baseModelStr += paramsProps.getProperty(HtrPyLaiaUtils.BASE_MODEL_ID_KEY);
+				}
+				if (paramsProps.containsKey(HtrPyLaiaUtils.BASE_MODEL_NAME_KEY)) {
+					baseModelStr += (baseModelStr.isEmpty() ? "" : " / ") + paramsProps.getProperty(HtrPyLaiaUtils.BASE_MODEL_NAME_KEY);
+				}
+				if (!StringUtils.isEmpty(baseModelStr)) {
+					addTableItem(paramTable, "Base model", baseModelStr);
+				}
+				
 				// TODO: how to show all pars? --> advanced pars dialog --> via showAdvancedParsBtn!!
 				
 //				for (Object key : paramsProps.keySet()) {
@@ -414,34 +458,41 @@ public class HtrDetailsWidget extends SashForm {
 		if(referenceSeries != null && referenceSeries.length > 0) {
 			
 			int storedNetEpoch;
-			if(HtrCITlabUtils.PROVIDER_CITLAB_PLUS.equals(htr.getProvider())) {
+			if(HtrCITlabUtils.PROVIDER_CITLAB_PLUS.equals(htr.getProvider()) || HtrPyLaiaUtils.PROVIDER_PYLAIA.equals(htr.getProvider())) {
 				//HTR+ always uses model from last training iteration
 				storedNetEpoch = referenceSeries.length;
-			} else {
+			}
+			
+			else {
+				
 				//legacy routine, working for HTR and PyLaia but not HTR+! Find min value in referenceSeries
 				storedNetEpoch = getMinCerEpoch(htr, referenceSeries);
 			}
 
-			if(storedNetEpoch > 0) {
-				logger.debug("best net stored after epoch {}", storedNetEpoch);
-				int seriesIndex = 0;
-				if(htr.hasCerLog()) {
-					double storedHtrTrainCer = htr.getCerLog()[storedNetEpoch - 1];
-					storedHtrTrainCerStr = HtrCITlabUtils.formatCerVal(storedHtrTrainCer);
-					plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.BLUE);
+			try {
+				if(storedNetEpoch > 0) {
+					logger.debug("best net stored after epoch {}", storedNetEpoch);
+					int seriesIndex = 0;
+					if(htr.hasCerLog()) {
+						double storedHtrTrainCer = htr.getCerLog()[storedNetEpoch - 1];
+						storedHtrTrainCerStr = HtrCITlabUtils.formatCerVal(storedHtrTrainCer);
+						plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.BLUE);
+					}
+					
+					if (htr.hasCerTestLog()) {
+						double storedHtrValCer = htr.getCerTestLog()[storedNetEpoch - 1];
+						storedHtrValCerStr = HtrCITlabUtils.formatCerVal(storedHtrValCer);
+						plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.RED);
+					}
+					
+					//annotate storedNetEpoch in the chart
+					XYLineAnnotation lineAnnot = new XYLineAnnotation(storedNetEpoch, 0.0, storedNetEpoch, 100.0,
+							new BasicStroke(), java.awt.Color.GREEN);
+					lineAnnot.setToolTipText("Stored HTR");
+					plot.addAnnotation(lineAnnot);
 				}
-				
-				if (htr.hasCerTestLog()) {
-					double storedHtrValCer = htr.getCerTestLog()[storedNetEpoch - 1];
-					storedHtrValCerStr = HtrCITlabUtils.formatCerVal(storedHtrValCer);
-					plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.RED);
-				}
-				
-				//annotate storedNetEpoch in the chart
-				XYLineAnnotation lineAnnot = new XYLineAnnotation(storedNetEpoch, 0.0, storedNetEpoch, 100.0,
-						new BasicStroke(), java.awt.Color.GREEN);
-				lineAnnot.setToolTipText("Stored HTR");
-				plot.addAnnotation(lineAnnot);
+			} catch (Exception e) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "Cannot determine best net epoch: "+e.getMessage());
 			}
 		} else {
 			plot.setNoDataMessage("No data available");

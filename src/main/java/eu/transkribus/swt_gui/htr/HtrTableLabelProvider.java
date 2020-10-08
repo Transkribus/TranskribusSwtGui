@@ -78,23 +78,34 @@ public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontPro
 
 			TableColumn column = table.getColumn(columnIndex);
 			String ct = column.getText();
-			switch (ct) {
-			case HtrTableWidget.HTR_NAME_COL:
-				return htr.getName();
-			case HtrTableWidget.HTR_LANG_COL:
-				return htr.getLanguage();
-			case HtrTableWidget.HTR_ID_COL:
-				return "" + htr.getHtrId();
-			case HtrTableWidget.HTR_CREATOR_COL:
-				return htr.getUserName() == null ? "Unknown" : htr.getUserName();
-			case HtrTableWidget.HTR_TECH_COL:
-				return getLabelForHtrProvider(htr.getProvider());
-			case HtrTableWidget.HTR_DATE_COL:
-				return createDateFormat.format(htr.getCreated());
-			default:
-				return NOT_AVAILABLE_LABEL;
-			}
+			
+			return getColumnText(htr, ct);
 		} else {
+			return NOT_AVAILABLE_LABEL;
+		}
+	}
+	
+	public String getColumnText(TrpHtr htr, String columnName) {
+		switch (columnName) {
+		case HtrPagedTableWidget.HTR_NAME_COL:
+			return htr.getName();
+		case HtrPagedTableWidget.HTR_LANG_COL:
+			return htr.getLanguage();
+		case HtrPagedTableWidget.HTR_ID_COL:
+			return "" + htr.getHtrId();
+		case HtrPagedTableWidget.HTR_CREATOR_COL:
+			return htr.getUserName() == null ? "Unknown" : htr.getUserName();
+		case HtrPagedTableWidget.HTR_TECH_COL:
+			return getLabelForHtrProvider(htr.getProvider());
+		case HtrPagedTableWidget.HTR_DATE_COL:
+			return createDateFormat.format(htr.getCreated());
+		case HtrPagedTableWidget.HTR_WORDS_COL:
+			return createDateFormat.format(htr.getNrOfWords());
+//		case HtrPagedTableWidget.HTR_CER_COL:
+//			double[] referenceSeries = htr.getCerTestLog();
+//			double storedHtrValCer = htr.getCerTestLog()[referenceSeries.length - 1];
+//			return HtrCITlabUtils.formatCerVal(storedHtrValCer);
+		default:
 			return NOT_AVAILABLE_LABEL;
 		}
 	}

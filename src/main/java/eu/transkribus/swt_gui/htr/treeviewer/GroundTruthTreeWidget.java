@@ -59,10 +59,10 @@ public class GroundTruthTreeWidget extends Composite {
 	//ToolItem clearPageItem, deleteSelectedBtn;
 	//List<ToolItem> editToolItems;
 	
-	public final static ColConfig NAME_COL = new ColConfig("Name", 240);
-	public final static ColConfig SIZE_COL = new ColConfig("Size", 150);
-	public final static ColConfig CURATOR_COL = new ColConfig("Curator", 240);
-	public final static ColConfig ID_COL = new ColConfig("HTR ID", 100);
+	public final static ColConfig NAME_COL = new ColConfig("Name", 240, "name");
+	public final static ColConfig SIZE_COL = new ColConfig("Size", 150, "size");
+	public final static ColConfig CURATOR_COL = new ColConfig("Curator", 240, "userName");
+	public final static ColConfig ID_COL = new ColConfig("HTR ID", 100, "htrId");
 
 	public final static ColConfig[] COLUMNS = new ColConfig[] { NAME_COL, SIZE_COL, CURATOR_COL, ID_COL };
 	
@@ -232,7 +232,7 @@ public class GroundTruthTreeWidget extends Composite {
 		GroundTruthSelectionDescriptor desc = new GroundTruthSelectionDescriptor(gtSet.getId(), gtSet.getDataSetType().toString());
 		
 		try {
-			TrpMainWidget.getInstance().duplicateGtToDocument(col, desc, title);
+			TrpMainWidget.getInstance().duplicateGtToDocument(Storage.getInstance().getCollId(), col, desc, title);
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e1) {
 			logger.debug("Could copy dataset to collection!", e1);
 			String errorMsg = "The data set could not be copied to this collection.";

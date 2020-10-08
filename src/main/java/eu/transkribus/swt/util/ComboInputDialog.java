@@ -1,7 +1,9 @@
 package eu.transkribus.swt.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.fieldassist.AutoCompleteField;
 import org.eclipse.jface.fieldassist.ComboContentAdapter;
 import org.eclipse.swt.SWT;
@@ -31,6 +33,8 @@ public class ComboInputDialog extends Dialog {
 	
 	String labelTxt;
 	String[] items;
+	
+	IInputValidator validator;
 
 	public ComboInputDialog(Shell parentShell, String labelTxt, String[] items) {
 		this(parentShell, labelTxt, items, SWT.READ_ONLY | SWT.DROP_DOWN, false);
@@ -48,6 +52,9 @@ public class ComboInputDialog extends Dialog {
 		this.items = items;
 	}
 	
+	public void setValidator(IInputValidator validator) {
+		this.validator = validator;
+	}
 	
 
 	public String getSelectedText() {
@@ -110,6 +117,19 @@ public class ComboInputDialog extends Dialog {
 	 */
 	@Override protected Point getInitialSize() {
 		return new Point(450, 200);
+	}
+	
+	@Override
+	public void okPressed() {
+		updateVals();
+		if (validator != null) {
+			String errMsg = validator.isValid(selectedText);
+			if (!StringUtils.isEmpty(errMsg)) {
+				DialogUtil.showErrorMessageBox(getShell(), "Invalid value", errMsg);
+				return;
+			}
+		}
+		super.okPressed();
 	}
 
 }

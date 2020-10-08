@@ -235,8 +235,10 @@ public class HtrTextRecognitionDialog extends Dialog {
 			config.setDoStoreConfMats(citlabConfComp.doStoreConfMatsBtn.getSelection());			
 		}
 		else {
+			config.setUseExistingLinePolygons(pylaiaConfComp.useExistingLinePolygonsBtn.getSelection());
 			config.setDoLinePolygonSimplification(pylaiaConfComp.doLinePolygonSimplificationBtn.getSelection());
-			config.setClearLines(pylaiaConfComp.clearLinesBtn.getSelection());
+//			config.setClearLines(pylaiaConfComp.clearLinesBtn.getSelection());
+			config.setDoWordSeg(pylaiaConfComp.doWordSegBtn.getSelection());
 			
 			try {
 				int batchSize = Integer.parseInt(pylaiaConfComp.batchSizeText.getText());

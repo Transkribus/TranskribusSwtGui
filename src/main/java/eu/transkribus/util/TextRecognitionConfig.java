@@ -12,15 +12,18 @@ public class TextRecognitionConfig {
 	private String language;
 	//CITLab and UPVLC, TODO replace with LangResource-ID
 	private String dictionary;
+	private String languageModel;
 	//CITlab and UPVLC
 	private int htrId;
 	private String htrName;
 	private List<String> structures;
 
+	private boolean useExistingLinePolygons = false;
 	private boolean doLinePolygonSimplification = true;
 	private boolean keepOriginalLinePolygons = false;
 	private boolean doStoreConfMats = true;
 	private boolean clearLines = true;
+	private boolean doWordSeg = true;
 	private int batchSize = 10;
 	
 	public TextRecognitionConfig(Mode mode) {
@@ -35,7 +38,13 @@ public class TextRecognitionConfig {
 		this.doLinePolygonSimplification = doLinePolygonSimplification;
 	}
 
+	public boolean isUseExistingLinePolygons() {
+		return useExistingLinePolygons;
+	}
 
+	public void setUseExistingLinePolygons(boolean useExistingLinePolygons) {
+		this.useExistingLinePolygons = useExistingLinePolygons;
+	}
 
 	public boolean isKeepOriginalLinePolygons() {
 		return keepOriginalLinePolygons;
@@ -63,6 +72,14 @@ public class TextRecognitionConfig {
 		this.clearLines = clearLines;
 	}
 	
+	public boolean isDoWordSeg() {
+		return doWordSeg;
+	}
+
+	public void setDoWordSeg(boolean doWordSeg) {
+		this.doWordSeg = doWordSeg;
+	}
+
 	public void setBatchSize(int batchSize) {
 		this.batchSize = batchSize;
 	}
@@ -128,34 +145,45 @@ public class TextRecognitionConfig {
 	public void setStructures(List<String> structures) {
 		this.structures = structures;
 	}
+	
+
+	public String getLanguageModel() {
+		return languageModel;
+	}
+
+	public void setLanguageModel(String languageModel) {
+		this.languageModel = languageModel;
+	}
 
 	@Override
 	public String toString() {
-		String s = "";
-		
-		switch(mode) {
-		case CITlab:			
-			s = "CITlab HTR "+htrId+"\n"
-					+ "\t- Net Name: " + htrName + "\n"
-					+ "\t- Language: " + language + "\n"
-					+ "\t- " + getDictLabel(dictionary);
-			break;
-		case UPVLC:
-			s = "PyLaia HTR "+htrId+"\n"
-					+ "\t- Name: " + htrName + "\n"
-					+ "\t- Language: " + language+ "\n" 
-					+ "\t- " + getDictLabel(dictionary);
-//			s = "PyLaia HTR\nNet Name: " + htrName + "\nLanguage: " + language;			
-			break;
-		default:
-			s = "Could not load configuration!";
-			break;
-		}
-		
-		return s;
+		return getProviderString() + " HTR "+htrId+"\n"
+				+ "\t- Net Name: " + htrName + "\n"
+				+ "\t- Language: " + language + "\n"
+				+ "\t- " + getDictOrLMLabel();
 	}
 	
-	private String getDictLabel(String dictionary) {
+	private String getProviderString() {
+		return mode == Mode.CITlab ? "CITlab" : "PyLaia";
+	}
+	
+	private String getDictOrLMLabel() {
+		return languageModel != null ? getLMLabel() : getDictLabel(); 
+	}
+	
+	private String getLMLabel() {
+		if(languageModel == null) {
+			return "Language Model: "+HtrDictionaryComposite.NO_DICTIONARY;
+		}
+		else if (JobConst.PROP_TRAIN_DATA_LM_VALUE.equals(languageModel)) {
+			return HtrDictionaryComposite.INTEGRATED_LM;
+		}
+		else {
+			return "Language Model: "+languageModel;
+		}
+	}	
+	
+	private String getDictLabel() {
 		String dictLabel;
 		if(dictionary == null) {
 			dictLabel = "Language Model: "+HtrDictionaryComposite.NO_DICTIONARY;
@@ -172,4 +200,6 @@ public class TextRecognitionConfig {
 	public enum Mode {
 		CITlab, UPVLC;
 	}
+
+
 }

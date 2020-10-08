@@ -12,12 +12,15 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 	
 	Button currentTanscriptRadio;
 	Button pagesRadio;
+	
+	boolean withCurrTranscript;
 	
 	CurrentDocPagesSelector ps;
 
@@ -28,6 +31,8 @@ public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 		GridLayout gl = new GridLayout(nColumns, false);
 		gl.marginHeight = gl.marginWidth = 0;
 		this.setLayout(gl);
+		
+		withCurrTranscript = withCurrentTranscript;
 		
 		if(withCurrentTranscript) {
 			currentTanscriptRadio = new Button(this, SWT.RADIO);
@@ -57,14 +62,25 @@ public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 			currentTanscriptRadio.addSelectionListener(radioSelection);
 		}
 		updateGui();
+		
+		if (!withCurrentTranscript) {
+			selectPagesRadio();
+		}
 	}
 	
 	public void updateGui() {
-		ps.setEnabled(pagesRadio.getSelection());
+		if (ps != null) {
+			ps.setEnabled(pagesRadio.getSelection());	
+		}
 	}
 	
 	public boolean isCurrentTranscript() {
-		return currentTanscriptRadio.getSelection();
+		if (withCurrTranscript) {
+			return currentTanscriptRadio.getSelection();
+		}
+		else {
+			return false;
+		}
 	}
 	
 	public Button getCurrentTranscriptButton() {
@@ -80,8 +96,8 @@ public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 	}
 	
 	public void selectPagesRadio(){
-		pagesRadio.setSelection(true);
-		currentTanscriptRadio.setSelection(false);
+		SWTUtil.setSelection(pagesRadio, true);
+		SWTUtil.setSelection(currentTanscriptRadio, false);
 		updateGui();
 	}
 	

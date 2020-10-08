@@ -20,6 +20,10 @@ public class LabeledText extends Composite {
 	}
 	
 	public LabeledText(Composite parent, String labelText, boolean makeColumnsEqualWidth) {
+		this(parent, labelText, makeColumnsEqualWidth, SWT.BORDER | SWT.SINGLE);
+	}
+	
+	public LabeledText(Composite parent, String labelText, boolean makeColumnsEqualWidth, int textStyle) {
 		super(parent, 0);
 		
 		this.setLayout(SWTUtil.createGridLayout(2, makeColumnsEqualWidth, 0, 0));
@@ -27,7 +31,7 @@ public class LabeledText extends Composite {
 		label = new Label(this, 0);
 		label.setText(labelText);
 		
-		text = new Text(this, SWT.BORDER | SWT.SINGLE);
+		text = new Text(this, textStyle);
 		text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		text.addVerifyListener( new VerifyListener() {
@@ -51,6 +55,7 @@ public class LabeledText extends Composite {
 	public void setEnabled(boolean enabled) {
 		SWTUtil.setEnabled(label, enabled);
 		SWTUtil.setEnabled(text, enabled);
+		super.setEnabled(enabled);
 	}
 	
 	@Override public void setToolTipText(String tooltip) {

@@ -48,6 +48,7 @@ import eu.transkribus.swt_gui.htr.HtrDetailsDialog;
 import eu.transkribus.swt_gui.htr.treeviewer.GroundTruthTreeWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthLabelAndFontProvider;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrPagedTreeWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DropDownButton;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
@@ -71,7 +72,8 @@ public class ServerWidget extends Composite {
 	CTabFolder tabFolder;
 	CTabItem documentsTabItem, gtTabItem;
 	
-	GroundTruthTreeWidget groundTruthTreeWidget;
+	//GroundTruthTreeWidget groundTruthTreeWidget;
+	HtrPagedTreeWidget htrTreeWidget;
 //	TreeViewer groundTruthTv;
 	
 	RecentDocsComboViewerWidget recentDocsComboViewerWidget;
@@ -117,7 +119,7 @@ public class ServerWidget extends Composite {
 	MenuItem deleteDocMenuItem;
 	MenuItem duplicateDocMenuItem;
 	
-	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, manageUsersTi, duplicateDocTi, administerCollectionTi, recycleBin;
+	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, manageUsersTi, duplicateDocTi, administerCollectionTi, recycleBin, exportCollInfoTi;
 	TextToolItem quickLoadByDocId;
 	
 	HtrDetailsDialog htrDetailsDialog;
@@ -145,8 +147,13 @@ public class ServerWidget extends Composite {
 		if (!isLoggedIn) {
 			setSelectedCollection(null);
 			clearDocList();
-			updateGroundTruthTreeViewer();
+			
 		}
+		
+		updateHTRTreeViewer();
+		
+		//
+		
 	}
 	
 //	private void initDocumentBtnsGroup() {
@@ -475,6 +482,10 @@ public class ServerWidget extends Composite {
 		recycleBin.setImage(Images.BIN);
 		recycleBin.setToolTipText("Contains deleted documents!");
 		
+		exportCollInfoTi = new ToolItem(tb, SWT.PUSH);
+		exportCollInfoTi.setImage(Images.ARROW_DOWN);
+		exportCollInfoTi.setToolTipText("Export document list as CSV...");		
+		
 		quickLoadByDocId = new TextToolItem(tb, SWT.NONE);
 		quickLoadByDocId.setAutoSelectTextOnFocus();
 		quickLoadByDocId.setMessage("Doc-ID");
@@ -508,7 +519,10 @@ public class ServerWidget extends Composite {
 		 * The tab item is created/disposed depending on availability of data in collection
 		 */
 //		groundTruthTv = createGroundTruthTreeViewer(tabFolder);
-		groundTruthTreeWidget = createGroundTruthTreeWidget(tabFolder);
+		//groundTruthTreeWidget = createGroundTruthTreeWidget(tabFolder);
+		
+		htrTreeWidget = createHtrTree(tabFolder);
+		
 //		groundTruthTv = groundTruthTreeWidget.getTreeViewer();
 		SWTUtil.setTabFolderBoldOnItemSelection(tabFolder);
 		
@@ -517,14 +531,10 @@ public class ServerWidget extends Composite {
 		updateHighlightedRow();
 	}
 	
-	private TreeViewer createGroundTruthTreeViewer(Composite parent) {
-		TreeViewer tv = new TreeViewer(parent, SWT.BORDER | SWT.MULTI);
-		final ITreeContentProvider htrGtContentProvider = new HtrGroundTruthContentProvider(null);
-		final ILabelProvider htrGtLabelProvider = new HtrGroundTruthLabelAndFontProvider(tv.getControl().getFont());
-		tv.setContentProvider(htrGtContentProvider);
-		tv.setLabelProvider(htrGtLabelProvider);
-		tv.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
-		return tv;
+	private HtrPagedTreeWidget createHtrTree(CTabFolder tabFolder2) {
+		HtrPagedTreeWidget tw = new HtrPagedTreeWidget(tabFolder2, SWT.BORDER, null, null, null);
+		tw.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		return tw;
 	}
 	
 	private GroundTruthTreeWidget createGroundTruthTreeWidget(Composite parent) {
@@ -534,26 +544,49 @@ public class ServerWidget extends Composite {
 	}
 	
 	void expandGroundTruthTreeItem(Object o) {
-		groundTruthTreeWidget.expandTreeItem(o);
+		//groundTruthTreeWidget.expandTreeItem(o);
+		htrTreeWidget.expandTreeItem(o);
 	}
 	
-	public void updateGroundTruthTreeViewer() {
-		//filter for HTRs with train GT
-		final List<TrpHtr> treeViewerInput = store.getHtrs(null).stream()
-				.filter(h -> h.hasTrainGt())
-				.collect(Collectors.toList());
+//	public void updateGroundTruthTreeViewer() {
+//		//filter for HTRs with train GT
+//		final List<TrpHtr> treeViewerInput = store.getHtrs(null).stream()
+//				.filter(h -> h.hasTrainGt())
+//				.collect(Collectors.toList());
+//		
+//		//run UI update asynchronously
+//		getDisplay().asyncExec(new Runnable() {
+//			public void run() {
+//				if(!treeViewerInput.isEmpty() && (SHOW_GT_TAB_ITEM || store.isAdminLoggedIn())) {
+//					if (gtTabItem == null || gtTabItem.isDisposed()) {
+//						gtTabItem = new CTabItem(tabFolder, SWT.NONE);
+//						gtTabItem.setText("HTR Model Data");
+//						gtTabItem.setControl(groundTruthTreeWidget);
+//					}
+//					groundTruthTreeWidget.setInput(treeViewerInput);
+//				} else if(gtTabItem != null) {
+//						gtTabItem.dispose();
+//						gtTabItem = null;
+//				}
+//			}
+//		});
+//	}
+	
+	public void updateHTRTreeViewer() {
 		
 		//run UI update asynchronously
 		getDisplay().asyncExec(new Runnable() {
 			public void run() {
-				if(!treeViewerInput.isEmpty() && (SHOW_GT_TAB_ITEM || store.isAdminLoggedIn())) {
+				if(SHOW_GT_TAB_ITEM || store.isAdminLoggedIn()) {
 					if (gtTabItem == null || gtTabItem.isDisposed()) {
 						gtTabItem = new CTabItem(tabFolder, SWT.NONE);
 						gtTabItem.setText("HTR Model Data");
-						gtTabItem.setControl(groundTruthTreeWidget);
+						gtTabItem.setControl(htrTreeWidget);
 					}
-					groundTruthTreeWidget.setInput(treeViewerInput);
+					//logger.debug("load first page - in treeviewer!!!");
+					htrTreeWidget.loadFirstPage();
 				} else if(gtTabItem != null) {
+						logger.debug("dispose the htr tree widget");
 						gtTabItem.dispose();
 						gtTabItem = null;
 				}
@@ -626,7 +659,7 @@ public class ServerWidget extends Composite {
 	}
 	
 	public void updateHighlightedGroundTruthTreeViewerRow() {
-		groundTruthTreeWidget.getTreeViewer().refresh();
+		//groundTruthTreeWidget.getTreeViewer().refresh();
 	}
 	
 	public void refreshDocListFromStorage() {
@@ -679,6 +712,7 @@ public class ServerWidget extends Composite {
 		duplicateDocTi.setEnabled(canManage);
 		administerCollectionTi.setEnabled(canManage);
 		recycleBin.setEnabled(canManage);
+		exportCollInfoTi.setEnabled(canManage);
 		
 		addToCollectionMenuItem.setEnabled(canManage);
 		removeFromCollectionMenuItem.setEnabled(canManage);

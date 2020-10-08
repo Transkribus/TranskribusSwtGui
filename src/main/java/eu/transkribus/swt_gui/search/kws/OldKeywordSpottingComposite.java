@@ -56,13 +56,13 @@ public class OldKeywordSpottingComposite extends Composite {
 
 	Text confValueTxt;
 	
-	public final static ColConfig TYPE_COL = new ColConfig("Type", 100);
-	public final static ColConfig DOC_ID_COL = new ColConfig("Doc ID", 60);
-	public final static ColConfig TITLE_COL = new ColConfig("Title", 200);
-	public final static ColConfig PAGE_NR_COL = new ColConfig("Page Nr.", 100);
-	public final static ColConfig HITS_COL = new ColConfig("Hits", 60);
-	public final static ColConfig SCORE_COL = new ColConfig("Score", 100);
-	public final static ColConfig LINE_ID_COL = new ColConfig("Line ID", 60);
+	public final static ColConfig TYPE_COL = new ColConfig("Type", 100, "");
+	public final static ColConfig DOC_ID_COL = new ColConfig("Doc ID", 60, "");
+	public final static ColConfig TITLE_COL = new ColConfig("Title", 200, "");
+	public final static ColConfig PAGE_NR_COL = new ColConfig("Page Nr.", 100, "");
+	public final static ColConfig HITS_COL = new ColConfig("Hits", 60, "");
+	public final static ColConfig SCORE_COL = new ColConfig("Score", 100, "");
+	public final static ColConfig LINE_ID_COL = new ColConfig("Line ID", 60, "");
 
 	public final static ColConfig[] COLUMNS = new ColConfig[] { TYPE_COL, DOC_ID_COL, TITLE_COL, PAGE_NR_COL, HITS_COL, SCORE_COL, LINE_ID_COL };
 

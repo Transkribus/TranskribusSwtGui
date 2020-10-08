@@ -31,7 +31,7 @@ public class HtrStorage extends AEntityListProxy<TrpHtr> {
 			colId = storage.getCollId();
 		}
 		String provider = filters != null && filters.length > 0 ? filters[0] : null;
-		Future<TrpHtrList> fut = storage.getConnection().getHtrs(colId, provider, index, nValues, new InvocationCallback<TrpHtrList>() {
+		Future<TrpHtrList> fut = storage.getConnection().getHtrs(colId, provider, index, nValues, null, null, new InvocationCallback<TrpHtrList>() {
 			
 			@Override
 			public void completed(TrpHtrList htrList) {					

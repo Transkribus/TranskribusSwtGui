@@ -1,11 +1,21 @@
 package eu.transkribus.swt_gui.edit_decl_manager;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.ServerErrorException;
 import javax.xml.bind.JAXBException;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -37,10 +47,14 @@ import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.EdFeature;
 import eu.transkribus.core.model.beans.EdOption;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.TrpErrorRate;
+import eu.transkribus.core.model.beans.TrpErrorRateListEntry;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt_gui.TrpGuiPrefs;
+import eu.transkribus.swt_gui.dialogs.ExportPathComposite;
 import eu.transkribus.swt_gui.doc_overview.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -62,12 +76,19 @@ public class EditDeclManagerDialog extends Dialog {
 	Button createOptBtn, delOptBtn, edtOptBtn;
 	Button addFeatBtn, removeFeatBtn;
 	Button saveBtn; 
+	Button downloadXLS;
 	Button copyBtn;
 	DocTableWidgetPagination docTable;
 
+	ExportPathComposite exportPathComp;
+	String lastExportFolder;
+	String lastExportFolderTmp;
+	File result=null;
+	
 	EditFeaturesListener efl;
 
 	List<EdFeature> editDecl;
+	String docName;
 	
 	public static final String FEAT_ID_COL = "ID";
 	public static final String FEAT_TITLE_COL = "Title";
@@ -94,20 +115,21 @@ public class EditDeclManagerDialog extends Dialog {
 	
 	public static final ColumnConfig[] OPT_COLS = new ColumnConfig[] {
 		new ColumnConfig(OPT_ID_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(OPT_TEXT_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(OPT_TEXT_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
 	};
 
 	public static final ColumnConfig[] EDT_DECL_COLS = new ColumnConfig[] {
 		new ColumnConfig(EDT_DECL_ID_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(EDT_DECL_TITLE_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(EDT_DECL_DESC_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(EDT_DECL_OPT_COL, 35, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(EDT_DECL_OPT_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 	};
 
 	public EditDeclManagerDialog(Shell parent, int style) {
 		super(parent, style |= (SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS | SWT.MAX));
 //		this.setSize(800, 800);
 		this.setText("Editorial Declaration");
+		docName = store.getDoc().getMd().getTitle() + "_" + store.getDoc().getMd().getDocId() + "_EditDecl";
 	}
 	
 	/**
@@ -130,7 +152,7 @@ public class EditDeclManagerDialog extends Dialog {
 	void createContents() {
 				
 		shlEditorialDeclaration = new Shell(getParent(), getStyle());
-		shlEditorialDeclaration.setSize(1200, 900);
+		shlEditorialDeclaration.setSize(1400, 900);
 		shlEditorialDeclaration.setText("Editorial Declaration");
 //		shell.setLayout(new GridLayout(2, false));
 //		shell.setLayout(new GridLayout(4, false));
@@ -270,6 +292,39 @@ public class EditDeclManagerDialog extends Dialog {
 //			colDocs = new ArrayList<>(0);
 //		}
 		
+		try {
+			lastExportFolderTmp = TrpGuiPrefs.getLastExportFolder();
+		} catch (Exception e) {
+			logger.error("Could not load last export folder");
+		}
+		if (lastExportFolderTmp != null && !lastExportFolderTmp.equals("")) {
+			lastExportFolder = lastExportFolderTmp;
+		}
+	    
+		exportPathComp = new ExportPathComposite(btns3, lastExportFolder, "File/Folder name: ", ".xlsx", docName);
+		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
+		
+		downloadXLS = new Button(btns3,SWT.PUSH);
+		downloadXLS.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		downloadXLS.setText("Download XLS");
+		
+		
+		downloadXLS.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				result = exportPathComp.getExportFile();
+				logger.debug("Export path "+exportPathComp.getBaseFolderText());
+				TrpGuiPrefs.storeLastExportFolder(exportPathComp.getBaseFolderText());
+				createWorkBook(result.getAbsolutePath(), editDecl);
+				MessageBox dialog = new MessageBox(getParent(), SWT.ICON_QUESTION | SWT.OK| SWT.CANCEL);
+				dialog.setText("XLS created");
+				dialog.setMessage("The Worksheet has been created and saved in : "+result.getPath());
+				dialog.open();
+				
+			}	
+			
+		});
+		
 		copyBtn = new Button(btns3, SWT.NONE);
 		copyBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		copyBtn.setText("Copy to document:");
@@ -280,7 +335,7 @@ public class EditDeclManagerDialog extends Dialog {
 		
 		s1.setWeights(new int[] { 50, 50 } );
 				
-		container.setWeights(new int[] { 33, 33, 33 });
+		container.setWeights(new int[] { 25, 15, 33 });
 		
 		addListener();
 		updateFeatures();
@@ -289,6 +344,69 @@ public class EditDeclManagerDialog extends Dialog {
 			setEdtButtonsEnabled(false);
 			createFeatBtn.setEnabled(false);
 		}
+	}
+	
+	public void createWorkBook(String filePath , List<EdFeature> editDecl) {
+		
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		XSSFSheet sheet = workbook.createSheet(docName);
+		Map<Integer, Object[]> excelData = new HashMap<Integer, Object[]>();
+		int rowCount = 1;
+		
+		excelData.put(0,new Object[] {
+				"ID",
+				"Title",
+				"Description",
+				"Selected Option"
+				});
+
+		if (editDecl != null) {
+			for (EdFeature edfeat : editDecl) {
+				if(rowCount <= editDecl.size()) {
+					rowCount++;
+				}
+				excelData.put(rowCount,new Object[] {
+						edfeat.getFeatureId(),
+						edfeat.getTitle(),
+						edfeat.getDescription(),
+						edfeat.getSelectedOption().getText()
+						});
+			}
+		}
+		
+		Set<Integer> keyset = excelData.keySet();
+		int rownum = 0;
+		for (Integer key : keyset) {
+			Row row = sheet.createRow(rownum++);
+			Object[] objArr = excelData.get(key);
+			int cellnum = 0;
+			for (Object obj : objArr) {
+				Cell cell = row.createCell(cellnum++);
+				if (obj instanceof Double) {
+					cell.setCellValue((Double) obj);
+				} else if (obj instanceof Integer){
+					cell.setCellValue((Integer) obj);
+				}else {
+				
+					cell.setCellValue((String) obj);
+				}
+			}
+		}
+		
+        for(int i = 0; i <= rownum; i++) {
+            sheet.autoSizeColumn(i);
+        }
+		
+		try {
+			FileOutputStream file = new FileOutputStream(new File(filePath));
+			workbook.write(file);
+			file.close();
+			workbook.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		
 	}
 	
 	public Shell getShell() { return shlEditorialDeclaration; }

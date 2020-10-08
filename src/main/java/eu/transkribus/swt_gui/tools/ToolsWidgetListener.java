@@ -11,6 +11,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.MessageBox;
+import org.mozilla.universalchardet.prober.EscCharsetProber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,9 +43,8 @@ import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.CITlabAdvancedLaConfigDialog;
 import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
-import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
-import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog.P2PaLARecogUiConf;
 import eu.transkribus.swt_gui.dialogs.SamplesCompareDialog;
+import eu.transkribus.swt_gui.htr.DUDecodeDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
@@ -52,12 +52,15 @@ import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage.StorageException;
+import eu.transkribus.swt_gui.p2pala.P2PaLAConfDialog;
+import eu.transkribus.swt_gui.p2pala.P2PaLAConfDialog.P2PaLARecogUiConf;
 import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.util.OcrConfig;
 import eu.transkribus.util.TextRecognitionConfig;
 
-public class ToolsWidgetListener implements SelectionListener {
+public class ToolsWidgetListener implements SelectionListener, IStorageListener {
 	private final static Logger logger = LoggerFactory.getLogger(ToolsWidgetListener.class);
 
 	TrpMainWidget mw;
@@ -99,13 +102,9 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.p2palaBtn, this);
 		SWTUtil.addSelectionListener(tw.p2palaTrainBtn, this);
 		SWTUtil.addSelectionListener(tw.t2iBtn, this);
+		SWTUtil.addSelectionListener(tw.duButton, this);
 		
-		Storage.getInstance().addListener(new IStorageListener() {
-			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
-				tw.refVersionChooser.setToGT();
-				tw.hypVersionChooser.setToCurrent();
-			}
-		});
+		Storage.getInstance().addListener(this);
 	}
 
 //	List<String> getSelectedRegionIds() {
@@ -143,9 +142,12 @@ public class ToolsWidgetListener implements SelectionListener {
 			store.checkLoggedIn();
 
 			if (htd != null) {
+				logger.debug("set the training dialog visible");
 				htd.setVisible();
 			} else {
-				htd = new HtrTrainingDialog(mw.getShell(), store.getHtrs(null, true), store.getHtrTrainingJobImpls());
+				logger.debug("new training dialog");
+				htd = new HtrTrainingDialog(mw.getShell(), store.getHtrTrainingJobImpls());
+				
 				if (htd.open() == IDialogConstants.OK_ID) {
 					// new: check here if user wants to store or not
 					// if (!mw.saveTranscriptDialogOrAutosave()) {
@@ -292,20 +294,30 @@ public class ToolsWidgetListener implements SelectionListener {
 				}
 				
 				if (tw.laComp.isDocsSelection() && tw.laComp.getDocs() != null && Storage.getInstance().isAdminLoggedIn()){
-					// NEW: use DocSelection objects
-					for (DocSelection docSel : tw.laComp.getDocs()){
-						logger.debug("start LA for docs: " + docSel.getDocId());
-						List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
-						// as LA call does not support specifying a docId & pagesStr (TODO!) we have to get the pageIds from the server to construct a DSD object
-						DocumentSelectionDescriptor dsd = store.getDocumentSelectionDescriptor(colId, docSel);
-						logger.debug("nr of pages in la descriptor: "+dsd.getPages().size());
-						dsds.add(dsd);
-						List<String> tmp = store.analyzeLayoutOnDocumentSelectionDescriptor(
-								dsds, tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), 
-								false, false, tw.laComp.getJobImpl().toString(), tw.laComp.getParameters()
-								);
-						jobIds.addAll(tmp);
-					}					
+					JobImpl jobImpl = tw.laComp.getJobImpl();
+					if(JobImpl.FinereaderLaJob.equals(jobImpl)) {
+						//OCR is another endpoint and it can't yet handle descriptors...
+						for (DocSelection docSel : tw.laComp.getDocs()){
+							logger.debug("Start printed block detection for doc {}, pages = {}", docSel.getDocId(), docSel.getPages());
+							String jobIdStr = store.getConnection().runTypewrittenBlockSegmentation(colId, docSel.getDocId(), docSel.getPages());
+							jobIds.add(jobIdStr);
+						}
+					} else {
+						// NEW: use DocSelection objects
+						for (DocSelection docSel : tw.laComp.getDocs()){
+							logger.debug("start LA for docs: " + docSel.getDocId());
+							List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
+							// as LA call does not support specifying a docId & pagesStr (TODO!) we have to get the pageIds from the server to construct a DSD object
+							DocumentSelectionDescriptor dsd = store.getDocumentSelectionDescriptor(colId, docSel);
+							logger.debug("nr of pages in la descriptor: "+dsd.getPages().size());
+							dsds.add(dsd);
+							List<String> tmp = store.analyzeLayoutOnDocumentSelectionDescriptor(
+									dsds, tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), 
+									false, false, tw.laComp.getJobImpl().toString(), tw.laComp.getParameters()
+									);
+							jobIds.addAll(tmp);
+						}
+					}
 					
 					// OLD
 //					/*
@@ -399,6 +411,10 @@ public class ToolsWidgetListener implements SelectionListener {
 							pm.addParameter(JobConstP2PaLA.MIN_AREA_PAR, conf.minArea);	
 						}
 						pm.addParameter(JobConstP2PaLA.RECTIFY_REGIONS_PAR, conf.rectifyRegions);
+						pm.addParameter(JobConstP2PaLA.ENRICH_EXISTING_TRANSCRIPTIONS_PAR, conf.enrichExistingTranscriptions);
+						pm.addParameter(JobConstP2PaLA.LABEL_REGIONS_PAR, conf.labelRegions);
+						pm.addParameter(JobConstP2PaLA.LABEL_LINES_PAR, conf.labelLines);
+						pm.addParameter(JobConstP2PaLA.LABEL_WORDS_PAR, conf.labelWords);
 						
 						if (diag.isDocsSelected() && diag.getDocs() != null && Storage.getInstance().isAdminLoggedIn()){
 							// NEW
@@ -646,8 +662,14 @@ public class ToolsWidgetListener implements SelectionListener {
 							if (isDocsSelection){
 								// NEW: use DocSelection here, as they contain the pages string for each doc:
 								for (DocSelection docSel : trd2.getDocs()) {
-									String jobId = store.runHtr(docSel.getDocId(), docSel.getPages(), config);
+									DocumentSelectionDescriptor dsd = store.getDocumentSelectionDescriptor(colId, docSel);
+									logger.debug("dsd = "+dsd);
+									String jobId = store.runHtr(dsd, config);
 									jobIds.add(jobId);
+
+									// OLD: call does not work when docSel.getPages() is null!
+//									logger.debug("sel: "+docSel+" docId: "+docSel.getDocId()+" pages: "+docSel.getPages());
+//									String jobId = store.runHtr(docSel.getDocId(), docSel.getPages(), config);
 								}
 								// OLD: use DocumentSelectionDescriptor which do *not* contain individual pages
 //								for (DocumentSelectionDescriptor docDescr : trd2.getDocs()){
@@ -690,6 +712,18 @@ public class ToolsWidgetListener implements SelectionListener {
 					}
 					od = null;
 				}
+			} else if(s == tw.duButton){
+				DUDecodeDialog duDecodeDialog = new DUDecodeDialog(mw.getShell());
+				int ret = duDecodeDialog.open();
+
+				if (ret == IDialogConstants.OK_ID) {
+					String pageString = duDecodeDialog.getPages();
+					String jobId = store.runDocUnderstanding(store.getDocId(), pageString, 2);
+					logger.debug("started DU job: "+jobId);
+					jobIds.add(jobId);
+				}
+
+
 			}
 
 			showSuccessMessage(jobIds);
@@ -737,4 +771,14 @@ public class ToolsWidgetListener implements SelectionListener {
 	//// mw.saveDocMetadata();
 	// }
 	// }
+	
+	public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
+		tw.refVersionChooser.setToGT();
+		tw.hypVersionChooser.setToCurrent();
+	}
+	
+	public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+		boolean duVisible = Storage.getInstance().isLoggedInAtTestServer();		
+		//tw.setDuVisible(duVisible);
+	}
 }

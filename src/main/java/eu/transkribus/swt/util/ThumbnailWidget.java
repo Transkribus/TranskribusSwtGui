@@ -79,7 +79,7 @@ public class ThumbnailWidget extends Composite {
 	protected AbstractGridGroupRenderer groupRenderer;
 	
 	//static ThumbnailManager tm;
-	static DocumentManager ac;
+//	static DocumentManager ac;
 	
 	static int thread_counter=0;
 	
@@ -412,25 +412,13 @@ public class ThumbnailWidget extends Composite {
 			return;
 		}
 		
-		if (isAdministrativeCenterIsOpen(ac)){
-			ac.getShell().setVisible(true);
-		} else {
-			ac = new DocumentManager(getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
-			ac.open();
-		}
-			
-					
-		//if shell is open {
-		/*
-		 * old manager
-		 */
-//		if(isManagerOpen(tm)){
-//			tm.getShell().setVisible(true);
+		mw.openDocumentManager();
+//		if (isAdministrativeCenterIsOpen(ac)){
+//			ac.getShell().setVisible(true);
 //		} else {
-//			tm = new ThumbnailManager(getShell(), SWT.NONE, this, mw);
-//			tm.open();
+//			ac = new DocumentManager(getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
+//			ac.open();
 //		}
-
 	}
 	
 	private boolean isAdministrativeCenterIsOpen(DocumentManager ac){

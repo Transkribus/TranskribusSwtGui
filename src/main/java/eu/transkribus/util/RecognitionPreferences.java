@@ -23,7 +23,7 @@ public class RecognitionPreferences {
 	private final static String HTR_NAME = "htrName";
 	private final static String TYPE_FACE = "typeFace";
 	private final static String DICTIONARY = "dictionary";
-	
+	private final static String LM = "lm";
 	
 	public static TextRecognitionConfig getHtrConfig(final int colId, final String serverUri) {
 
@@ -42,7 +42,8 @@ public class RecognitionPreferences {
 			config.setHtrName(pref.get(buildKey(HTR, colId, serverUri, HTR_NAME), null));
 			break;
 		case UPVLC:
-			config.setDictionary(pref.get(buildKey(HTR, colId, serverUri, DICTIONARY), null));
+//			config.setDictionary(pref.get(buildKey(HTR, colId, serverUri, DICTIONARY), null));
+			config.setLanguageModel(pref.get(buildKey(HTR, colId, serverUri, LM), null));
 			config.setHtrId(pref.getInt(buildKey(HTR, colId, serverUri, HTR_ID), 0));
 			config.setHtrName(pref.get(buildKey(HTR, colId, serverUri, HTR_NAME), null));			
 			break;
@@ -60,7 +61,7 @@ public class RecognitionPreferences {
 		pref.put(buildKey(HTR, colId, serverUri, MODE), mode.toString());
 		pref.put(buildKey(HTR, colId, serverUri, LANGUAGE), config.getLanguage());
 		
-		final String dictKey;
+		final String dictKey, lmKey;
 		switch(mode) {
 		case CITlab:
 			pref.putInt(buildKey(HTR, colId, serverUri, HTR_ID), config.getHtrId());
@@ -75,11 +76,11 @@ public class RecognitionPreferences {
 		case UPVLC:
 			pref.putInt(buildKey(HTR, colId, serverUri, HTR_ID), config.getHtrId());
 			pref.put(buildKey(HTR, colId, serverUri, HTR_NAME), config.getHtrName());
-			dictKey = buildKey(HTR, colId, serverUri, DICTIONARY);
-			if(config.getDictionary() != null) {
-				pref.put(dictKey, config.getDictionary());
+			lmKey = buildKey(HTR, colId, serverUri, LM);
+			if(config.getLanguageModel() != null) {
+				pref.put(lmKey, config.getLanguageModel());
 			} else {
-				pref.remove(dictKey);
+				pref.remove(lmKey);
 			}
 			break;			
 		default:

@@ -13,6 +13,9 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -196,6 +199,42 @@ public class Fonts {
 		ctrl.setFont(f);
 		return f;
 	}
+	
+	public static Font setBoldFont(TreeItem ctrl) {
+		Font f = createBoldFont(ctrl.getFont());
+		ctrl.setFont(f);
+		return f;
+	}
+	
+	public static Font setItalicFont(TreeItem ctrl) {
+		Font f = createItalicFont(ctrl.getFont());
+		ctrl.setFont(f);
+		return f;
+	}
+	
+	public static Font setNormalFont(TreeItem ctrl) {
+		Font f = createNormalFont(ctrl.getFont());
+		ctrl.setFont(f);
+		return f;
+	}	
+	
+	public static Font setBoldFont(TableItem ctrl) {
+		Font f = createBoldFont(ctrl.getFont());
+		ctrl.setFont(f);
+		return f;
+	}
+	
+	public static Font setItalicFont(TableItem ctrl) {
+		Font f = createItalicFont(ctrl.getFont());
+		ctrl.setFont(f);
+		return f;
+	}
+	
+	public static Font setNormalFont(TableItem ctrl) {
+		Font f = createNormalFont(ctrl.getFont());
+		ctrl.setFont(f);
+		return f;
+	}	
 	
 //	public static Font createRedFont(Font f) {
 //		if (f.getFontData().length > 0) {

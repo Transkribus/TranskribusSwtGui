@@ -30,7 +30,7 @@ import eu.transkribus.swt_gui.structure_tree.StructureTypeEditingSupport;
 public class StructTagListWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(StructTagListWidget.class);
 	
-	public final static ColConfig DELETE_COL = new ColConfig("", 25);
+	public final static ColConfig DELETE_COL = new ColConfig("", 25, "");
 	
 	public final static ColConfig[] COLUMNS = new ColConfig[] { 
 			StructureTreeWidget.TYPE_COL, 

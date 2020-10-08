@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>1.10.2.1-SNAPSHOT</version>
+	<version>1.12.0.7-SNAPSHOT</version>
 	<name>Transkribus</name>
 
 	<properties>
@@ -16,7 +16,7 @@
 		<macapp-dir>/Transkribus.app/Contents/MacOS</macapp-dir>
 		<macapp-resources-dir>/Transkribus.app/Contents/Resources</macapp-resources-dir>
 		<macapp-contents-dir>/Transkribus.app/Contents</macapp-contents-dir>
-		<mac-jre>jre-1.8.0_45-mac64</mac-jre>
+		<mac-jre>jre-1.8.0_251-mac64</mac-jre>
 		<win-jre>jre-1.8.0_172-win64</win-jre>
 		
 		<swt-lib-name>swt-${swt.version}.jar</swt-lib-name>
@@ -28,11 +28,12 @@
 
 		<swt.groupId>org.eclipse.swt</swt.groupId>
 <!-- 		<swt.version>4.7.1</swt.version> -->
-		<swt.version>4.9</swt.version>
+<!-- 		<swt.version>4.9</swt.version> -->
+		<swt.version>4.17</swt.version>
 
-		<jface.groupId>org.eclipse.ui</jface.groupId>
-		<jface.version>3.7.1.v20120104-1859</jface.version>
-		<jface.artifactId>org.eclipse.ui.workbench</jface.artifactId>
+<!-- 		<jface.groupId>org.eclipse.ui</jface.groupId> -->
+<!-- 		<jface.version>3.7.1.v20120104-1859</jface.version> -->
+<!-- 		<jface.artifactId>org.eclipse.ui.workbench</jface.artifactId> -->
 		
 		<client.version>0.4.0-SNAPSHOT</client.version>
 	</properties>
@@ -662,145 +663,99 @@
 				on OS! -->
 		</dependency>
 
-		<!-- <dependency> -->
-		<!-- <groupId>org.eclipse</groupId> -->
-		<!-- <artifactId>swt-win32</artifactId> -->
-		<!-- <version>4.3</version> -->
-		<!-- </dependency> -->
-
-
+		<!-- JFace / Eclipse related dependencies: -->
 		<!-- org.eclipse.ui.workbench (extensions for JFace, adds dependency on 
 			JFace also): -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>${jface.groupId}</groupId> -->
+<!-- 			<artifactId>${jface.artifactId}</artifactId> -->
+<!-- 			<version>${jface.version}</version> -->
+<!-- 			<exclusions> -->
+ 			<!-- jface version does not match the one below here and automatic omit doesn't work if variables are used here -->
+<!-- 				<exclusion> -->
+<!-- 					<groupId>org.eclipse.jface</groupId> -->
+<!-- 					<artifactId>org.eclipse.jface</artifactId> -->
+<!-- 				</exclusion> -->
+<!-- 			</exclusions> -->
+<!-- 		</dependency> -->
+
 		<dependency>
-			<groupId>${jface.groupId}</groupId>
-			<artifactId>${jface.artifactId}</artifactId>
-			<version>${jface.version}</version>
-			<exclusions>
-			<!-- jface version does not match the one below here and automatic omit doesn't work if variables are used here -->
-				<exclusion>
-					<groupId>org.eclipse.jface</groupId>
-					<artifactId>org.eclipse.jface</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>org.eclipse</groupId>
+<!-- 			<artifactId>org.eclipse.jface</artifactId> -->
+<!-- 			<version>3.12.2.v20170113-2113</version> -->
+    		<artifactId>jface</artifactId>
+<!--     		<version>3.20.0.v20200505</version> -->
+    		<version>3.19.0.v20200218</version>	
 		</dependency>
-
-		<!-- <dependency> -->
-		<!-- <groupId>org.eclipse</groupId> -->
-		<!-- <artifactId>jface</artifactId> -->
-		<!-- <version>3.2.1-M20060908-1000</version> -->
-		<!-- </dependency> -->
-
-		<!-- <dependency> <groupId>org.mod4j.org.eclipse.jface</groupId> <artifactId>databinding</artifactId> 
-			<version>1.3.0</version> </dependency> <dependency> <groupId>org.mod4j.org.eclipse.core</groupId> 
-			<artifactId>runtime</artifactId> <version>3.5.0</version> </dependency> -->
-
-		<!-- <dependency> -->
-		<!-- <groupId>org.mod4j.org.eclipse</groupId> -->
-		<!-- <artifactId>jface</artifactId> -->
-		<!-- <version>3.5.0</version> -->
-		<!-- </dependency> -->
-
-
-		<!-- Dependency for JFace only (without workbench extensions): -->
-		<!-- <dependency> <groupId>org.eclipse.jface</groupId> <artifactId>org.eclipse.jface</artifactId> 
-			<version>3.7.0.v20110928-1505</version> <version>3.8.0.v20120521-2329</version> 
-			</dependency> -->
-
-		<!-- Other: -->
+		
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.8.1</version>
+			<groupId>org.eclipse.core</groupId>
+<!-- 			<artifactId>org.eclipse.core.commands</artifactId> -->
+<!-- 			<version>3.6.0.I20110111-0800</version> -->
+    		<artifactId>commands</artifactId>
+    		<version>3.9.700.v20191217</version>			
 		</dependency>
 
 		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.4</version>
-		</dependency>
-
-		<!-- Graph library: -->
-		<!-- <dependency> -->
-		<!-- <groupId>org.jgrapht</groupId> -->
-		<!-- <artifactId>jgrapht-core</artifactId> -->
-		<!-- <version>0.9.0</version> -->
-		<!-- </dependency> -->
-
-		<!-- <dependency> -->
-		<!-- <groupId>org.jgrapht</groupId> -->
-		<!-- <artifactId>jgrapht-demo</artifactId> -->
-		<!-- <version>0.9.0</version> -->
-		<!-- </dependency> -->
-
-		<dependency>
-			<groupId>commons-beanutils</groupId>
-			<artifactId>commons-beanutils</artifactId>
-			<version>1.9.1</version>
+			<groupId>org.eclipse.ui</groupId>
+			<artifactId>workbench</artifactId>
+			<version>3.119.0.v20200521</version>
 		</dependency>
 
 		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>2.6</version>
+			<groupId>org.eclipse.ui</groupId>
+			<artifactId>forms</artifactId>
+<!-- 			<version>3.6.1.v20130822-1117</version> -->
+			<version>3.9.100.v20200413</version>
 		</dependency>
-
-		<!-- <dependency> <groupId>org.apache.felix</groupId> <artifactId>org.apache.felix.shell</artifactId> 
-			<version>1.4.3</version> </dependency> <dependency> <groupId>com.ibm.icu</groupId> 
-			<artifactId>icu4j</artifactId> <version>52.1</version> </dependency> -->
-
+		
+		<dependency>
+			<groupId>org.eclipse.jface</groupId>
+			<artifactId>databinding</artifactId>
+<!-- 			<version>1.6.0</version> -->
+			<version>1.11.100.v20200522</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.eclipse.core</groupId>
+			<artifactId>databinding</artifactId>
+<!-- 			<version>1.4.1</version> -->
+			<version>1.9.0.v20200519</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.eclipse.core.databinding</groupId>
 			<artifactId>beans</artifactId>
-			<version>1.2.200.v20120523-1955</version>
+<!-- 			<version>1.2.200.v20120523-1955</version> -->
+			<version>1.6.100.v20191217</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.eclipse.core.databinding</groupId>
 			<artifactId>observable</artifactId>
-			<version>1.4.1.v20120521-2329</version>
+<!-- 			<version>1.4.1.v20120521-2329</version> -->
+			<version>1.9.0.v20200205</version>
 		</dependency>
-
-		<!-- <dependency> -->
-		<!-- <groupId>org.eclipse.ui</groupId> -->
-		<!-- <artifactId>forms</artifactId> -->
-		<!-- <version>3.6.1.v20130822-1117</version> -->
-		<!-- </dependency> -->
-
-		<!-- <dependency> -->
-		<!-- <groupId>org.eclipse.core.databinding</groupId> -->
-		<!-- <artifactId>property</artifactId> -->
-		<!-- <version>1.4.100.v20120523-1955</version> -->
-		<!-- </dependency> -->
 
 		<dependency>
 			<groupId>org.eclipse.core.databinding</groupId>
 			<artifactId>property</artifactId>
-			<version>1.4.100</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.jface</groupId>
-			<artifactId>databinding</artifactId>
-			<version>1.6.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.core</groupId>
-			<artifactId>databinding</artifactId>
-			<version>1.4.1</version>
+<!-- 			<version>1.4.100</version> -->
+			<version>1.8.0.v20200124</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.eclipse.jface</groupId>
 			<artifactId>text</artifactId>
-			<version>3.8</version>
+<!-- 			<version>3.8</version> -->
+			<version>3.16.300.v20200526</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.eclipse</groupId>
 			<artifactId>text</artifactId>
-			<version>3.5</version>
+<!-- 			<version>3.5</version> -->
+			<version>3.10.200.v20200428</version>
 		</dependency>
 
 		<!-- <dependency> -->
@@ -812,7 +767,8 @@
 		<dependency>
 			<groupId>org.eclipse.nebula.widgets</groupId>
 			<artifactId>tablecombo</artifactId>
-			<version>1.0.0.201703081533</version>
+<!-- 			<version>1.0.0.201703081533</version> -->
+			<version>1.2.0.202009071539</version>
 		</dependency>
 
 		<dependency>
@@ -820,6 +776,7 @@
 			<artifactId>gallery</artifactId>
 <!-- 			<version>0.6.0.201403182228</version> -->
 			<version>1.0.0</version>
+<!-- 			<version>1.0.0.202009071539</version> -->
 		</dependency>
 
 		<dependency>
@@ -835,13 +792,31 @@
 		    <version>1.0.0.201609281642</version>
 		    <classifier>sources</classifier>
 		    <scope>compile</scope>
+		</dependency>			
+			
+
+		<!-- Other: -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.1</version>
 		</dependency>
 
 		<dependency>
-			<groupId>org.eclipse.ui</groupId>
-			<artifactId>forms</artifactId>
-			<version>3.6.1.v20130822-1117</version>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
 		</dependency>
+
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.6</version>
+		</dependency>
+
+		<!-- <dependency> <groupId>org.apache.felix</groupId> <artifactId>org.apache.felix.shell</artifactId> 
+			<version>1.4.3</version> </dependency> <dependency> <groupId>com.ibm.icu</groupId> 
+			<artifactId>icu4j</artifactId> <version>52.1</version> </dependency> -->
 
 		<dependency>
 			<groupId>commons-configuration</groupId>
@@ -950,19 +925,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.eclipse</groupId>
-			<artifactId>org.eclipse.jface</artifactId>
-			<version>3.12.2.v20170113-2113</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.eclipse.core</groupId>
-			<artifactId>org.eclipse.core.commands</artifactId>
-			<version>3.6.0.I20110111-0800</version>
-		</dependency>
-
-
-		<dependency>
 			<groupId>com.mkobos</groupId>
 			<artifactId>pca_transform</artifactId>
 			<version>1.0.2</version>
@@ -991,7 +953,6 @@
 				</exclusion>
 		    </exclusions>
 		</dependency>
-		
 	</dependencies>
 
 	<repositories>
@@ -999,12 +960,12 @@
 		<repository>
 			<id>dea-artifactory</id>
 			<name>dea-artifactory-releases</name>
-			<url>http://dbis-halvar.uibk.ac.at/artifactory/libs-release/</url>
+			<url>https://dbis-halvar.uibk.ac.at/artifactory/libs-release/</url>
 		</repository>
 		<repository>
 			<id>maven2-repository.dev.java.net</id>
 			<name>Java.net Repository for Maven</name>
-			<url>http://download.java.net/maven/2/</url>
+			<url>https://download.java.net/maven/2/</url>
 			<layout>default</layout>
 		</repository>
 
@@ -1012,7 +973,7 @@
 		<repository>
 			<id>swt-repo</id>
 <!-- 			<url>https://swt-repo.googlecode.com/svn/repo/</url> -->
-			<url>http://maven-eclipse.github.io/maven</url>
+			<url>https://maven-eclipse.github.io/maven</url>
 <!-- 			https://github.com/maven-eclipse/swt-repo -->
 			
 		</repository>

@@ -82,7 +82,7 @@ public class HtrDictionaryComposite extends Composite {
 		}
 		tableWidget.setEnabled(option.equals(CUSTOM_DICTIONARY));
 	}
-
+	
 	/**
 	 * @return Depending on the selected dictComboOption: null for no dictionary, 
 	 * the correct JobConst value for triggering requested behavior on the server side
@@ -97,6 +97,16 @@ public class HtrDictionaryComposite extends Composite {
 			return JobConst.PROP_TRAIN_DATA_LM_VALUE;
 		case CUSTOM_DICTIONARY:
 			return tableWidget.getSelection();
+		case NO_DICTIONARY:
+		default:
+			return null;
+		}
+	}
+	
+	public String getLanguageModelSetting() {
+		switch (dictOptionCombo.getText()) {
+		case INTEGRATED_LM:
+			return JobConst.PROP_TRAIN_DATA_LM_VALUE;
 		case NO_DICTIONARY:
 		default:
 			return null;

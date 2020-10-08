@@ -10,9 +10,11 @@ import org.eclipse.swt.widgets.Control;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.core.model.beans.TrpErrorRateListEntry;
 import eu.transkribus.core.util.JaxbUtils;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class ErrorAdvandedStatsTest {
 	
@@ -22,6 +24,12 @@ public class ErrorAdvandedStatsTest {
 		ApplicationWindow aw = new ApplicationWindow(null) {
 			@Override
 			protected Control createContents(Composite parent) {
+				try {
+					Storage.getInstance().login(TrpServerConn.TEST_SERVER_URI, args[0], args[1]);
+					logger.info("login success!");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}				
 		
 				TrpErrorRate e = new TrpErrorRate();
 				e.setWer("12,2%");
