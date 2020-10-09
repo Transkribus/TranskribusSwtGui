@@ -104,7 +104,7 @@ public class HtrModelsDialog extends Dialog {
 
 	@Override
 	protected void setShellStyle(int newShellStyle) {
-		super.setShellStyle(SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
+		super.setShellStyle(SWT.APPLICATION_MODAL | SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
 		// setBlockOnOpen(false);
 	}
 	
