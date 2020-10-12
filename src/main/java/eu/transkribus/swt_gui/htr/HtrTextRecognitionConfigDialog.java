@@ -68,6 +68,7 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 			}
 		});
 		
+	
 		Group dictGrp = new Group(sash, SWT.NONE);
 		dictGrp.setLayout(new GridLayout(1, false));
 		dictGrp.setText("Language Model");
@@ -87,6 +88,15 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 		});
 		
 		updateUi();
+		
+		/*
+		 * for selecting the previously chosen HTR model in the paged tree when opening the htr selection dialog
+		 */
+		if (config!= null && config.getHtrId()!=0) {
+			logger.debug("set the htr id to " + config.getHtrId());
+			htrModelsComp.setSelection(config.getHtrId());
+			htrModelsComp.htw.loadPage_useBinarySearch("htrId", config.getHtrId(), false);
+		}
 
 		return cont;
 	}
@@ -201,7 +211,7 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 
 	@Override
 	protected void setShellStyle(int newShellStyle) {
-		super.setShellStyle(SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
+		super.setShellStyle(SWT.APPLICATION_MODAL | SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
 		// setBlockOnOpen(false);
 	}
 }

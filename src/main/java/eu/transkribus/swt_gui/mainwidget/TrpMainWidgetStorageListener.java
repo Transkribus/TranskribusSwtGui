@@ -72,6 +72,7 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 		if(e.isCollectionChange) {
 			//force a reload of the HTR model list only if collection has changed
 			logger.debug("Load HTR list");
+			ui.serverWidget.updateHTRTreeViewer();
 			//storage.reloadHtrs();
 		} else {
 			logger.debug("Omitting reload of HTR list as collection has not changed.");
