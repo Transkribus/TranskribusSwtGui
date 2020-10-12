@@ -396,12 +396,12 @@ public class HtrTrainingDialog extends Dialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("HTR Training");
-		newShell.setMinimumSize(800, 600);
+		newShell.setMinimumSize(850, 600);
 	}
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(1024, 768);
+		return new Point(1100, 768);
 	}
 
 	@Override
