@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.htr;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -228,7 +229,9 @@ public class HtrTextRecognitionDialog extends Dialog {
 		boolean isCitlab = config!=null && config.getMode()==Mode.CITlab;
 		
 		if (isCitlab) {
-			config.setStructures(citlabConfComp.selectionArray);
+			logger.info(Arrays.toString(citlabConfComp.structreTagComp.getMultiCombo().getSelections()));
+			List<String> selectionList = Arrays.asList(citlabConfComp.structreTagComp.getMultiCombo().getSelections());  
+			config.setStructures(selectionList);
 			config.setKeepOriginalLinePolygons(citlabConfComp.keepOriginalLinePolygonsBtn.getSelection());
 			config.setDoLinePolygonSimplification(citlabConfComp.doLinePolygonSimplificationBtn.getSelection());
 			
@@ -249,12 +252,6 @@ public class HtrTextRecognitionDialog extends Dialog {
 				return;
 			}
 		}
-		
-		config.setStructures(selectionArray);
-//		config.setKeepOriginalLinePolygons(keepOriginalLinePolygonsBtn.getSelection());
-//		config.setDoLinePolygonSimplification(doLinePolygonSimplificationBtn.getSelection());
-//		config.setClearLines(clearLinesBtn.getSelection());
-//		config.setDoStoreConfMats(doStoreConfMatsBtn.getSelection());
 		
 		super.okPressed();
 	}

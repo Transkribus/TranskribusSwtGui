@@ -32,20 +32,30 @@ public class StructureTagComposite extends Composite {
 		List<StructCustomTagSpec> tags = new ArrayList<>();
 		tags = store.getStructCustomTagSpecs();
 		
-		multiCombo = new MultiCheckSelectionCombo(this, SWT.FILL,"Restrict on structure tags", 1, 200, 300 );
-		multiCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));		
+		setMultiCombo(new MultiCheckSelectionCombo(this, SWT.FILL,"Restrict on structure tags", 1, 200, 300 ));
+		getMultiCombo().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
 		for(StructCustomTagSpec tag : tags) {
-			int itemCount = multiCombo.getItemCount();
+			int itemCount = getMultiCombo().getItemCount();
 			List<String> items = new ArrayList<>();
 			for(int i = 0; i < itemCount; i++) {
-				items.add(multiCombo.getItem(i));
+				items.add(getMultiCombo().getItem(i));
 			}	
 			if(!items.contains(tag.getCustomTag().getType())) {
-				multiCombo.add(tag.getCustomTag().getType());
+				getMultiCombo().add(tag.getCustomTag().getType());
 			}	
 		}
 		
+	}
+
+
+	public MultiCheckSelectionCombo getMultiCombo() {
+		return multiCombo;
+	}
+
+
+	public void setMultiCombo(MultiCheckSelectionCombo multiCombo) {
+		this.multiCombo = multiCombo;
 	}
 
 }
