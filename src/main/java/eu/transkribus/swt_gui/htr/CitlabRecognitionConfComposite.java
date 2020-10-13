@@ -51,7 +51,7 @@ public class CitlabRecognitionConfComposite extends Composite {
 		doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());		
 		
 		structreTagComp = new StructureTagComposite(this);
-		structreTagComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));	
+		structreTagComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
 	}
 

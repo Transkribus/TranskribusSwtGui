@@ -6672,10 +6672,9 @@ public class TrpMainWidget {
 		ArrayList<String> refText = new ArrayList<String>();
 		ArrayList<String> hypText = new ArrayList<String>();
 
-		TrpPageType refPage = (TrpPageType) ref.unmarshallTranscript().getPage();
-		TrpPageType hypPage = (TrpPageType) hyp.unmarshallTranscript().getPage();
-
 		if (ref != null && hyp != null) {
+			TrpPageType refPage = (TrpPageType) ref.unmarshallTranscript().getPage();
+			TrpPageType hypPage = (TrpPageType) hyp.unmarshallTranscript().getPage();			
 			
 			int i = 1;
 			int j = 1;

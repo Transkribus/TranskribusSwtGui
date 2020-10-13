@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.htr;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -29,6 +30,7 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ToolBox;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrDocPagesOrCollectionSelector;
 import eu.transkribus.util.TextRecognitionConfig;
 import eu.transkribus.util.TextRecognitionConfig.Mode;
@@ -41,10 +43,6 @@ public class HtrTextRecognitionDialog extends Dialog {
 	private CurrentTranscriptOrDocPagesOrCollectionSelector dps;
 	private boolean docsSelected = false;
 	private List<DocSelection> selectedDocSelections;
-	
-	ToolBar structureBar;
-	ToolItem structureItem;
-	ToolBox structureBox;
 	
 	PyLaiaRecognitionConfComposite pylaiaConfComp;
 	CitlabRecognitionConfComposite citlabConfComp;
@@ -170,7 +168,9 @@ public class HtrTextRecognitionDialog extends Dialog {
 		boolean isCitlab = config!=null && config.getMode()==Mode.CITlab;
 		
 		if (isCitlab) {
-			config.setStructures(citlabConfComp.selectionArray);
+			logger.info(Arrays.toString(citlabConfComp.structreTagComp.getMultiCombo().getSelections()));
+			List<String> selectionList = Arrays.asList(citlabConfComp.structreTagComp.getMultiCombo().getSelections());  
+			config.setStructures(selectionList);
 			config.setKeepOriginalLinePolygons(citlabConfComp.keepOriginalLinePolygonsBtn.getSelection());
 			config.setDoLinePolygonSimplification(citlabConfComp.doLinePolygonSimplificationBtn.getSelection());
 			config.setDoStoreConfMats(citlabConfComp.doStoreConfMatsBtn.getSelection());			
