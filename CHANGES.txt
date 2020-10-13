@@ -713,5 +713,6 @@ CHANGES AND BUGFIXES
 	-> Last but not least in this series: 'Canvas tool bar' - 'Other segmentation tools' - 'Merge small text lines': automatically merges small text lines in the same row (should be used carefully)
 	-> Editorial Declaration: export your selected transcription options directly in the 'Editorial Declaration Dialog' into XLSX
 	-> automatic split of training set and validation set (choose if you want 2%, 5% or 10% of validation pages)
+	-> bugfix: handwritten text recognition restriction on selected structures had no effect
 	
 	
