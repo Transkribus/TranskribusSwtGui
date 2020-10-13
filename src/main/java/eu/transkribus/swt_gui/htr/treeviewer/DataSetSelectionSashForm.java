@@ -12,6 +12,8 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
@@ -88,6 +90,8 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 	
 	Combo versionCombo;
 	Button addToTrainSetBtn, addToValSetBtn, removeFromTrainSetBtn, removeFromValSetBtn;
+	Button automaticValSet_2Percent, automaticValSet_5Percent, automaticValSet_10Percent;
+
 	Label infoLbl;
 	DataSetTableWidget<IDataSelectionEntry<?, ?>> valSetOverviewTable, trainSetOverviewTable;
 	CTabFolder dataTabFolder;
@@ -156,7 +160,7 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 		infoLbl = new Label(buttonComp, SWT.WRAP);
 		GridData infoLblGd = new GridData(SWT.FILL, SWT.BOTTOM, true, true);
 		infoLbl.setLayoutData(infoLblGd);
-
+		
 		addToTrainSetBtn = new Button(buttonComp, SWT.PUSH);
 		addToTrainSetBtn.setImage(Images.ADD);
 		addToTrainSetBtn.setText("Training");
@@ -165,6 +169,50 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 		addToValSetBtn.setImage(Images.ADD);
 		addToValSetBtn.setText("Validation");
 		addToValSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		
+		Label tmp = new Label(buttonComp, SWT.WRAP);
+		GridData tmpLblGd = new GridData(SWT.FILL, SWT.TOP, true, false);
+		tmp.setLayoutData(tmpLblGd);
+		tmp.setText("automatic selection of validation set");
+		
+		automaticValSet_2Percent = new Button(buttonComp, SWT.CHECK);
+		automaticValSet_2Percent.setText("2% from train");
+		automaticValSet_2Percent.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		automaticValSet_2Percent.addSelectionListener(new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent e) {
+		    	if (automaticValSet_2Percent.getSelection()) {
+		    		automaticValSet_5Percent.setSelection(false);
+		    		automaticValSet_10Percent.setSelection(false);
+		    	}
+		    }
+		  });
+		
+		automaticValSet_5Percent = new Button(buttonComp, SWT.CHECK);
+		automaticValSet_5Percent.setText("5% from train");
+		automaticValSet_5Percent.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		automaticValSet_5Percent.addSelectionListener(new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent e) {
+		    	if (automaticValSet_5Percent.getSelection()) {
+		    		automaticValSet_2Percent.setSelection(false);
+		    		automaticValSet_10Percent.setSelection(false);
+		    	}
+		    }
+		  });
+		
+		automaticValSet_10Percent = new Button(buttonComp, SWT.CHECK);
+		automaticValSet_10Percent.setText("10% from train");
+		automaticValSet_10Percent.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		automaticValSet_10Percent.addSelectionListener(new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent e) {
+		    	if (automaticValSet_10Percent.getSelection()) {
+		    		automaticValSet_2Percent.setSelection(false);
+		    		automaticValSet_5Percent.setSelection(false);
+		    	}
+		    }
+		  });
 
 		Group trainOverviewCont = new Group(this, SWT.NONE);
 		trainOverviewCont.setText("Overview");
@@ -315,7 +363,7 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 	int openConflictDialog(TrpDocMetadata docMd, List<TrpPage> gtOverlapByImageId) {
 		String title = "Some of the data is already selected";
 		String msg = "The images of the following pages are already included in the selection:\n\n";
-		String pageStr = CoreUtils.getRangeListStrFromList(gtOverlapByImageId.stream().map(p -> p.getPageNr()).collect(Collectors.toList()));
+		String pageStr = CoreUtils.getRangeListStrFromList(gtOverlapByImageId.stream().map(p -> p.getPageNr()-1).collect(Collectors.toList()));
 		msg += "Document '" + docMd.getTitle() + "' pages " + pageStr;
 		msg += "\n\nDo you want to replace the previous selection with those pages?";
 		
@@ -470,6 +518,23 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 		getController().SHOW_DEBUG_DIALOG = b;
 	}
 	
+	public boolean isAutomaticValSetChoiceBtnSet() {
+		return automaticValSet_2Percent.getSelection() || automaticValSet_5Percent.getSelection() || automaticValSet_10Percent.getSelection();
+	}
+	
+	public boolean isValSet2Percent() {
+		return automaticValSet_2Percent.getSelection();
+	}
+	
+	public boolean isValSet5Percent() {
+		return automaticValSet_5Percent.getSelection();
+	}
+	
+	public boolean isValSet10Percent() {
+		return automaticValSet_10Percent.getSelection();
+	}
+	
+
 //	@Override
 //	public void handleHtrListLoadEvent(HtrListLoadEvent e) {
 //		if(e.collId != this.colId) {

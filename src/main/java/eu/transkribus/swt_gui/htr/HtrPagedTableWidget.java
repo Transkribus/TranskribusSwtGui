@@ -223,7 +223,18 @@ public class HtrPagedTableWidget extends ATableWidgetPagination<TrpHtr> {
 	@Override
 	protected void createColumns() {
 		HtrTableLabelProvider lp = new HtrTableLabelProvider(tv);
-		createDefaultColumn(HTR_NAME_COL, 210, "name", true);
+		//createDefaultColumn(HTR_NAME_COL, 210, "name", true);
+		createColumn(HTR_NAME_COL, 210, "name", new CellLabelProvider() {
+			@Override
+			public void update(ViewerCell cell) {
+				if (cell.getElement() instanceof TrpHtr) {
+					cell.setImage(lp.getColumnImage((TrpHtr)cell.getElement(), cell.getColumnIndex()));
+					cell.setText(lp.getColumnText((TrpHtr)cell.getElement(), HTR_NAME_COL));	
+				}
+			}
+		});
+		
+		
 		createDefaultColumn(HTR_LANG_COL, 100, "language", true);
 		
 		createColumn(HTR_CREATOR_COL, 120, "userName", new CellLabelProvider() {
