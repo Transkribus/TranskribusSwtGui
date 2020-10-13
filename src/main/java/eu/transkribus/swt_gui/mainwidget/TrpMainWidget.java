@@ -53,6 +53,7 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.util.BidiUtils;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -158,6 +159,7 @@ import eu.transkribus.swt.util.DocumentManager;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LoginDialog;
+import eu.transkribus.swt.util.MessageDialogStyledWithToggle;
 import eu.transkribus.swt.util.SWTLog;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.SplashWindow;
@@ -4876,9 +4878,11 @@ public class TrpMainWidget {
 			List<TrpEvent> events = storage.getEvents();
 			for (TrpEvent ev : events) {
 				final String msg = CoreUtils.newDateFormatUserFriendly().format(ev.getDate()) + ": " + ev.getTitle() + "\n\n" + ev.getMessage();
-				Pair<Integer, Boolean> ret = DialogUtil.showMessageDialogWithToggle(getShell(), "Notification", msg, "Do not show this message again", false,
-						SWT.NONE, "OK");
-				boolean doNotShowAgain = ret.getRight();
+				MessageDialogWithToggle eventDialog = new MessageDialogStyledWithToggle(getShell(), "Notification", null, msg, MessageDialog.INFORMATION, 
+						new String[] { "OK" }, 0, "Do not show this message again", false);
+				int ret = eventDialog.open();
+				logger.debug("User choice was button: {}", ret);
+				boolean doNotShowAgain = eventDialog.getToggleState();
 				logger.debug("Do not show again = " + doNotShowAgain);
 				if (doNotShowAgain) {
 					storage.markEventAsRead(ev.getId());
