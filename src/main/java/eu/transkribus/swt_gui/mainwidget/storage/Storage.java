@@ -111,7 +111,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
-import eu.transkribus.core.model.beans.rest.TrpHtrList;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.ExportCache;
@@ -146,7 +145,6 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocListLoadEve
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocMetadataUpdateEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.GroundTruthLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.HtrListLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.MainImageLoadEvent;
@@ -2975,13 +2973,14 @@ public class Storage {
 		case CITlab:
 			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), getDocId(), pages, 
 					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), 
-					config.isDoStoreConfMats(), config.getStructures());
+					config.isDoStoreConfMats(), config.getStructures(), config.getCreditSelectionStrategy());
 		case UPVLC:
 			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), getDocId(), pages, 
 					config.getHtrId(), config.getLanguageModel(),
 					config.isUseExistingLinePolygons(), config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
 					config.getBatchSize(),
-					config.getStructures());			
+					config.getStructures(), 
+					config.getCreditSelectionStrategy());			
 		default:
 			return null;
 		}
@@ -2993,14 +2992,15 @@ public class Storage {
 		case CITlab:
 			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), descriptor, config.getHtrId(), 
 					config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), 
-					config.isDoStoreConfMats(), config.getStructures()
+					config.isDoStoreConfMats(), config.getStructures(), config.getCreditSelectionStrategy()
 					);
 		case UPVLC:
 			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), descriptor, config.getHtrId(), config.getLanguageModel(), 
 					config.isUseExistingLinePolygons(), config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
 					config.getBatchSize(),
-					config.getStructures()
-					);		
+					config.getStructures(),
+					config.getCreditSelectionStrategy()
+					);
 		default:
 			return null;
 		}
@@ -3011,13 +3011,15 @@ public class Storage {
 		switch(config.getMode()) {
 		case CITlab:
 			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), docId, pages, 
-					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), config.isDoStoreConfMats(), config.getStructures());
+					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), config.isDoStoreConfMats(), 
+					config.getStructures(), config.getCreditSelectionStrategy());
 		case UPVLC:
 			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), docId, pages, 
 					config.getHtrId(), config.getLanguageModel(), 
 					config.isUseExistingLinePolygons(), config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
 					config.getBatchSize(),
-					config.getStructures());
+					config.getStructures(),
+					config.getCreditSelectionStrategy());
 		default:
 			return null;
 		}
