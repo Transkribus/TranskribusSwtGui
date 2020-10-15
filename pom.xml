@@ -697,34 +697,9 @@
 		</dependency>
 
 		<dependency>
-<<<<<<< HEAD
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.4</version>
-		</dependency>
-
-		<!-- Graph library: -->
-		<!-- <dependency> -->
-		<!-- <groupId>org.jgrapht</groupId> -->
-		<!-- <artifactId>jgrapht-core</artifactId> -->
-		<!-- <version>0.9.0</version> -->
-		<!-- </dependency> -->
-
-		<!-- <dependency> -->
-		<!-- <groupId>org.jgrapht</groupId> -->
-		<!-- <artifactId>jgrapht-demo</artifactId> -->
-		<!-- <version>0.9.0</version> -->
-		<!-- </dependency> -->
-
-		<dependency>
-			<groupId>commons-beanutils</groupId>
-			<artifactId>commons-beanutils</artifactId>
-			<version>1.9.2</version>
-=======
 			<groupId>org.eclipse.ui</groupId>
 			<artifactId>workbench</artifactId>
 			<version>3.119.0.v20200521</version>
->>>>>>> refs/heads/development
 		</dependency>
 
 		<dependency>
