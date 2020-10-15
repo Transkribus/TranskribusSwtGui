@@ -82,7 +82,8 @@ public class DataSetSelectionController {
 	 */
 	private final PageTranscriptSelector selector;
 	
-	boolean SHOW_DEBUG_DIALOG = false;
+	boolean SHOW_DEBUG_DIALOG = true;
+	boolean userWantToChangeSelection = true;
 	DebugDialog diag = null;
 	
 	private VersionComboStatus transcriptVersionToUse = VersionComboStatus.Latest;
@@ -106,7 +107,61 @@ public class DataSetSelectionController {
 	}
 	
 	public void addDocumentSelectionToTrainSet() {
+		userWantToChangeSelection = true;
 		String infoLabelText = addDocumentSelectionToDataMap((IStructuredSelection) view.docTv.getSelection(), trainDocMap, valDocMap);
+		/*
+		 * if the validation set should be chosen automatically
+		 */
+		
+		if (view.isAutomaticValSetChoiceBtnSet() && userWantToChangeSelection) {
+			logger.debug("automatically set the validation set");
+			int mod = (view.isValSet2Percent()? 50 : view.isValSet5Percent()? 20 : 10);
+			//
+			int i = 0;
+			//TODO: do it for the currently selected docs only
+			List<Integer> docIdsSelected = new ArrayList<Integer>();
+			
+			IStructuredSelection selection = (IStructuredSelection) view.docTv.getSelection();
+			Iterator<?> it = selection.iterator();
+			while (it.hasNext()) {
+				Object o = it.next();
+				if (o instanceof TrpDocMetadata) {
+					TrpDocMetadata docMd = (TrpDocMetadata) o;
+					docIdsSelected.add(docMd.getDocId());
+				}
+				else if (o instanceof TrpPage) {
+					TrpPage p = (TrpPage) o;
+					TrpDocMetadata parent = (TrpDocMetadata) ((CollectionContentProvider)view.docTv.getContentProvider()).getParent(p);
+					docIdsSelected.add(parent.getDocId());
+				}
+			}
+					
+			for (Map.Entry<TrpDocMetadata, List<TrpPage>> entry : trainDocMap.entrySet()) {
+				if (!docIdsSelected.contains(entry.getKey().getDocId())){
+					continue;
+				}
+				List<TrpPage> toRemove = new ArrayList<TrpPage>();
+				for (TrpPage p : entry.getValue()) {
+				    i++;
+				    if (i%mod==0) {
+				    	//logger.debug("remove from trainDocMap");
+				    	toRemove.add(p);
+				    	//entry.getValue().remove(p);
+				    	//trainDocMap.remove(entry.getKey());
+						if (valDocMap.containsKey(entry.getKey()) && !valDocMap.get(entry.getKey()).contains(p)) {
+							valDocMap.get(entry.getKey()).add(p);
+						} else if (!valDocMap.containsKey(entry.getKey())) {
+							List<TrpPage> pageList = new ArrayList<>();
+							pageList.add(p);
+							valDocMap.put(entry.getKey(), pageList);
+						}
+				    }
+				}
+				entry.getValue().removeAll(toRemove);
+  
+			}
+		}
+		
 		updateView(infoLabelText);
 	}
 
@@ -244,16 +299,20 @@ public class DataSetSelectionController {
 				
 				logger.debug("Filtered already included pages. Remaining: " + pageList.size());
 				nrOfItemsOmitted += nrOfTranscribedPagesInSelection - pageList.size();
+				logger.debug("items omitted - first calc: " + nrOfItemsOmitted);
 				
 				//check for images already in the selection and ask user which ones to use
 				List<TrpPage> pagesToAdd = detectAndResolveConflicts(docMd, pageList);
 				if(pagesToAdd.isEmpty()) {
-					nrOfItemsOmitted += nrOfTranscribedPagesInSelection;
+					//TODO: check with Phillip, next line counts pages double for the statistic
+					//nrOfItemsOmitted += nrOfTranscribedPagesInSelection;
+					logger.debug("items omitted: " + nrOfItemsOmitted);
 					continue;
 				}
 				
+				//TODO: this removes the pages already contained in the target previously to the selection
 				targetDataMap.put(docMd, pagesToAdd);
-				if (nonIntersectingDataMap.containsKey(docMd)) {
+				if (nonIntersectingDataMap.containsKey(docMd) && userWantToChangeSelection) {
 					nonIntersectingDataMap.remove(docMd);
 				}
 			} else if (o instanceof TrpPage) {
@@ -565,10 +624,13 @@ public class DataSetSelectionController {
 			removeOverlapFromSelectionByPages(gtOverlapByImageId);
 			break;
 		case SWT.NO:
+			//TODO this way the overlap disappears: but we should keep it as it was because the user does not want to restore it
 			pageList = new ArrayList<>(pageList);
 			pageList.removeAll(gtOverlapByImageId);
+			userWantToChangeSelection = false;
 			break;
 		default: //SWT.CANCEL
+			userWantToChangeSelection = false;
 			return new ArrayList<>(0);
 		}
 		return pageList;

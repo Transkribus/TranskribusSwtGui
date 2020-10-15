@@ -34,8 +34,8 @@ public class ImgLoader {
 	
 	static Image ERROR_IMG = Images.getOrLoad("/icons/broken_image.png");
 	
-	public static boolean TRY_LOAD_IMAGES_WITH_JFACE_FIRST = true;
-	public static boolean LOAD_LOCAL_IMAGES_WITH_JAI = false;
+	public final static boolean TRY_LOAD_IMAGES_WITH_JFACE_FIRST = true;
+	public final static boolean LOAD_LOCAL_IMAGES_WITH_JAI = false;
 	
 	/**
 	 * Fixes the orientation of the input image according to the given EXIF orientation tag.<br/>

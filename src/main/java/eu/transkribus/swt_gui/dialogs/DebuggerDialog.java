@@ -76,7 +76,7 @@ public class DebuggerDialog extends Dialog {
 	@Override protected void configureShell(Shell shell) {
 		super.configureShell(shell);
 		shell.setSize(800, 800);
-		SWTUtil.centerShell(shell);
+		SWTUtil.centerShell(shell, false);
 		shell.setText("Debugging Dialog");
 	}
 	
@@ -117,8 +117,6 @@ public class DebuggerDialog extends Dialog {
 		
 		openSleakBtn = new Button(btns, SWT.PUSH);
 		openSleakBtn.setText("Open Sleak");
-		
-//		new Label(shell, SWT.NONE);
 		
 		listLibsBtn = new Button(container, 0);
 		listLibsBtn.setText("List libs");		

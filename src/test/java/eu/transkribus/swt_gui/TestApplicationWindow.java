@@ -66,7 +66,7 @@ public abstract class TestApplicationWindow extends ApplicationWindow {
 		Future<?> fut = store.reloadDocList(colId); // reload doclist of a collection just that the collection id gets set!
 		fut.get();
 		
-		store.reloadHtrs();
+		//store.reloadHtrs();
 //		store.reloadP2PaLAModels();
 		
 		return store;

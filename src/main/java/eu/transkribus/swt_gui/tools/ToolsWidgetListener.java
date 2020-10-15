@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -27,22 +28,21 @@ import eu.transkribus.core.model.beans.TrpP2PaLA;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
-import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.rest.JobConstP2PaLA;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ThumbnailManager;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
-import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.CITlabAdvancedLaConfigDialog;
 import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.dialogs.SamplesCompareDialog;
+import eu.transkribus.swt_gui.htr.DUDecodeDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
@@ -53,11 +53,10 @@ import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage.StorageException;
 import eu.transkribus.swt_gui.p2pala.P2PaLAConfDialog;
 import eu.transkribus.swt_gui.p2pala.P2PaLAConfDialog.P2PaLARecogUiConf;
-import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.util.OcrConfig;
 import eu.transkribus.util.TextRecognitionConfig;
 
-public class ToolsWidgetListener implements SelectionListener {
+public class ToolsWidgetListener implements SelectionListener, IStorageListener {
 	private final static Logger logger = LoggerFactory.getLogger(ToolsWidgetListener.class);
 
 	TrpMainWidget mw;
@@ -99,13 +98,9 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.p2palaBtn, this);
 		SWTUtil.addSelectionListener(tw.p2palaTrainBtn, this);
 		SWTUtil.addSelectionListener(tw.t2iBtn, this);
+		SWTUtil.addSelectionListener(tw.duButton, this);
 		
-		Storage.getInstance().addListener(new IStorageListener() {
-			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
-				tw.refVersionChooser.setToGT();
-				tw.hypVersionChooser.setToCurrent();
-			}
-		});
+		Storage.getInstance().addListener(this);
 	}
 
 //	List<String> getSelectedRegionIds() {
@@ -143,9 +138,12 @@ public class ToolsWidgetListener implements SelectionListener {
 			store.checkLoggedIn();
 
 			if (htd != null) {
+				logger.debug("set the training dialog visible");
 				htd.setVisible();
 			} else {
-				htd = new HtrTrainingDialog(mw.getShell(), store.getHtrs(null, true), store.getHtrTrainingJobImpls());
+				logger.debug("new training dialog");
+				htd = new HtrTrainingDialog(mw.getShell(), store.getHtrTrainingJobImpls());
+				
 				if (htd.open() == IDialogConstants.OK_ID) {
 					// new: check here if user wants to store or not
 					// if (!mw.saveTranscriptDialogOrAutosave()) {
@@ -292,20 +290,30 @@ public class ToolsWidgetListener implements SelectionListener {
 				}
 				
 				if (tw.laComp.isDocsSelection() && tw.laComp.getDocs() != null && Storage.getInstance().isAdminLoggedIn()){
-					// NEW: use DocSelection objects
-					for (DocSelection docSel : tw.laComp.getDocs()){
-						logger.debug("start LA for docs: " + docSel.getDocId());
-						List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
-						// as LA call does not support specifying a docId & pagesStr (TODO!) we have to get the pageIds from the server to construct a DSD object
-						DocumentSelectionDescriptor dsd = store.getDocumentSelectionDescriptor(colId, docSel);
-						logger.debug("nr of pages in la descriptor: "+dsd.getPages().size());
-						dsds.add(dsd);
-						List<String> tmp = store.analyzeLayoutOnDocumentSelectionDescriptor(
-								dsds, tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), 
-								false, false, tw.laComp.getJobImpl().toString(), tw.laComp.getParameters()
-								);
-						jobIds.addAll(tmp);
-					}					
+					JobImpl jobImpl = tw.laComp.getJobImpl();
+					if(JobImpl.FinereaderLaJob.equals(jobImpl)) {
+						//OCR is another endpoint and it can't yet handle descriptors...
+						for (DocSelection docSel : tw.laComp.getDocs()){
+							logger.debug("Start printed block detection for doc {}, pages = {}", docSel.getDocId(), docSel.getPages());
+							String jobIdStr = store.getConnection().runTypewrittenBlockSegmentation(colId, docSel.getDocId(), docSel.getPages());
+							jobIds.add(jobIdStr);
+						}
+					} else {
+						// NEW: use DocSelection objects
+						for (DocSelection docSel : tw.laComp.getDocs()){
+							logger.debug("start LA for docs: " + docSel.getDocId());
+							List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
+							// as LA call does not support specifying a docId & pagesStr (TODO!) we have to get the pageIds from the server to construct a DSD object
+							DocumentSelectionDescriptor dsd = store.getDocumentSelectionDescriptor(colId, docSel);
+							logger.debug("nr of pages in la descriptor: "+dsd.getPages().size());
+							dsds.add(dsd);
+							List<String> tmp = store.analyzeLayoutOnDocumentSelectionDescriptor(
+									dsds, tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), 
+									false, false, tw.laComp.getJobImpl().toString(), tw.laComp.getParameters()
+									);
+							jobIds.addAll(tmp);
+						}
+					}
 					
 					// OLD
 //					/*
@@ -700,6 +708,18 @@ public class ToolsWidgetListener implements SelectionListener {
 					}
 					od = null;
 				}
+			} else if(s == tw.duButton){
+				DUDecodeDialog duDecodeDialog = new DUDecodeDialog(mw.getShell());
+				int ret = duDecodeDialog.open();
+
+				if (ret == IDialogConstants.OK_ID) {
+					String pageString = duDecodeDialog.getPages();
+					String jobId = store.runDocUnderstanding(store.getDocId(), pageString, 2);
+					logger.debug("started DU job: "+jobId);
+					jobIds.add(jobId);
+				}
+
+
 			}
 
 			showSuccessMessage(jobIds);
@@ -709,6 +729,15 @@ public class ToolsWidgetListener implements SelectionListener {
 			if (status == 400) {
 				logger.error(ee.getMessage(), ee);
 				DialogUtil.showErrorMessageBox(this.mw.getShell(), "Error", ee.getMessageToUser());
+			} else if (Status.PAYMENT_REQUIRED.equals(Status.fromStatusCode(status))) {
+				logger.warn(ee.getMessage());
+				int choice = MessageDialog.open(MessageDialog.INFORMATION, this.mw.getShell(), 
+						"Credits Depleted", ee.getMessageToUser(), SWT.NONE, new String[] { "OK", "Visit the shop at readcoop.eu" });
+				if(choice == 1) {
+					DesktopUtil.browse("https://readcoop.eu", "Could not open system browser.\nPlease visit the shop at https://readcoop.eu", this.mw.getShell());
+				} else {
+					logger.debug("Insufficient credits dialog user choice was {}", choice);
+				}
 			} else {
 				mw.onError("Error", ee.getMessageToUser(), ee);
 			}
@@ -747,4 +776,14 @@ public class ToolsWidgetListener implements SelectionListener {
 	//// mw.saveDocMetadata();
 	// }
 	// }
+	
+	public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
+		tw.refVersionChooser.setToGT();
+		tw.hypVersionChooser.setToCurrent();
+	}
+	
+	public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+		boolean duVisible = Storage.getInstance().isLoggedInAtTestServer();		
+		//tw.setDuVisible(duVisible);
+	}
 }

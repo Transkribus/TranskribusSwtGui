@@ -44,7 +44,7 @@ public class ToolsWidget extends Composite {
 	
 	TextRecognitionComposite trComp;
 	
-	Button polygon2baselinesBtn, baseline2PolygonBtn, p2palaBtn, p2palaTrainBtn;
+	Button polygon2baselinesBtn, baseline2PolygonBtn, p2palaBtn, p2palaTrainBtn, duButton;
 	CurrentTranscriptOrCurrentDocPagesSelector otherToolsPagesSelector;
 	
 	Button t2iBtn;
@@ -60,6 +60,7 @@ public class ToolsWidget extends Composite {
 	ExpandableComposite werExp, laToolsExp, expRecog,expOther;
 	
 	Composite container; // this is the base container, where all expandable composite are put into
+	Composite otherToolsContainer, p2palaContainer, t2iContainer, duContainer, otherOtherToolsGroup;
 	ScrolledComposite sc;
 	
 	/*
@@ -437,11 +438,11 @@ public class ToolsWidget extends Composite {
 	private void initOtherTools(Composite container) {
 		expOther = new ExpandableComposite(container, ExpandableComposite.COMPACT);
 		expOther.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Composite c = new Composite(expOther, SWT.SHADOW_ETCHED_IN);
-		c.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		c.setLayout(new GridLayout(1, true));
+		otherToolsContainer = new Composite(expOther, SWT.SHADOW_ETCHED_IN);
+		otherToolsContainer.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		otherToolsContainer.setLayout(new GridLayout(1, true));
 		
-		Composite p2palaContainer = new Composite(c, 0);
+		p2palaContainer = new Composite(otherToolsContainer, 0);
 		p2palaContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 		p2palaContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
@@ -457,7 +458,7 @@ public class ToolsWidget extends Composite {
 		p2palaTrainBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 		
-		Composite t2iContainer = new Composite(c, 0);
+		t2iContainer = new Composite(otherToolsContainer, 0);
 		t2iContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 		t2iContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
@@ -466,8 +467,16 @@ public class ToolsWidget extends Composite {
 		t2iBtn.setToolTipText("Tries to match the text contained in the transcriptions to a line segmentation");
 		t2iBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		t2iBtn.setData(new Text2ImageConf());
+
+		duContainer = new Composite(otherToolsContainer, 0);
+		duContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
+		duContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		duButton = new Button(duContainer, SWT.PUSH);
+		duButton.setText("Document Understanding...");
+		duButton.setToolTipText("Automatically adds annotations.");
+		duButton.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));	
 		
-		Group otherOtherToolsGroup = new Group(c, 0);
+		otherOtherToolsGroup = new Group(otherToolsContainer, 0);
 		otherOtherToolsGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
 		otherOtherToolsGroup.setLayout(new GridLayout(1, true));
 		
@@ -482,10 +491,10 @@ public class ToolsWidget extends Composite {
 		baseline2PolygonBtn = new Button(otherOtherToolsGroup, SWT.PUSH);
 		baseline2PolygonBtn.setText("Add Polygons to Baselines");
 		baseline2PolygonBtn.setToolTipText("Creates polygons for all baselines - warning: existing polygons will be lost (text is retained however!)");
-		baseline2PolygonBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));		
+		baseline2PolygonBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));	
 		
-		expOther.setClient(c);
-		new Label(c, SWT.NONE);
+		expOther.setClient(otherToolsContainer);
+		new Label(otherToolsContainer, SWT.NONE);
 		expOther.setText("Other Tools");
 		Fonts.setBoldFont(expOther);
 		expOther.setExpanded(true);
@@ -495,6 +504,17 @@ public class ToolsWidget extends Composite {
 			}
 		});
 	
+	}
+	
+	public void setDuVisible(boolean visible) {
+		logger.debug("setting du visible: "+visible);
+		if (visible) {
+			duContainer.setParent(otherToolsContainer);
+			duContainer.moveBelow(t2iContainer);
+		} else {
+			duContainer.setParent(SWTUtil.dummyShell);
+		}
+		layoutContainer();
 	}
 	
 //	public void setP2PaLAModels(List<TrpP2PaLAModel> models) {

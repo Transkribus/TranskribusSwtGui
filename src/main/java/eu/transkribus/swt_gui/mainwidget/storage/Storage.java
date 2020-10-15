@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -73,6 +74,7 @@ import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
 import eu.transkribus.core.model.beans.ReleaseLevel;
 import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpCreditCosts;
 import eu.transkribus.core.model.beans.TrpCrowdProject;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMessage;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMilestone;
@@ -109,7 +111,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
-import eu.transkribus.core.model.beans.rest.TrpHtrList;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.ExportCache;
@@ -144,7 +145,6 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocListLoadEve
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocMetadataUpdateEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.GroundTruthLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.HtrListLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.MainImageLoadEvent;
@@ -236,7 +236,9 @@ public class Storage {
 	private static int reloadHtrListCounter=0;
 	
 //	private List<TrpP2PaLA> p2palaModels = new ArrayList<>();
-	private List<TrpHtr> htrList = new ArrayList<>();
+//	private List<TrpHtr> htrList = new ArrayList<>();
+	
+	private List<TrpCreditCosts> creditCostsList;
 	
 	private AsyncExecutor loadPageAsyncExecutor = new AsyncExecutor();
 	private AsyncExecutor loadTranscriptAsyncExecutor = new AsyncExecutor();
@@ -364,7 +366,12 @@ public class Storage {
 		}
 
 		if (includeCurrent && hasTranscriptMetadata() && findTranscriptWithTimeStamp(trlist, transcript.getMd()) == null) {
-			// logger.debug("adding transcription!!");
+			logger.debug("adding transcription to list: {}", transcript.getMd());
+			if(!StorageUtil.isTranscriptMdConsistent(transcript)) {
+				logger.error("Blocked attempt to add a transcript of page with nr. {} to page with nr. {}", 
+						transcript.getMd().getPageNr() , page.getPageNr());
+				throw new IllegalStateException("Inconsistent state in storage. Reload page to continue.");
+			}
 			trlist.add(transcript.getMd());
 		}
 
@@ -679,6 +686,7 @@ public class Storage {
 		if (transcript.getMd()!=null && transcript.getMd().equals(md))
 			return false;
 		
+		//FIXME only md is set but not the pageData! https://github.com/Transkribus/TranskribusSwtGui/issues/310
 		transcript.setMd(md);
 		return true;
 	}
@@ -1079,7 +1087,7 @@ public class Storage {
 			logger.error("Error logging out: " + th.getMessage(), th);
 		} finally {
 			clearCollections();
-			htrList = new ArrayList<>(0);
+//			htrList = new ArrayList<>(0);
 //			clearP2PaLAModels();
 			conn = null;
 			user = null;
@@ -1141,27 +1149,27 @@ public class Storage {
 //		}
 //	}
 
-	public void reloadCurrentDocument(int colId) throws SessionExpiredException, IllegalArgumentException, NoConnectionException, UnsupportedFormatException,
-			IOException, NullValueException {
-
-		// public void loadLocalDoc(String folder) throws Exception {
-		// public void loadRemoteDoc(int docId) throws Exception {
-
-		if (doc != null) {
-			if (isLocalDoc()) {
-				loadLocalDoc(doc.getMd().getLocalFolder().getAbsolutePath(), null);
-			} else {
-				loadRemoteDoc(colId, doc.getMd().getDocId());
-			}
-
-			logger.debug("nr of pages: " + getNPages());
-			setCurrentPage(0);
-
-			// if (!hasPageIndex(0)) {
-			// currentPage = 0;
-			// }
-		}
-	}
+//	/**
+//	 * @deprecated
+//	 * FIXME page index is now set but Storage state is inconsistent due to missing page reload Causes
+//	 * https://github.com/Transkribus/TranskribusSwtGui/issues/310
+//	 * 
+//	 * Solution: remove and use TrpMainWidget::reloadCurrentDocument instead!
+//	 */
+//	private void reloadCurrentDocument(int colId) throws SessionExpiredException, IllegalArgumentException, NoConnectionException, UnsupportedFormatException,
+//			IOException, NullValueException {
+//		if (doc != null) {
+//			if (isLocalDoc()) {
+//				loadLocalDoc(doc.getMd().getLocalFolder().getAbsolutePath(), null);
+//			} else {
+//				loadRemoteDoc(colId, doc.getMd().getDocId());
+//			}
+//
+//			logger.debug("nr of pages: " + getNPages());
+//			setCurrentPage(0);
+//
+//		}
+//	}
 
 	public String[][] getWordgraphMatrix(boolean fromCache, final int docId, final int pageNr, final String lineId) throws IOException {
 		if (fromCache)
@@ -1785,15 +1793,43 @@ public class Storage {
 		
 		logger.debug("saving transcription " + (getPageIndex() + 1) + " for doc " + doc.getMd().getDocId());
 //		saveTranscript(colId, page, transcript, EditStatus.IN_PROGRESS);
+		if(!StorageUtil.isTranscriptMdConsistent(transcript)) {
+			logger.error("Inconsistent storage state!");
+			logger.error("Transcript md: {}", transcript.getMd());
+			logger.error("PageData transcript md: {}", transcript.getPage().getMd());
+//			throw new IllegalStateException("Transcript metadata is not consistent! Reload document to continue.");
+		}
 		saveTranscript(colId, transcript.getPage(), transcript.getMd().getStatus(), transcript.getMd().getTsId(), commitMessage);
 	}
 	
-//	public void saveTranscript(int colId, TrpPageType page) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {
-//		saveTranscript(coldId, page.getMd().getPage(), page.getPcGtsType())
-//		
-//		
-//	}
+	public void saveTranscript(int colId, JAXBPageTranscript transcript, String commitMessage) 
+			throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {
+		if (transcript == null)
+			throw new Exception("No page or metadata given");
+		if (transcript.getMd() == null)
+			throw new Exception("No page metadata set");
+		if (transcript.getPage() == null)
+			throw new Exception("No page transcript set");
+		if(!StorageUtil.isTranscriptMdConsistent(transcript)) {
+			//FIXME saveTranscript will use the pageNr embedded in TrpPageType. 
+			logger.error("Transcript md: {}", transcript.getMd());
+			logger.error("PageData md: {}", transcript.getPage().getMd());
+//			throw new IllegalStateException("Transcript metadata is not consistent!");
+		}
+		saveTranscript(colId, transcript.getPage(), transcript.getMd().getStatus(), transcript.getMd().getTsId(), commitMessage);
+	}	
 	
+	/**
+	 * @param colId
+	 * @param page
+	 * @param status
+	 * @param parentId
+	 * @param commitMessage
+	 * @throws SessionExpiredException
+	 * @throws ServerErrorException
+	 * @throws IllegalArgumentException
+	 * @throws Exception
+	 */
 	public void saveTranscript(int colId, TrpPageType page, EditStatus status, int parentId, String commitMessage) 
 			throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {
 		if (page == null)
@@ -1801,19 +1837,32 @@ public class Storage {
 		if (page.getMd() == null)
 			throw new Exception("No page metadata set");
 		
-//		logger.debug("docId = "+docId);
-				
-		int docId = page.getMd().getDocId();
-		
-		if (docId != -1) {
-			checkConnection(true);	
+		if (page.getMd().getTsId() != parentId) {
+			logger.warn("Current tsId = {} is not equal to parentTsId argument = {}", 
+					page.getMd().getTsId(), parentId);
+			// the save might affect the wrong page. See https://github.com/Transkribus/TranskribusPersistence/issues/21
+//			throw new IllegalStateException("Inconsistent state in Storage. Saving is not possible.");
 		}
 		
 		if (status == null || status.equals(EditStatus.NEW)){
 			status = EditStatus.IN_PROGRESS;
 		}
-			
+		
+		int docId = page.getMd().getDocId();
+		
+		//the save will use the pageNr embedded in page argument
+		final int pageNrSave = page.getMd().getPageNr();
+		//reloadTranscriptsList(colId) will load the transcripts for storage.page field value. Check consistency
+		final int pageNrTranscriptReload = getPageIndex() + 1;
+		if(pageNrSave != pageNrTranscriptReload) {
+			logger.error("PageNr differs in page data ({}) and storage.page field ({})!", pageNrSave, pageNrTranscriptReload);
+//			throw new IllegalStateException("Inconsistent state in Storage. Saving is not possible.");
+		}
+		
 		if (docId != -1) {
+			checkConnection(true);	
+			//info level to make iit show up in release builds' log files 
+			logger.info("Saving transcript: docId = {}, pageNr = {}, status = {}, parentId = {}", docId, page.getMd().getPageNr(), status, parentId);
 			page.writeCustomTagsToPage();
 			TrpTranscriptMetadata res = conn.updateTranscript(colId, docId, page.getMd().getPageNr(), status, page.getPcGtsType(), parentId, commitMessage);
 		} else {
@@ -1823,7 +1872,7 @@ public class Storage {
 		
 		sendEvent(new TranscriptSaveEvent(this, colId, page.getMd()));
 		reloadTranscriptsList(colId);
-	}	
+	}
 
 //	@Deprecated
 //	// Too much fuzz
@@ -1894,7 +1943,7 @@ public class Storage {
 			
 			String msg = "Applied affine transformation: "+trTxt;
 			
-			saveTranscript(getCurrentDocumentCollectionId(), tr.getPage(), md.getStatus(), md.getParentTsId(), msg);
+			saveTranscript(getCurrentDocumentCollectionId(), tr, msg);
 			
 			if (monitor != null)
 				monitor.worked(++worked);
@@ -2855,41 +2904,30 @@ public class Storage {
 	 * Retrieve HTR models linked to the current collection from the server.
 	 * @return Future object representing the reload task or null if no connection to the server can be established.
 	 */
-	public Future<TrpHtrList> reloadHtrs() {
-		logger.debug("Reloading HTRs (call #{}: colId = {})", ++reloadHtrListCounter, this.getCollId());
-		final Integer currentColId;
-		if(isAdminLoggedIn()) {
-			//for now emulate behavior of old endpoint here: Admin gets to see all HTR models
-			currentColId = null;
-		} else {
-			//filter by collection ID by default
-			currentColId = this.getCollId();
-		}
-		
-		try {
-			checkConnection(true);
-			return conn.getHtrs(currentColId, null, new InvocationCallback<TrpHtrList>() {
-				
-				@Override
-				public void completed(TrpHtrList htrList) {					
-					logger.debug("async loaded HTR list: total = {}, size = {}, index = {}, nValues = {}, thread = {} ", 
-							htrList.getTotal(), htrList.getList().size(), htrList.getIndex(), 
-							htrList.getnValues(), Thread.currentThread().getName());
-					Storage.this.htrList = htrList.getList();
-					sendEvent(new HtrListLoadEvent(this, Storage.this.collId, htrList));
-				}
-
-				@Override public void failed(Throwable throwable) {
-					logger.error("Error loading HTR models: " + throwable.getMessage(), throwable);
-					htrList.clear();
-				}
-			});
-		} catch (NoConnectionException e) {
-			Storage.this.htrList = new ArrayList<>(0);
-			logger.error("No connection to server!", e);
-			return null;
-		}
-	}
+	/*
+	 * public Future<TrpHtrList> reloadHtrs() {
+	 * logger.debug("Reloading HTRs (call #{}: colId = {})", ++reloadHtrListCounter,
+	 * this.getCollId()); final Integer currentColId; if(isAdminLoggedIn()) { //for
+	 * now emulate behavior of old endpoint here: Admin gets to see all HTR models
+	 * currentColId = null; } else { //filter by collection ID by default
+	 * currentColId = this.getCollId(); }
+	 * 
+	 * try { checkConnection(true); return conn.getHtrs(currentColId, null, new
+	 * InvocationCallback<TrpHtrList>() {
+	 * 
+	 * @Override public void completed(TrpHtrList htrList) { logger.
+	 * debug("async loaded HTR list: total = {}, size = {}, index = {}, nValues = {}, thread = {} "
+	 * , htrList.getTotal(), htrList.getList().size(), htrList.getIndex(),
+	 * htrList.getnValues(), Thread.currentThread().getName()); Storage.this.htrList
+	 * = htrList.getList(); sendEvent(new HtrListLoadEvent(this,
+	 * Storage.this.collId, htrList)); }
+	 * 
+	 * @Override public void failed(Throwable throwable) {
+	 * logger.error("Error loading HTR models: " + throwable.getMessage(),
+	 * throwable); htrList.clear(); } }); } catch (NoConnectionException e) {
+	 * Storage.this.htrList = new ArrayList<>(0);
+	 * logger.error("No connection to server!", e); return null; } }
+	 */
 	
 	public void deleteHtr(TrpHtr htr) throws NoConnectionException, TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
 		checkConnection(true);
@@ -2907,26 +2945,27 @@ public class Storage {
 			return;
 		}
 		conn.updateHtrMetadata(getCollId(), htr);
-		reloadHtrs();
+		
+		//reloadHtrs();
 	}
 	
-	public List<TrpHtr> getHtrs(String provider) {
-		if(provider == null) {
-			return htrList;
-		}
-		return htrList.stream()
-				.filter(h -> h.getProvider().equals(provider))
-				.collect(Collectors.toList());
-	}
-	
-	public List<TrpHtr> getHtrs(String provider, boolean excludeHtrsWithoutGTData) {
-		//filter by provider
-		List<TrpHtr> htrs = getHtrs(provider);
-		//return HTRs with disclosed train GT only 
-		return htrs.stream()
-				.filter(h -> h.hasTrainGt() && this.isUserAllowedToViewDataSets(h))
-				.collect(Collectors.toList());
-	}
+//	public List<TrpHtr> getHtrs(String provider) {
+//		if(provider == null) {
+//			return htrList;
+//		}
+//		return htrList.stream()
+//				.filter(h -> h.getProvider().equals(provider))
+//				.collect(Collectors.toList());
+//	}
+//	
+//	public List<TrpHtr> getHtrs(String provider, boolean excludeHtrsWithoutGTData) {
+//		//filter by provider
+//		List<TrpHtr> htrs = getHtrs(provider);
+//		//return HTRs with disclosed train GT only 
+//		return htrs.stream()
+//				.filter(h -> h.hasTrainGt() && this.isUserAllowedToViewDataSets(h))
+//				.collect(Collectors.toList());
+//	}
 
 	public String runHtr(String pages, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
 		checkConnection(true);
@@ -2934,13 +2973,14 @@ public class Storage {
 		case CITlab:
 			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), getDocId(), pages, 
 					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), 
-					config.isDoStoreConfMats(), config.getStructures());
+					config.isDoStoreConfMats(), config.getStructures(), config.getCreditSelectionStrategy());
 		case UPVLC:
 			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), getDocId(), pages, 
 					config.getHtrId(), config.getLanguageModel(),
-					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
+					config.isUseExistingLinePolygons(), config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
 					config.getBatchSize(),
-					config.getStructures());			
+					config.getStructures(), 
+					config.getCreditSelectionStrategy());			
 		default:
 			return null;
 		}
@@ -2952,14 +2992,15 @@ public class Storage {
 		case CITlab:
 			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), descriptor, config.getHtrId(), 
 					config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), 
-					config.isDoStoreConfMats(), config.getStructures()
+					config.isDoStoreConfMats(), config.getStructures(), config.getCreditSelectionStrategy()
 					);
 		case UPVLC:
 			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), descriptor, config.getHtrId(), config.getLanguageModel(), 
-					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
+					config.isUseExistingLinePolygons(), config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
 					config.getBatchSize(),
-					config.getStructures()
-					);		
+					config.getStructures(),
+					config.getCreditSelectionStrategy()
+					);
 		default:
 			return null;
 		}
@@ -2970,13 +3011,15 @@ public class Storage {
 		switch(config.getMode()) {
 		case CITlab:
 			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), docId, pages, 
-					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), config.isDoStoreConfMats(), config.getStructures());
+					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), config.isDoStoreConfMats(), 
+					config.getStructures(), config.getCreditSelectionStrategy());
 		case UPVLC:
 			return conn.getPyLaiaCalls().runPyLaiaHtrDecode(getCurrentDocumentCollectionId(), docId, pages, 
 					config.getHtrId(), config.getLanguageModel(), 
-					config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
+					config.isUseExistingLinePolygons(), config.isDoLinePolygonSimplification(), config.isClearLines(), config.isKeepOriginalLinePolygons(), config.isDoWordSeg(),
 					config.getBatchSize(),
-					config.getStructures());
+					config.getStructures(),
+					config.getCreditSelectionStrategy());
 		default:
 			return null;
 		}
@@ -3001,6 +3044,10 @@ public class Storage {
 			throw new IllegalArgumentException("Config is null!");
 		}
 		return conn.runCitLabText2Image(config);
+	}
+
+	public String runDocUnderstanding(int docId, String pages, int model) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
+		return conn.getDuCalls().runDocUnderstandingDecode(getCurrentDocumentCollectionId(), docId, pages, model);
 	}
 	
 	/**
@@ -3514,6 +3561,23 @@ public class Storage {
 			logger.debug("pagesStr is empty for DocSelection -> leaving pages empty s.t. all pages get processed!");
 		}
 		return dsd;
+	}
+
+	public List<TrpCreditCosts> getCreditCosts(Date time, boolean forceRefresh) {
+		try {
+			if(time != null) {
+				//return time-specific costs, do not cache
+				return conn.getCreditCalls().getCreditCosts(time);
+			}
+			if(creditCostsList == null || forceRefresh) {
+				creditCostsList = conn.getCreditCalls().getCreditCosts(null);
+			}
+		} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e) {
+			logger.error("Could not load cost model from server.", e);
+			creditCostsList = new ArrayList<>(0);
+		}
+		logger.debug("Returning credit costs list with {} entries", creditCostsList.size());
+		return creditCostsList;
 	}
 	
 //	public void reloadP2PaLAModels() {

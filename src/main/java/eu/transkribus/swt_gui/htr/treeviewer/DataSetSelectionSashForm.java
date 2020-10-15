@@ -12,6 +12,8 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
@@ -88,6 +90,8 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 	
 	Combo versionCombo;
 	Button addToTrainSetBtn, addToValSetBtn, removeFromTrainSetBtn, removeFromValSetBtn;
+	Button automaticValSet_2Percent, automaticValSet_5Percent, automaticValSet_10Percent;
+
 	Label infoLbl;
 	DataSetTableWidget<IDataSelectionEntry<?, ?>> valSetOverviewTable, trainSetOverviewTable;
 	CTabFolder dataTabFolder;
@@ -100,13 +104,12 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 
 	//the input to select data from
 	private List<TrpDocMetadata> docList;
-	private List<TrpHtr> htrList;
+	private HtrPagedTreeWidget htrPagedTree;
 	private final int colId;
 
-	public DataSetSelectionSashForm(Composite parent, int style, final int colId, List<TrpHtr> htrList, List<TrpDocMetadata> docList) {
+	public DataSetSelectionSashForm(Composite parent, int style, final int colId, List<TrpDocMetadata> docList) {
 		super(parent, style);
 		this.docList = docList;
-		this.htrList = htrList;
 		this.colId = colId;
 		dataSetSelectionController = new DataSetSelectionController(colId, this);
 		
@@ -135,11 +138,15 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 		dataTabComp.setLayout(tabCompLayout);
 		dataTabComp.setLayoutData(tabCompLayoutData);
 		
-		groundTruthTv = createGroundTruthTreeViewer(dataTabComp);
-		if(!htrList.isEmpty()) {
-			setGroundTruthSelectionEnabled(true);
-		}
-		gtFilterWidget = new HtrFilterWidget(dataTabComp, groundTruthTv, SWT.NONE);
+		htrPagedTree = new HtrPagedTreeWidget(dataTabComp, SWT.BORDER, null, null, null);
+		htrPagedTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		groundTruthTv = htrPagedTree.getTreeViewer();
+		
+//		groundTruthTv = createGroundTruthTreeViewer(dataTabComp);
+//		if(!htrList.isEmpty()) {
+//			setGroundTruthSelectionEnabled(true);
+//		}
+//		gtFilterWidget = new HtrFilterWidget(dataTabComp, groundTruthTv, SWT.NONE);
 		
 		Composite buttonComp = new Composite(this, SWT.NONE);
 		buttonComp.setLayout(new GridLayout(1, true));
@@ -153,7 +160,7 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 		infoLbl = new Label(buttonComp, SWT.WRAP);
 		GridData infoLblGd = new GridData(SWT.FILL, SWT.BOTTOM, true, true);
 		infoLbl.setLayoutData(infoLblGd);
-
+		
 		addToTrainSetBtn = new Button(buttonComp, SWT.PUSH);
 		addToTrainSetBtn.setImage(Images.ADD);
 		addToTrainSetBtn.setText("Training");
@@ -162,6 +169,50 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 		addToValSetBtn.setImage(Images.ADD);
 		addToValSetBtn.setText("Validation");
 		addToValSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		
+		Label tmp = new Label(buttonComp, SWT.WRAP);
+		GridData tmpLblGd = new GridData(SWT.FILL, SWT.TOP, true, false);
+		tmp.setLayoutData(tmpLblGd);
+		tmp.setText("automatic selection of validation set");
+		
+		automaticValSet_2Percent = new Button(buttonComp, SWT.CHECK);
+		automaticValSet_2Percent.setText("2% from train");
+		automaticValSet_2Percent.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		automaticValSet_2Percent.addSelectionListener(new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent e) {
+		    	if (automaticValSet_2Percent.getSelection()) {
+		    		automaticValSet_5Percent.setSelection(false);
+		    		automaticValSet_10Percent.setSelection(false);
+		    	}
+		    }
+		  });
+		
+		automaticValSet_5Percent = new Button(buttonComp, SWT.CHECK);
+		automaticValSet_5Percent.setText("5% from train");
+		automaticValSet_5Percent.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		automaticValSet_5Percent.addSelectionListener(new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent e) {
+		    	if (automaticValSet_5Percent.getSelection()) {
+		    		automaticValSet_2Percent.setSelection(false);
+		    		automaticValSet_10Percent.setSelection(false);
+		    	}
+		    }
+		  });
+		
+		automaticValSet_10Percent = new Button(buttonComp, SWT.CHECK);
+		automaticValSet_10Percent.setText("10% from train");
+		automaticValSet_10Percent.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		automaticValSet_10Percent.addSelectionListener(new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent e) {
+		    	if (automaticValSet_10Percent.getSelection()) {
+		    		automaticValSet_2Percent.setSelection(false);
+		    		automaticValSet_5Percent.setSelection(false);
+		    	}
+		    }
+		  });
 
 		Group trainOverviewCont = new Group(this, SWT.NONE);
 		trainOverviewCont.setText("Overview");
@@ -242,13 +293,20 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 	}
 
 	public void setGroundTruthSelectionEnabled(boolean enabled) {
+		
+		
+		
 		if(enabled) {
 			if (gtTabItem == null || gtTabItem.isDisposed()) {
 				gtTabItem = new CTabItem(dataTabFolder, SWT.NONE);
 				gtTabItem.setText("HTR Model Data");
 				gtTabItem.setControl(dataTabComp);
-				return;
+				
 			}
+			logger.debug("load the first page of htr paged tree in training dialog");
+			htrPagedTree.loadFirstPage();
+			return;
+			
 		} else {
 			if(gtTabItem != null) {
 				gtTabItem.dispose();
@@ -257,7 +315,9 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 				return;
 			}
 		}
+
 	}
+	
 
 	private TreeViewer createDocumentTreeViewer(Composite parent) {
 		TreeViewer tv = new TreeViewer(parent, SWT.BORDER | SWT.MULTI);
@@ -284,7 +344,7 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 //		GroundTruthTreeWidget gtWidget = new GroundTruthTreeWidget(parent, htrGtContentProvider, htrGtLabelProvider);
 //		gtWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
-		tv.setInput(this.htrList);		
+		//tv.setInput(this.htrList);		
 		return tv;
 	}
 	
@@ -303,7 +363,7 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 	int openConflictDialog(TrpDocMetadata docMd, List<TrpPage> gtOverlapByImageId) {
 		String title = "Some of the data is already selected";
 		String msg = "The images of the following pages are already included in the selection:\n\n";
-		String pageStr = CoreUtils.getRangeListStrFromList(gtOverlapByImageId.stream().map(p -> p.getPageNr()).collect(Collectors.toList()));
+		String pageStr = CoreUtils.getRangeListStrFromList(gtOverlapByImageId.stream().map(p -> p.getPageNr()-1).collect(Collectors.toList()));
 		msg += "Document '" + docMd.getTitle() + "' pages " + pageStr;
 		msg += "\n\nDo you want to replace the previous selection with those pages?";
 		
@@ -458,15 +518,32 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 		getController().SHOW_DEBUG_DIALOG = b;
 	}
 	
-	@Override
-	public void handleHtrListLoadEvent(HtrListLoadEvent e) {
-		if(e.collId != this.colId) {
-			logger.debug("Ignoring update of htrList for foreign collection ID = " + e.collId);
-			return;
-		}
-		this.htrList = e.htrs.getList();
-		groundTruthTv.setInput(this.htrList);
+	public boolean isAutomaticValSetChoiceBtnSet() {
+		return automaticValSet_2Percent.getSelection() || automaticValSet_5Percent.getSelection() || automaticValSet_10Percent.getSelection();
 	}
+	
+	public boolean isValSet2Percent() {
+		return automaticValSet_2Percent.getSelection();
+	}
+	
+	public boolean isValSet5Percent() {
+		return automaticValSet_5Percent.getSelection();
+	}
+	
+	public boolean isValSet10Percent() {
+		return automaticValSet_10Percent.getSelection();
+	}
+	
+
+//	@Override
+//	public void handleHtrListLoadEvent(HtrListLoadEvent e) {
+//		if(e.collId != this.colId) {
+//			logger.debug("Ignoring update of htrList for foreign collection ID = " + e.collId);
+//			return;
+//		}
+//		this.htrList = e.htrs.getList();
+//		groundTruthTv.setInput(this.htrList);
+//	}
 	
 	public static enum VersionComboStatus {
 		Latest("Latest transcript", null),

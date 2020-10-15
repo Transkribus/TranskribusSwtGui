@@ -36,8 +36,6 @@ import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.io.FileDeleteStrategy;
@@ -55,6 +53,7 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.util.BidiUtils;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -149,15 +148,18 @@ import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.SysUtils.JavaInfo;
 import eu.transkribus.core.util.ZipUtils;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.CreateThumbsService;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.DocumentManager;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LoginDialog;
+import eu.transkribus.swt.util.MessageDialogStyledWithToggle;
 import eu.transkribus.swt.util.SWTLog;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.SplashWindow;
@@ -182,6 +184,7 @@ import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.collection_manager.CollectionEditorDialog;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.collection_manager.CollectionUsersDialog;
+import eu.transkribus.swt_gui.credits.CreditManagerDialog;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
 import eu.transkribus.swt_gui.dialogs.AffineTransformDialog;
 import eu.transkribus.swt_gui.dialogs.AutoSaveDialog;
@@ -198,6 +201,7 @@ import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
 import eu.transkribus.swt_gui.dialogs.TrpLoginDialog;
+import eu.transkribus.swt_gui.dialogs.TrpMessageDialog;
 import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
@@ -294,6 +298,7 @@ public class TrpMainWidget {
 
 	
 	// Dialogs
+	DocumentManager docManDiag;
 	SearchDialog searchDiag;
 	TrpVirtualKeyboardsDialog vkDiag;
 	TranscriptsDialog versionsDiag;
@@ -317,7 +322,8 @@ public class TrpMainWidget {
 	EditDeclManagerDialog edDiag;
 	ActivityDialog ad;
 	Shell sleakDiag;
-
+	CreditManagerDialog creditManagerDialog;
+	
 	/** Storage keeps track of the currently loaded collection, document, page, transcription etc. */
 	Storage storage;
 	boolean isPageLocked = false;
@@ -345,6 +351,7 @@ public class TrpMainWidget {
 	ShapeEditController shapeEditController;
 	DocPageLoadController docPageController;
 //	TaggingController taggingController;
+	CollectionUtilsController collectionUtilsController;
 
 	private Runnable updateThumbsWidgetRunnable = new Runnable() {
 		@Override public void run() {
@@ -385,6 +392,7 @@ public class TrpMainWidget {
 		docSyncController = new DocSyncController(this);
 		shapeEditController = new ShapeEditController(this);
 		docPageController = new DocPageLoadController(this);
+		collectionUtilsController = new CollectionUtilsController(this);
 //		taggingController = new TaggingController(this);
 		updateToolBars();
 		
@@ -445,6 +453,10 @@ public class TrpMainWidget {
 	
 	public ShapeEditController getShapeEditController() {
 		return shapeEditController;
+	}
+	
+	public CollectionUtilsController getCollectionUtilsController() {
+		return collectionUtilsController;
 	}
 	
 	public String getLastLocalDocFolder() {
@@ -752,7 +764,7 @@ public class TrpMainWidget {
 		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
 		ui.getDocInfoWidget().getCurrentCollectionText().setText(currentCollectionStr);
 		if(storage.isGtDoc()) {
-			ui.getServerWidget().updateHighlightedGroundTruthTreeViewerRow();
+			//ui.getServerWidget().updateHighlightedGroundTruthTreeViewerRow();
 		} else {
 			ui.getServerWidget().updateHighlightedRow();
 		}
@@ -823,13 +835,13 @@ public class TrpMainWidget {
 			TrpTextLineType currLine = storage.getCurrentLineObject();
 			TrpWordType currWord = storage.getCurrentWordObject();
 			if (currWord != null) {
-				java.awt.Rectangle boundingRect = PageXmlUtils.buildPolygon(currWord.getCoords().getPoints()).getBounds();
+				java.awt.Rectangle boundingRect = PointStrUtils.buildPolygon(currWord.getCoords().getPoints()).getBounds();
 				title += " [ current word: w*h: " + boundingRect.width + " * " + boundingRect.height + " ]";
 			} else if (currLine != null) {
-				java.awt.Rectangle boundingRect = PageXmlUtils.buildPolygon(currLine.getCoords().getPoints()).getBounds();
+				java.awt.Rectangle boundingRect = PointStrUtils.buildPolygon(currLine.getCoords().getPoints()).getBounds();
 				title += " [ current line: w*h: " + boundingRect.width + " * " + boundingRect.height + " ]";
 			} else if (currRegion != null) {
-				java.awt.Rectangle boundingRect = PageXmlUtils.buildPolygon(currRegion.getCoords().getPoints()).getBounds();
+				java.awt.Rectangle boundingRect = PointStrUtils.buildPolygon(currRegion.getCoords().getPoints()).getBounds();
 				title += " [ current region: w*h: " + boundingRect.width + " * " + boundingRect.height + " ]";
 			}
 
@@ -4787,9 +4799,7 @@ public class TrpMainWidget {
 	}
 
 	public void openSearchDialog() {
-//		SebisStopWatch.SW.start();
 		checkSession(true);
-//		SebisStopWatch.SW.stop(true);
 		if (!storage.isLoggedIn()) {
 			logger.debug("not logged in!");
 			return;
@@ -4811,6 +4821,33 @@ public class TrpMainWidget {
 		else{		
 			searchDiag = new SearchDialog(getShell());
 			searchDiag.open();
+		}
+	}
+	
+	public void openDocumentManager() {
+		checkSession(true);
+		if (!storage.isLoggedIn()) {
+			return;
+		}
+		
+		if (docManDiag!=null && !SWTUtil.isDisposed(docManDiag.getShell())) {
+			docManDiag.getShell().setVisible(true);
+			SWTUtil.centerShell(docManDiag.getShell());
+		} else {
+			docManDiag = new DocumentManager(getShell());
+			docManDiag.open();
+		}
+	}
+	
+	public void reloadDocumentManager() {
+		if (docManDiag != null && !SWTUtil.isDisposed(docManDiag.getShell()) && docManDiag.getShell().isVisible()){
+			docManDiag.totalReload(ui.getServerWidget().getSelectedCollectionId());
+		}		
+	}
+	
+	public void closeDocumentManager() {
+		if (docManDiag != null && !SWTUtil.isDisposed(docManDiag.getShell()) && docManDiag.getShell().isVisible()) {
+			docManDiag.getShell().close();
 		}
 	}
 	
@@ -4841,9 +4878,11 @@ public class TrpMainWidget {
 			List<TrpEvent> events = storage.getEvents();
 			for (TrpEvent ev : events) {
 				final String msg = CoreUtils.newDateFormatUserFriendly().format(ev.getDate()) + ": " + ev.getTitle() + "\n\n" + ev.getMessage();
-				Pair<Integer, Boolean> ret = DialogUtil.showMessageDialogWithToggle(getShell(), "Notification", msg, "Do not show this message again", false,
-						SWT.NONE, "OK");
-				boolean doNotShowAgain = ret.getRight();
+				MessageDialogWithToggle eventDialog = new MessageDialogStyledWithToggle(getShell(), "Notification", null, msg, MessageDialog.INFORMATION, 
+						new String[] { "OK" }, 0, "Do not show this message again", false);
+				int ret = eventDialog.open();
+				logger.debug("User choice was button: {}", ret);
+				boolean doNotShowAgain = eventDialog.getToggleState();
 				logger.debug("Do not show again = " + doNotShowAgain);
 				if (doNotShowAgain) {
 					storage.markEventAsRead(ev.getId());
@@ -5539,20 +5578,23 @@ public class TrpMainWidget {
 				listOfDocIdsOfRunningJobs.add(job.getDocId());
 			}
 		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			logger.error("Could not query unfinished jobs.", e1);
 		}
 		
 		int N = docs.size();
 		
 		if (N > 1) {
-			String msg = reallyDelete ? "Do you really want to delete " + N + " selected documents irreversible? " : "Do you really want to delete " + N + " selected documents?" + "\nAfter deletion you can find your documents in the recycle bin!";
+			String msg = reallyDelete ? "Do you really want to delete " + N + " selected documents irreversible? " : "Do you really want to delete " + N + " selected documents?\n" 
+					+ "After deletion you can find your documents in the recycle bin.\n"
+					+ "Documents in the recycle bin are automatically discarded after two weeks.";
 			if (DialogUtil.showYesNoDialog(getShell(), "Delete Documents", msg)!=SWT.YES) {
 				return false;
 			}
 		}
 		else{
-			String msg = reallyDelete ? "Do you really want to delete document '"+docs.get(0).getTitle()+"' irreversible?" : "Do you really want to delete document '"+docs.get(0).getTitle()+"'\nAfter deletion you can find your document in the recycle bin!";
+			String msg = reallyDelete ? "Do you really want to delete document '"+docs.get(0).getTitle()+"' irreversible?" : "Do you really want to delete document '"+docs.get(0).getTitle()+"'?\n"
+					+ "After deletion you can find your document in the recycle bin!\n"
+					+ "Documents in the recycle bin are automatically discarded after two weeks.";
 			if (DialogUtil.showYesNoDialog(getShell(), "Delete Document", msg)!=SWT.YES) {
 				return false;
 			}
@@ -5574,7 +5616,7 @@ public class TrpMainWidget {
 						logger.debug("deleting document: "+d);
 						
 						if (listOfDocIdsOfRunningJobs.contains(d.getDocId())){
-							String errorMsg = "Already delete job running for document: "+d.getDocId();
+							String errorMsg = "A job is currently running on document: "+d.getDocId();
 							logger.warn(errorMsg);
 							error.add(errorMsg);
 						}
@@ -6363,6 +6405,168 @@ public class TrpMainWidget {
 		}
 
 	}
+	
+	public void undoJob(TrpJobStatus job) {
+			
+		try {
+			
+			String pagesStr = job.getPages();
+			logger.debug("undo job for pages " + pagesStr);
+			
+			if (DialogUtil.showYesNoDialog(mw.getShell(), "Undo job", "Do you really want to undo this job and reset these pages: " + pagesStr )!=SWT.YES) {
+				return;
+			}
+
+			Set<Integer> noReset = new HashSet<Integer>();
+			Set<Integer> pageIndices = CoreUtils.parseRangeListStr(pagesStr, Integer.MAX_VALUE);
+			//get doc to have all transcripts for all pages available to change
+			Storage storage = Storage.getInstance();
+			//to get all transcripts
+			TrpDoc currDoc = storage.getRemoteDoc(storage.getCurrentDocumentCollectionId(), job.getDocId(), -1);
+
+//			for (Integer i : pageIndices) {
+//				logger.debug(" page as Integer " + i);
+//			}
+			
+			Set<String> debugMessages = new HashSet<String>();
+			
+			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					try {
+						monitor.beginTask("Undo the job: affected pages: " + pageIndices.size(), pageIndices.size());
+						int i = 1;
+						for (TrpPage page : currDoc.getPages()) {
+							monitor.subTask("Undo page " + page.getPageNr());
+
+							int pageIdx = -1;
+							if (page.getPageNr() > 0) {
+								pageIdx = page.getPageNr()-1;
+							}
+
+							if (!pageIndices.contains(pageIdx)) {
+								logger.debug("this page nr " + pageIdx + " is not contained in job pages!");
+								continue;
+							}
+							else{
+								logger.debug("this page nr " + pageIdx + " is contained in job pages!");
+							}
+											
+							TrpTranscriptMetadata jobTranscript = page.getTranscriptByJobId(job.getJobIdAsInt());
+							TrpTranscriptMetadata latestTranscript = page.getCurrentTranscript();
+							TrpTranscriptMetadata parentTranscript = null;
+							if (jobTranscript != null && latestTranscript != null && (jobTranscript.getTsId() == latestTranscript.getTsId()) ) {
+								//for 'OcrModule' job no parent available - in that case use the previous transcript
+								if (job.getModuleName().equals("OcrModule")) {
+									//is second youngest transcript
+									parentTranscript = page.getTranscriptInCreationHistoryAtPosition(1);
+								}
+								else {
+									parentTranscript = page.getTranscriptById(jobTranscript.getParentTsId());
+								}
+							}
+							else {
+								logger.debug("No reset possible: probably no jobId in transcript or the transcript of the job is not the latest!");
+								debugMessages.add("Page: " + page.getPageNr() + " - no reset possible: probably no jobId in transcript or the transcript of the job is not the latest!" + System.lineSeparator());
+								noReset.add(page.getPageNr());
+								continue;
+							}
+
+							//if there is a toolname != null we can revert the job of that tool
+							if(parentTranscript != null){
+								logger.debug("parent exists - set current version to version of parent!");
+								debugMessages.add("Page: " + page.getPageNr() + " - parent exists, set current version to version of parent!" + System.lineSeparator());
+								JAXBPageTranscript tr = new JAXBPageTranscript(parentTranscript);
+								tr.build();
+								storage.getConnection().updateTranscript(storage.getCurrentDocumentCollectionId(), parentTranscript.getDocId(), parentTranscript.getPageNr(), parentTranscript.getStatus(), tr.getPageData(), parentTranscript.getParentTsId(), "job undone: job ID " + job.getJobId());
+								
+							}
+							else {
+								if (parentTranscript == null) {
+									logger.debug("no parent/predecessor found - no reset!!");
+									debugMessages.add("Page: " + page.getPageNr() + " - no parent/predecessor found, no reset!" + System.lineSeparator());
+									noReset.add(page.getPageNr());
+									continue;
+								}
+							}
+							
+							//for loaded page do a reload: does not work since because it runs in a separate thread and there are some resource conflicts
+//							if (storage.getPage().getPageId() == page.getPageId()){
+//								logger.debug("page id = " + storage.getPage().getPageId());
+//								Storage.getInstance().setLatestTranscriptAsCurrent();
+//								mw.reloadCurrentPage(true);
+//							}
+
+							if (monitor.isCanceled())
+								throw new InterruptedException();
+
+							monitor.worked(i + 1);
+							++i;
+						}
+					} catch (InterruptedException ie) {
+						throw ie;
+					} catch (Exception e) {
+						throw new InvocationTargetException(e, e.getMessage());
+					}
+				}
+			}, "Undo selected job", true);
+			
+			String message = noReset.size() > 0? "Not all pages of the job (" + pageIndices.size() + " pages) could be undone" : "All pages of the job were undone";
+			String detailMessage = noReset.size() > 0? "The following pages of the job could not be undone: " + CoreUtils.getRangeListStrFromSet(noReset) : "All pages of the job were undone - in total " + pageIndices.size() + " pages.";
+			//TrpMessageDialog.showInfoDialog(getShell(), "Undo feedback", message, detailMessage, null);
+			detailMessage = detailMessage.concat(System.lineSeparator());
+			
+			Iterator it = debugMessages.iterator();
+			while (it.hasNext()) {
+				detailMessage += it.next();
+			}
+			
+//			for (int i = 0; i < 1000; i++) {
+//				detailMessage += "test " +i + System.lineSeparator();
+//			}
+			
+			TrpMessageDialog.showInfoDialog(getShell(), "Undo feedback", message, detailMessage, null);
+			
+			try {
+				storage.reloadDocWithAllTranscripts();
+				reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH, () -> {
+					if (getTrpSets().getAutoSaveEnabled() && getTrpSets().isCheckForNewerAutosaveFile()) {
+						autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
+					}
+					getCanvas().fitWidth();
+					adjustReadingOrderDisplayToImageSize();				
+				}, null);
+
+			} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			//DialogUtil.showInfoMessageBox(getShell(), "Undo feedback", detailMessage);
+			//DialogUtil.showCustomMessageDialog(getShell(), "Undo feedback", detailMessage, null, SWT.ICON_INFORMATION | SWT.V_SCROLL, new String[] {"OK"}, 0, null);
+			
+			//DialogUtil.showInfoMessageBox(getShell(), "Undo feedback", detailMessage);
+			
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+				| IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoConnectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		finally{
+
+		}
+	}
 
 	public void revertVersions() {
 		
@@ -6468,10 +6672,9 @@ public class TrpMainWidget {
 		ArrayList<String> refText = new ArrayList<String>();
 		ArrayList<String> hypText = new ArrayList<String>();
 
-		TrpPageType refPage = (TrpPageType) ref.unmarshallTranscript().getPage();
-		TrpPageType hypPage = (TrpPageType) hyp.unmarshallTranscript().getPage();
-
 		if (ref != null && hyp != null) {
+			TrpPageType refPage = (TrpPageType) ref.unmarshallTranscript().getPage();
+			TrpPageType hypPage = (TrpPageType) hyp.unmarshallTranscript().getPage();			
 			
 			int i = 1;
 			int j = 1;
@@ -6605,10 +6808,10 @@ public class TrpMainWidget {
 		}
 	}
 
-	public void duplicateGtToDocument(TrpCollection col, GroundTruthSelectionDescriptor desc, String title) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+	public void duplicateGtToDocument(int sourceColId, TrpCollection targetCol, GroundTruthSelectionDescriptor desc, String title) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
 		List<GroundTruthSelectionDescriptor> descList = new ArrayList<>(1);
 		descList.add(desc);
-		String jobId = storage.getConnection().duplicateGtToDocument(col.getColId(), descList, title, null);
+		String jobId = storage.getConnection().duplicateGtToDocument(sourceColId, targetCol.getColId(), descList, title, null);
 		registerJobStatusUpdateAndShowSuccessMessage(jobId);
 	}
 	
@@ -6622,5 +6825,17 @@ public class TrpMainWidget {
 			rids.add(st.getId());
 		}
 		return rids;
-	}	
+	}
+	
+	public void openCreditManager() {
+		if (creditManagerDialog != null) {
+			creditManagerDialog.setVisible();
+		} else {
+			creditManagerDialog = new CreditManagerDialog(mw.getShell());
+			if (creditManagerDialog.open() == IDialogConstants.OK_ID) {
+				//we don't need feedback here. do nothing
+			}
+			creditManagerDialog = null;
+		}
+	}
 }

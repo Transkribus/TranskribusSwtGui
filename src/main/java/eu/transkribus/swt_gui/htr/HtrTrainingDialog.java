@@ -75,7 +75,7 @@ public class HtrTrainingDialog extends Dialog {
 	private Storage store = Storage.getInstance();
 
 	private List<TrpDocMetadata> docList;
-	private List<TrpHtr> htrList;
+//	private List<TrpHtr> htrList;
 	
 	private final List<JobImpl> trainJobImpls;
 	
@@ -85,7 +85,7 @@ public class HtrTrainingDialog extends Dialog {
 
 	private boolean enableDebugDialog = false; 
 
-	public HtrTrainingDialog(Shell parent, List<TrpHtr> htrList, JobImpl[] impls) {
+	public HtrTrainingDialog(Shell parent, JobImpl[] impls) {
 		super(parent);
 		if(impls == null || impls.length == 0) {
 			throw new IllegalStateException("No HTR training jobs defined.");
@@ -94,21 +94,21 @@ public class HtrTrainingDialog extends Dialog {
 		this.colId = store.getCollId();	
 		this.trainJobImpls = Arrays.asList(impls);
 		this.tabList = new ArrayList<>(impls.length);
-		if(htrList == null) {
-			this.htrList = new ArrayList<>(0);
-		} else {
-			this.htrList = htrList;
-		}
 	}
 
 	public void setVisible() {
 		if (super.getShell() != null && !super.getShell().isDisposed()) {
 			super.getShell().setVisible(true);
+			//mainly to load first page of paged htrs
+			logger.debug("update training dialog UI and set visible");
+			updateUI();
 		}
 	}
 
 	@Override
 	protected Control createDialogArea(Composite parent) {
+		
+		logger.debug("create training dialog");
 		Composite cont = (Composite) super.createDialogArea(parent);
 
 		SashForm sash = new SashForm(cont, SWT.VERTICAL);
@@ -181,7 +181,7 @@ public class HtrTrainingDialog extends Dialog {
 		SWTUtil.onSelectionEvent(paramTabFolder, (e) -> { updateUI(); } );
 		SWTUtil.setTabFolderBoldOnItemSelection(paramTabFolder);
 		
-		treeViewerSelector = new DataSetSelectionSashForm(sash, SWT.HORIZONTAL, colId, htrList, docList);
+		treeViewerSelector = new DataSetSelectionSashForm(sash, SWT.HORIZONTAL, colId, docList);
 		treeViewerSelector.enableDebugDialog(this.enableDebugDialog);
 		
 		sash.setWeights(new int[] { 35, 65 });
@@ -192,9 +192,16 @@ public class HtrTrainingDialog extends Dialog {
 	}
 
 	private void updateUI() {
+		
 		boolean isT2I = isCitlabT2ISelected();
+		logger.debug("update the UI - isT2i" +isT2I );
 		descTxt.setEnabled(!isT2I);
 		modelNameTxt.setEnabled(!isT2I);
+		treeViewerSelector.setGroundTruthSelectionEnabled(!isT2I);
+	}
+	
+	public void setHTRsEnabled() {
+		boolean isT2I = isCitlabT2ISelected();
 		treeViewerSelector.setGroundTruthSelectionEnabled(!isT2I);
 	}
 	
@@ -389,12 +396,12 @@ public class HtrTrainingDialog extends Dialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("HTR Training");
-		newShell.setMinimumSize(800, 600);
+		newShell.setMinimumSize(850, 600);
 	}
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(1024, 768);
+		return new Point(1100, 768);
 	}
 
 	@Override

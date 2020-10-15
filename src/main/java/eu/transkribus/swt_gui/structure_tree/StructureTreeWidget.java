@@ -50,14 +50,16 @@ public class StructureTreeWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(StructureTreeWidget.class);
 
 	public static class ColConfig {
-		public ColConfig(String name, int colSize) {
+		public ColConfig(String name, int colSize, String db_name) {
 			super();
 			this.name = name;
 			this.colSize = colSize;
+			this.dbName = db_name;
 		}
 
 		public String name;
 		public int colSize;
+		public String dbName;
 
 	}
 
@@ -77,13 +79,13 @@ public class StructureTreeWidget extends Composite {
 	 */
 	private final ArrayList<ToolItem> editToolItems;
 
-	public final static ColConfig TYPE_COL = new ColConfig("Type", 110);
-	public final static ColConfig ID_COL = new ColConfig("ID", 65);
-	public final static ColConfig TEXT_COL = new ColConfig("Text", 100);
-	public final static ColConfig COORDS_COL = new ColConfig("Coords", 200);
-	public final static ColConfig STRUCTURE_TYPE_COL = new ColConfig("Structure", 100);
-	public final static ColConfig READING_ORDER_COL = new ColConfig("Reading Order", 50);
-	public final static ColConfig OTHER_COL = new ColConfig("Other", 100);
+	public final static ColConfig TYPE_COL = new ColConfig("Type", 110, "");
+	public final static ColConfig ID_COL = new ColConfig("ID", 65, "");
+	public final static ColConfig TEXT_COL = new ColConfig("Text", 100, "");
+	public final static ColConfig COORDS_COL = new ColConfig("Coords", 200, "");
+	public final static ColConfig STRUCTURE_TYPE_COL = new ColConfig("Structure", 100, "");
+	public final static ColConfig READING_ORDER_COL = new ColConfig("Reading Order", 50, "");
+	public final static ColConfig OTHER_COL = new ColConfig("Other", 100, "");
 
 	public final static ColConfig[] COLUMNS = new ColConfig[] { TYPE_COL, TEXT_COL, STRUCTURE_TYPE_COL, READING_ORDER_COL, ID_COL, COORDS_COL, OTHER_COL };
 	

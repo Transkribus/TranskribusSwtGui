@@ -47,7 +47,6 @@ public class HtrModelsDialog extends Dialog {
 		modelsComp = new HtrModelsComposite(cont, providerFilter, 0);
 		modelsComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
-		
 		modelsComp.htw.getTableViewer().getTable().addKeyListener(new KeyAdapter() {			
 			@Override
 			public void keyPressed(KeyEvent e) {
@@ -105,7 +104,7 @@ public class HtrModelsDialog extends Dialog {
 
 	@Override
 	protected void setShellStyle(int newShellStyle) {
-		super.setShellStyle(SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
+		super.setShellStyle(SWT.APPLICATION_MODAL | SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
 		// setBlockOnOpen(false);
 	}
 	

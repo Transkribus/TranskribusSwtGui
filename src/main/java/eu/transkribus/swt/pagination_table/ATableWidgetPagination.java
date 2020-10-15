@@ -209,9 +209,111 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 		catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
 			logger.error(e.getMessage(), e);
 		}
+	}
+	
+	
+	/**
+	 * Loads the page that contains the specified property / value pair; if found, the element is selected
+	 * use binary search to make it faster
+	 * TODO: this information could come directly from the database
+	 * 
+	 */
+	public synchronized void loadPage_useBinarySearch(String propertyName, Object value, boolean refreshFirst) {
+		if (propertyName == null || value == null) {
+			logger.error("propertyName or value is null - doin' nothin'!");
+			return;
+		}
+		PageableController c = pageableTable.getController();
+		if (refreshFirst) {
+			logger.debug("refreshing first...");
+			pageableTable.refreshPage(true);
+		}
 		
-		
-		
+		logger.debug("loading page, propertyName = "+propertyName+" value = "+value+" currentPage = "+c.getCurrentPage());
+
+		try {			
+			// 1st: check if object is present at locally loaded dataset:
+			List<T> items = (List<T>) pageableTable.getViewer().getInput();
+			List<T> itemsCopy = CoreUtils.copyList(items);
+					
+			T item = findItem(itemsCopy, propertyName, value);
+			if (item != null) {
+				logger.debug("found item in current page!");
+				selectElement(item);
+				return;
+			}
+			// 2nd: search pages one by one:
+			else {
+				int currentPage = c.getCurrentPage();
+				logger.debug("total elements = "+c.getTotalElements());
+				
+				PageableController c1 = new PageableController();
+				c1.setPageSize(c.getPageSize());
+				c1.setTotalElements(c.getTotalElements());
+				c1.setSort(c.getSortPropertyName(), c.getSortDirection());
+				c1.setCurrentPage(c.getCurrentPage());
+				
+				int l = 0;
+				int r = c1.getTotalPages()-1;
+				
+			    while (l <= r) 
+			    { 
+			        // find index of middle element 
+			        int m = (l+r)/2; 
+			        
+					if (m == currentPage) // already checked!
+						continue;
+					
+					logger.debug("page to look at: " + m);
+
+					c1.setCurrentPage(m);
+					
+					c.setCurrentPage(m);
+					items = (List<T>) pageableTable.getViewer().getInput();
+					itemsCopy = CoreUtils.copyList(items);
+					
+					//items = res.getContent();
+					//
+			  
+					Integer firstValueInList = (Integer) PropertyUtils.getProperty(itemsCopy.get(0), propertyName);
+					Integer lastValueInList  = (Integer) PropertyUtils.getProperty(itemsCopy.get(itemsCopy.size()-1), propertyName);
+					
+//					logger.debug("firstValueInList for this page: " + firstValueInList);
+//					logger.debug("lastValueInList for this page: " + lastValueInList);
+					
+					Integer searchValue = (Integer) value;
+					
+					if (searchValue <= firstValueInList && searchValue >= lastValueInList) {
+						item = findItem(itemsCopy, propertyName, value);
+						if (item != null) {
+							logger.debug("found item in page "+m);
+							logger.debug("item found "+ item);
+							
+							selectElement(item);
+							
+							return;
+						}
+					}
+					
+			        // If x greater, ignore left half 
+			        if (firstValueInList > searchValue) {
+			        	l = m + 1; 
+			        }
+			        // If x is smaller, ignore right half 
+			        else{
+			        	r = m - 1;
+			        }
+			        
+			        logger.debug("new l is " + l);
+			        logger.debug("new r is " + r);
+
+			    } 
+			
+			}
+		}
+		catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+			logger.error(e.getMessage(), e);
+		}
 		
 	}
 
@@ -396,6 +498,10 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 		}
 	}
 	
+	public void clearSelection() {
+		getTableViewer().setSelection(null);
+	}
+	
 	public T getFirstSelected() {
 		if(tv == null) {
 			return null;
@@ -413,6 +519,10 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	
 	public IStructuredSelection getSelectedAsIStructuredSelection() {
 		return ((IStructuredSelection) tv.getSelection());
+	}
+	
+	public List<T> getItemsOfCurrentPage() {
+		return (List<T>) pageableTable.getViewer().getInput();
 	}
 	
 	protected abstract void createColumns();

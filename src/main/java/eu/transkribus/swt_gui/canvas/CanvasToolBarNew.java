@@ -128,6 +128,9 @@ public class CanvasToolBarNew {
 	MenuItem simplifySelectedLinesItem;
 	MenuItem simplifyAllLinesItem;
 	MenuItem removeSmallTextRegionsItem;
+	MenuItem removeSmallTextLinesItem;
+	MenuItem mergeSmallTextLinesItem;
+	MenuItem copyShapesItem;
 	MenuItem rectifyAllRegionsItem;
 	
 //	MenuItem deleteRowItem;
@@ -259,9 +262,9 @@ public class CanvasToolBarNew {
 		ToolItem moveItem = new ToolItem(tb, SWT.CHECK);
 //		moveItem.setImage(Images.getOrLoad("/icons/arrow_inout.png"));
 		moveItem.setText("...");
-		moveItem.setToolTipText("Other image transformations...");
+		moveItem.setToolTipText("Other view transformations...");
 		
-		ToolBox imgTransformsToolBox = new ToolBox(canvasWidget.mainWidgetUi.getShell(), true, "Image transformations");
+		ToolBox imgTransformsToolBox = new ToolBox(canvasWidget.mainWidgetUi.getShell(), true, "View transformations");
 		imgTransformsToolBox.addTriggerWidget(moveItem);
 		rotateLeftBtn = imgTransformsToolBox.addButton("Rotate left", Images.getOrLoad("/icons/arrow_turn_left.png"), SWT.PUSH);
 		rotateRightBtn = imgTransformsToolBox.addButton("Rotate right", Images.getOrLoad("/icons/arrow_turn_right.png"), SWT.PUSH);
@@ -280,10 +283,9 @@ public class CanvasToolBarNew {
 		imageVersionDropdown = new DropDownToolItem(tb, false, false, true, SWT.RADIO);
 		imageVersionDropdown.ti.setImage(Images.IMAGES);
 		
-		String versText = "Image file type displayed\n\torig: original image\n\tview: modified viewing file\n\tbin: binarized image";
+		String versText = "Image file type displayed\n\torig: original image\n\tview: modified viewing file";
 		imageVersionDropdown.addItem("original image", Images.IMAGE, versText, false, "orig");
 		imageVersionDropdown.addItem("modified image", Images.IMAGE_EDIT, versText, true, "view");
-		imageVersionDropdown.addItem("binarized image", Images.IMAGE_EDIT, versText, false, "bin");
 		imageVersionDropdown.selectItem(1, false);
 		
 		
@@ -477,6 +479,9 @@ public class CanvasToolBarNew {
 		simplifySelectedLinesItem = otherSegmentationToolsDropDown.addItem("Simplify shape of selected lines", Images.getOrLoad("/icons/vector.png"), null);
 		simplifyAllLinesItem = otherSegmentationToolsDropDown.addItem("Simplify shape of all lines on this page", Images.getOrLoad("/icons/vector.png"), null);
 		removeSmallTextRegionsItem = otherSegmentationToolsDropDown.addItem("Remove small text regions...", null, null);
+		removeSmallTextLinesItem = otherSegmentationToolsDropDown.addItem("Remove small text lines...", null, null);
+		mergeSmallTextLinesItem = otherSegmentationToolsDropDown.addItem("Merge small text lines...", null, null);
+		copyShapesItem = otherSegmentationToolsDropDown.addItem("Copy regions (text or tables) to other pages...", null, "Copy selected regions or tables - including lines and text if available. Copy only lines is not possible.");
 		rectifyAllRegionsItem = otherSegmentationToolsDropDown.addItem("Convert all region shapes to rectangles", null, null);
 		}
 		

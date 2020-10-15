@@ -1199,6 +1199,8 @@ public class CommonExportDialog extends Dialog {
 	    fontDropDown.add("FreeSerif");
 	    fontDropDown.add("Junicode");
 	    fontDropDown.add("NotoSans-Regular");
+	    //arabic
+	    fontDropDown.add("Scheherazade");
 	    //fontDropDown.add("DejaVuSansMono");
 	    fontDropDown.select(2);
 	    setFont(fontDropDown.getText());

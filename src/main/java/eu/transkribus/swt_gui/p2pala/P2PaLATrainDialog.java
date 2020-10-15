@@ -52,7 +52,7 @@ import eu.transkribus.swt_gui.util.DocsSelectorBtn;
 public class P2PaLATrainDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(P2PaLATrainDialog.class);
 	
-	// FIXME: use P2PaLATrainJobPars instaed of this helper class already inside this dialog class...
+	// FIXME: use P2PaLATrainJobPars instead of this helper class already inside this dialog class...
 	public static class P2PaLATrainUiConf {
 		public String name=null;
 		public String description=null;
@@ -92,12 +92,12 @@ public class P2PaLATrainDialog extends Dialog {
 				if (s12.length != 2) {
 					throw new Exception("Not a valid merged structure type specificiation: "+s);
 				}
-				for (int i=0; i<2; ++i) {
-					if (!isStruct(s12[i])) {
-						logger.debug("Invalid merged structure types - struct not specified: "+s12[i]);
-						throw new Exception("Invalid merged structure types - struct not specified: "+s12[i]);
-					}
-				}
+//				for (int i=0; i<2; ++i) {
+//					if (!isStruct(s12[i])) {
+//						logger.debug("Invalid merged structure types - struct not specified: "+s12[i]);
+//						throw new Exception("Invalid merged structure types - struct not specified: "+s12[i]);
+//					}
+//				}
 				if (StringUtils.equals(s12[0], s12[1])) {
 					throw new Exception("Cannot merge equal structures: '"+s+"'");
 				}
@@ -329,10 +329,10 @@ public class P2PaLATrainDialog extends Dialog {
 		valSel.setToolTipText("The validation set used *during* each epoch of training to avoid overfitting to the training data.\n"
 				+ "Not mandatory but very much recommended!");
 		
-		testSel = new DocsSelectorBtn(cont, "Test set: (optional) ");
-		testSel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		testSel.setToolTipText("The test set is used *after* the training to measure the quality of the overall model.\n"
-				+ "This is not mandatory if you are not interested in an overall quality measure of your model.");
+//		testSel = new DocsSelectorBtn(cont, "Test set: (optional) ");
+//		testSel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		testSel.setToolTipText("The test set is used *after* the training to measure the quality of the overall model.\n"
+//				+ "This is not mandatory if you are not interested in an overall quality measure of your model.");
 		
 		autoSplitTrainSetCheck = new Button(cont, SWT.CHECK);
 		autoSplitTrainSetCheck.setText("Split train set randomly");
@@ -408,7 +408,9 @@ public class P2PaLATrainDialog extends Dialog {
 		List<DocSelection> docs = new ArrayList<>();
 		docs.addAll(trainSel.getDocSelection());
 		docs.addAll(valSel.getDocSelection());
-		docs.addAll(testSel.getDocSelection());
+		if (testSel != null) {
+			docs.addAll(testSel.getDocSelection());	
+		}
 		return docs;
 	}
 	
@@ -496,8 +498,8 @@ public class P2PaLATrainDialog extends Dialog {
 		SWTUtil.setEnabled(valFrac, autoSplitTrainSetCheck.getSelection());
 		SWTUtil.setEnabled(testFrac, autoSplitTrainSetCheck.getSelection());
 		
-		valSel.setEnabled(!autoSplitTrainSetCheck.getSelection());
-		testSel.setEnabled(!autoSplitTrainSetCheck.getSelection());
+		SWTUtil.setEnabled(valSel, !autoSplitTrainSetCheck.getSelection());
+		SWTUtil.setEnabled(testSel, !autoSplitTrainSetCheck.getSelection());
 		
 		structureTypesText.setEnabled(outModeCombo.getCombo().getSelectionIndex()!=1);
 		mergedStructureTypesText.setEnabled(outModeCombo.getCombo().getSelectionIndex()!=1);
@@ -572,7 +574,9 @@ public class P2PaLATrainDialog extends Dialog {
 					return;
 				}
 			}
-			conf.testDocs = testSel.getDocSelection();			
+			if (testSel != null) {
+				conf.testDocs = testSel.getDocSelection();	
+			}
 		}
 		
 		conf.editStatus = parseEditStatus();

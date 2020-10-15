@@ -35,6 +35,7 @@ import eu.transkribus.core.model.beans.auth.TrpUser;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorDialog;
 import eu.transkribus.swt_gui.doc_overview.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.doc_overview.MyDocsTableWidgetPagination;
 import eu.transkribus.swt_gui.doc_overview.ServerWidget;
@@ -44,7 +45,7 @@ import eu.transkribus.swt_gui.pagination_tables.CollectionsTableWidgetPagination
 import eu.transkribus.swt_gui.search.SimpleSearchDialog;
 
 /**
- * @deprecated not used anymore
+ * @deprecated not used anymore. See {@link CollectionSelectorDialog}
  * @author jkloe
  *
  */

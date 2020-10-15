@@ -2,6 +2,7 @@ package eu.transkribus.util;
 
 import java.util.List;
 
+import eu.transkribus.core.model.beans.enums.CreditSelectionStrategy;
 import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.swt_gui.htr.HtrDictionaryComposite;
 
@@ -18,12 +19,14 @@ public class TextRecognitionConfig {
 	private String htrName;
 	private List<String> structures;
 
+	private boolean useExistingLinePolygons = false;
 	private boolean doLinePolygonSimplification = true;
 	private boolean keepOriginalLinePolygons = false;
 	private boolean doStoreConfMats = true;
 	private boolean clearLines = true;
 	private boolean doWordSeg = true;
 	private int batchSize = 10;
+	private CreditSelectionStrategy creditSelectionStrategy;
 	
 	public TextRecognitionConfig(Mode mode) {
 		this.mode = mode;
@@ -37,7 +40,13 @@ public class TextRecognitionConfig {
 		this.doLinePolygonSimplification = doLinePolygonSimplification;
 	}
 
+	public boolean isUseExistingLinePolygons() {
+		return useExistingLinePolygons;
+	}
 
+	public void setUseExistingLinePolygons(boolean useExistingLinePolygons) {
+		this.useExistingLinePolygons = useExistingLinePolygons;
+	}
 
 	public boolean isKeepOriginalLinePolygons() {
 		return keepOriginalLinePolygons;
@@ -190,7 +199,17 @@ public class TextRecognitionConfig {
 		return dictLabel;
 	}
 
+	public CreditSelectionStrategy getCreditSelectionStrategy() {
+		return creditSelectionStrategy;
+	}
+
+	public void setCreditSelectionStrategy(CreditSelectionStrategy creditSelectionStrategy) {
+		this.creditSelectionStrategy = creditSelectionStrategy;
+	}
+
 	public enum Mode {
 		CITlab, UPVLC;
 	}
+
+
 }

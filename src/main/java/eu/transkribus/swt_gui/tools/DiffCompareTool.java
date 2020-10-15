@@ -23,26 +23,34 @@ public class DiffCompareTool {
         private static final String DELETE_COLOR_orange = "#f2a68b";
         
         public DiffCompareTool(Display display, ArrayList<String> htrTextArray, ArrayList<String> correctTextArray) {
-        	
-        	
-        	//fill-up array to have similar size
-        	if (htrTextArray.size() > correctTextArray.size()){
-        		int i = (correctTextArray.size() == 0 ? 0 : correctTextArray.size()-1);
-        		for (; i<(htrTextArray.size()-1); i++){
-        			correctTextArray.add("");
-        		}
+        	if (htrTextArray==null) {
+        		htrTextArray = new ArrayList<>();
         	}
-        	else if (correctTextArray.size() > htrTextArray.size()){
-        		int i = (htrTextArray.size() == 0 ? 0 : htrTextArray.size()-1);
-        		for (; i<(correctTextArray.size()-1); i++){;
-        			htrTextArray.add("");
-        		}
+        	if (correctTextArray == null) {
+        		correctTextArray = new ArrayList<>();
         	}
+        	
+//        	logger.debug("htrTextArray: "+htrTextArray);
+//        	logger.debug("correctTextArray: "+correctTextArray);
+//        	
+//        	//fill-up array to have similar size
+//        	if (htrTextArray.size() > correctTextArray.size()){
+//        		int i = (correctTextArray.size() == 0 ? 0 : correctTextArray.size()-1);
+//        		for (; i<(htrTextArray.size()-1); i++){
+//        			correctTextArray.add("");
+//        		}
+//        	}
+//        	else if (correctTextArray.size() > htrTextArray.size()){
+//        		int i = (htrTextArray.size() == 0 ? 0 : htrTextArray.size()-1);
+//        		for (; i<(correctTextArray.size()-1); i++){;
+//        			htrTextArray.add("");
+//        		}
+//        	}
         	        	
-        	int i = 0;
-        	for (String htrText : htrTextArray){
-        		String correctText = correctTextArray.get(i);
-        		i++;
+        	for (int i=0; i<Math.max(htrTextArray.size(), correctTextArray.size()); ++i) {
+//        	for (String htrText : htrTextArray){
+        		String htrText = i<htrTextArray.size() ? htrTextArray.get(i) : "";
+        		String correctText = i<correctTextArray.size() ? correctTextArray.get(i) : "";
         		
                 htrText = normalizeText(htrText);
                 correctText = normalizeText(correctText);

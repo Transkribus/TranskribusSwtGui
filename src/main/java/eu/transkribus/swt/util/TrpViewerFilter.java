@@ -83,7 +83,7 @@ public abstract class TrpViewerFilter extends ViewerFilter {
 		
 		String ft = filterTxt.getText();
 		logger.trace("ft = "+ft);
-		if (StringUtils.isEmpty(ft)) {
+		if (StringUtils.isEmpty(ft) || ft.length()<2) {
 			return true;
 		}
 		
@@ -97,7 +97,7 @@ public abstract class TrpViewerFilter extends ViewerFilter {
 				String propValue = BeanUtils.getSimpleProperty(element, property);
 				logger.trace("property: "+property+" value: "+propValue);
 				
-				if (propValue.matches(reg)) {
+				if (propValue != null && propValue.matches(reg)) {
 					return true;
 				}
 			} catch (Exception e) {

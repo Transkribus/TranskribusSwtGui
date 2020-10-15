@@ -382,10 +382,6 @@ public class SWTUtil {
 //		return d;
 //	}
 	
-//	public static boolean isOpen(Dialog d, Shell s) {
-//		return d != null && !isDisposed(s);
-//	}
-		
 	public static boolean isOpen(org.eclipse.jface.dialogs.Dialog d) {
 		return d != null && d.getShell() != null && !d.getShell().isDisposed();
 	}
