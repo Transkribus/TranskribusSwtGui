@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.MessageBox;
-import org.mozilla.universalchardet.prober.EscCharsetProber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,18 +28,16 @@ import eu.transkribus.core.model.beans.TrpP2PaLA;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
-import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.rest.JobConstP2PaLA;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ThumbnailManager;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
-import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.CITlabAdvancedLaConfigDialog;
 import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
@@ -52,11 +50,9 @@ import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage.StorageException;
 import eu.transkribus.swt_gui.p2pala.P2PaLAConfDialog;
 import eu.transkribus.swt_gui.p2pala.P2PaLAConfDialog.P2PaLARecogUiConf;
-import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.util.OcrConfig;
 import eu.transkribus.util.TextRecognitionConfig;
 
@@ -733,6 +729,15 @@ public class ToolsWidgetListener implements SelectionListener, IStorageListener 
 			if (status == 400) {
 				logger.error(ee.getMessage(), ee);
 				DialogUtil.showErrorMessageBox(this.mw.getShell(), "Error", ee.getMessageToUser());
+			} else if (Status.PAYMENT_REQUIRED.equals(Status.fromStatusCode(status))) {
+				logger.warn(ee.getMessage());
+				int choice = MessageDialog.open(MessageDialog.INFORMATION, this.mw.getShell(), 
+						"Credits Depleted", ee.getMessageToUser(), SWT.NONE, new String[] { "OK", "Visit the shop at readcoop.eu" });
+				if(choice == 1) {
+					DesktopUtil.browse("https://readcoop.eu", "Could not open system browser.\nPlease visit the shop at https://readcoop.eu", this.mw.getShell());
+				} else {
+					logger.debug("Insufficient credits dialog user choice was {}", choice);
+				}
 			} else {
 				mw.onError("Error", ee.getMessageToUser(), ee);
 			}
