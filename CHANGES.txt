@@ -714,5 +714,6 @@ CHANGES AND BUGFIXES
 	-> Editorial Declaration: export your selected transcription options directly in the 'Editorial Declaration Dialog' into XLSX
 	-> automatic split of training set and validation set (choose if you want 2%, 5% or 10% of validation pages)
 	-> bugfix: handwritten text recognition restriction on selected structures had no effect
+	-> first integration of Document Understanding with a fixed model 
 	
 	
