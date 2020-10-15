@@ -194,7 +194,7 @@ public class SettingsDialog extends Dialog {
 		gd_readingOrderCircleWidthSpinner.widthHint = 80;
 		readingOrderCircleWidthSpinner.setLayoutData(gd_readingOrderCircleWidthSpinner);
 		readingOrderCircleWidthSpinner.setMinimum(1);
-		//readingOrderCircleWidthSpinner.setMaximum(255);
+		readingOrderCircleWidthSpinner.setMaximum(300);
 		
 		drawPolylineArcs = new Button(shell, SWT.CHECK);
 		drawPolylineArcs.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));

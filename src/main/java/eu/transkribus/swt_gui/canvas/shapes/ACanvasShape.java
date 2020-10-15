@@ -1396,22 +1396,23 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	
 		if (isRegion){
 			arcWidth = arcWidth*.9;
-			if (rec.height < arcWidth){
-				arcWidth = rec.height;
-				logger.debug("new arcWidth because region is small: " + arcWidth);
-			}
 		}
 		else if (isLine){
-			arcWidth = arcWidth*.6;
+			arcWidth = arcWidth*.7;
 			//logger.debug("setting width of ro circle " + arcWidth);
 
 		}
 		else if (isWord){
-			arcWidth = arcWidth*.5;
+			arcWidth = arcWidth*.6;
 
 		}
 		else{
 			return;
+		}
+		
+		if (rec.height < arcWidth){
+			arcWidth = rec.height;
+			logger.debug("limit arcWidth to shape height: " + arcWidth);
 		}
 		
 		double xLocation = (rec.x+rec.width/2) - arcWidth/2;
@@ -1425,7 +1426,13 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 			yLocation = (blY-arcWidth);
 		}	
 		
-		readingOrderCircle = new Ellipse2D.Double(xLocation, yLocation, arcWidth, arcWidth);
+		if (readingOrderCircle == null) {
+			readingOrderCircle = new Ellipse2D.Double(xLocation, yLocation, arcWidth, arcWidth);
+		}
+		else {
+			updateReadingOrderShapeWidth((int) arcWidth);
+		}
+		
 		
     }
     
@@ -1435,8 +1442,6 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
     	}
     	
     }
-    
-    
     
     
     public void showReadingOrder(boolean show){

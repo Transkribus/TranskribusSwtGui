@@ -2155,19 +2155,20 @@ public class TrpMainWidget {
 			return;
 		}
 		double initWidth = readingOrderCircleInitWidth;
-		logger.debug("initWidth " + initWidth);
+		logger.debug("initWidth ro size " + initWidth);
 		
 		double resizeFactor = 1.0;
 		if (imgMd.getxResolution() < 210){
 			resizeFactor = 0.5;
 		}
 		else if(imgMd.getxResolution() > 210 && imgMd.getxResolution() < 390){
-			resizeFactor = 0.75;
+			resizeFactor = 1.0;
 		}
 		double tmpWith = initWidth*resizeFactor;
 		logger.debug("set ro in settings " + tmpWith);
 		
-		canvas.getSettings().setReadingOrderCircleWidth((int) tmpWith);
+		//let the valie in the settings as it is
+		//canvas.getSettings().setReadingOrderCircleWidth((int) tmpWith);
 	}
 
 	public void updateTreeSelectionFromCanvas() {
@@ -2790,7 +2791,11 @@ public class TrpMainWidget {
 					autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
 				}
 				getCanvas().fitWidth();
-				adjustReadingOrderDisplayToImageSize();				
+				/*
+				 * this way we could automatically adjust the ro circle to the image dimensions
+				 * but then the settings get overwritten; better keep user settings
+				 */
+				//adjustReadingOrderDisplayToImageSize();				
 			}, null);
 //			if (getTrpSets().getAutoSaveEnabled() && getTrpSets().isCheckForNewerAutosaveFile()) {
 //				autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
@@ -2861,7 +2866,7 @@ public class TrpMainWidget {
 			}, "Loading document from server", false);
 			reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH, () -> {
 				getCanvas().fitWidth();
-				adjustReadingOrderDisplayToImageSize();
+				//adjustReadingOrderDisplayToImageSize();
 			}, null);
 			clearThumbs();
 //			getCanvas().fitWidth();
@@ -6533,7 +6538,7 @@ public class TrpMainWidget {
 						autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
 					}
 					getCanvas().fitWidth();
-					adjustReadingOrderDisplayToImageSize();				
+					//adjustReadingOrderDisplayToImageSize();				
 				}, null);
 
 			} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
