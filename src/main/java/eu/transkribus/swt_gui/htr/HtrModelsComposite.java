@@ -61,7 +61,7 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 		sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		sashForm.setLayout(new GridLayout(2, false));
 
-//		htw = new HtrTableWidget(sashForm, SWT.BORDER, providerFilter);
+		//htw = new HtrTableWidget(sashForm, SWT.BORDER, providerFilter);
 		htw = new HtrPagedTableWidget(sashForm, SWT.BORDER, providerFilter);
 
 		Menu menu = new Menu(htw.getTableViewer().getTable());

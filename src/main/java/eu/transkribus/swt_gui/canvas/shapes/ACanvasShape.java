@@ -1412,7 +1412,7 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		
 		if (rec.height < arcWidth){
 			arcWidth = rec.height;
-			logger.debug("limit arcWidth to shape height: " + arcWidth);
+			//logger.debug("limit arcWidth to shape height: " + arcWidth);
 		}
 		
 		double xLocation = (rec.x+rec.width/2) - arcWidth/2;
