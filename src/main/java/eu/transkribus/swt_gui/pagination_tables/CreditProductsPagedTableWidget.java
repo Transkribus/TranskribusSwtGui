@@ -73,6 +73,9 @@ public class CreditProductsPagedTableWidget extends ATableWidgetPagination<TrpCr
 						case 2:
 							text = "User";
 							break;
+						case 3:
+							text = "Registration";
+							break;
 						default: text = "Unknown value: " + value;
 						}
 					}
