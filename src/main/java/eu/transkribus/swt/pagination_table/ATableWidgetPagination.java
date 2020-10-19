@@ -255,6 +255,9 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 				
 				int l = 0;
 				int r = c1.getTotalPages()-1;
+				if(r==0) {
+					return;
+				}
 				
 			    while (l <= r) 
 			    { 
