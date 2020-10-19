@@ -140,7 +140,7 @@ public class CreateCreditPackageDialog extends Dialog {
 		//do not show decimal places here and use intValue when getting it from the slider composite
 		nrOfCreditsSldr.setNumberFormat(new DecimalFormat("0"));
 		nrOfCreditsSldr.setValue(100);
-		nrOfCreditsSldr.setMaximum(10000);
+		nrOfCreditsSldr.setMaximum(1000000);
 		
 		shareableChk = new Button(c, SWT.CHECK);
 		shareableChk.setText("Shareable");
