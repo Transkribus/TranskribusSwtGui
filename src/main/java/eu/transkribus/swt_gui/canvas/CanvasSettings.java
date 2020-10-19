@@ -67,7 +67,7 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		private Font fontTahoma30 = resManager.createFont(FontDescriptor.createFrom(new FontData("Tahoma", (int) (30), SWT.BOLD)));
 		private Font fontTahoma50 = resManager.createFont(FontDescriptor.createFrom(new FontData("Tahoma", (int) (50), SWT.BOLD)));
 		private Font fontArial10 = resManager.createFont(FontDescriptor.createFrom(new FontData("Arial", 10, SWT.NONE)));
-		private Font currentFont;
+		private static Font currentFont;
 		
 		private int drawLineWidth = 1;
 		public static final String DRAW_LINE_WIDTH_PROPERTY="drawLineWidth";
@@ -416,8 +416,7 @@ public class CanvasSettings extends APropertyChangeSupport  {
 			for (FontData fds : fd){
 				return fds.getHeight();
 			}
-			return 0;
-			
+			return 0;	
 		}
 
 		public Color getReadingOrderBackgroundColor() {
@@ -430,13 +429,12 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		
 		public Font createFont(int height, boolean bold) {
 			int style = bold ? SWT.BOLD : SWT.NONE;
-			if (currentFont != null && getFontHeight(currentFont)==height) {
+			if (currentFont != null && !currentFont.isDisposed() && getFontHeight(currentFont)==height) {
+				//System.out.println("return already created font");
 				return currentFont;
 			}
 			else {
-				if (currentFont != null) {
-					currentFont.dispose();
-				}
+				//System.out.println("create new font");
 				currentFont = resManager.createFont(FontDescriptor.createFrom(new FontData("Tahoma", height, style)));
 			}
 			return currentFont;

@@ -716,4 +716,7 @@ CHANGES AND BUGFIXES
 	-> bugfix: handwritten text recognition restriction on selected structures had no effect
 	-> first integration of Document Understanding with a fixed model 
 	
+1.13.0:
+	-> User can set the size of the 'reading orer circles' in the viewing settings
+	
 	

@@ -79,7 +79,7 @@ public class SWTCanvas extends Canvas {
 	
 	protected StyledText readingOrderText;	
 	
-	protected CanvasSettings settings = new CanvasSettings();
+	protected static CanvasSettings settings = new CanvasSettings();
 	/**
 	 * A Scene object containing all objects to be drawn, including the main
 	 * image
@@ -1820,7 +1820,7 @@ public class SWTCanvas extends Canvas {
 	
 	private void drawReadingOrderForShape(GC gc, final ICanvasShape s) {
 				
-		CanvasSettings sets = getSettings();
+		//CanvasSettings sets = getSettings();
 		//draw reading order section
 		final ITrpShapeType trpShape = (ITrpShapeType) s.getData();
 		if (trpShape == null) // should not happen...
@@ -1881,11 +1881,12 @@ public class SWTCanvas extends Canvas {
 			//logger.debug("ro arc width: + " + arcWidth);
 			
 			//create the font for writing the ro numbers
-			Font usedFont = sets.createFont((int) (arcWidth*.6), true);
+			//Font usedFont = settings.getFontTahomaWithSize((int) (arcWidth*.8));
+			Font usedFont = settings.createFont((int) (arcWidth*.6), true);
 						
 			gc.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
 			gc.setLineStyle(CanvasSettings.DEFAULT.getLineStyle());	
-			gc.setFont(sets.getFontTahoma16());
+			//gc.setFont(settings.getFontTahoma16());
 			
 			String roString2Show = "";
 			
@@ -1901,6 +1902,7 @@ public class SWTCanvas extends Canvas {
 								
 				if (isRegion){
 					gc.setFont(usedFont);
+
 					//gc.setFont(sets.getFontTahomaWithSize(arcWidth));
 					xOffset = arcWidth/5;
 					yOffset = arcWidth/10;
@@ -1925,7 +1927,7 @@ public class SWTCanvas extends Canvas {
 					xOffset = arcWidth/10;
 					if (readingOrder2Show>=0 && readingOrder2Show<10)
 					{
-						xOffset = arcWidth/5;;
+						xOffset = arcWidth/5;
 					}
 				}
 				
@@ -1937,6 +1939,7 @@ public class SWTCanvas extends Canvas {
 					int yCorrection = 0;
 					if (arcWidth < gc.getFontMetrics().getHeight()){
 						logger.debug("arcWidth changes: " + gc.getFontMetrics().getHeight());
+						logger.debug("arc width: " + arcWidth);
 						int oldArcWidth = arcWidth;
 						arcWidth = gc.getFontMetrics().getHeight();
 						s.updateReadingOrderShapeWidth(arcWidth);
