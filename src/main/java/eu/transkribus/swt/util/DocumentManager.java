@@ -109,7 +109,7 @@ public class DocumentManager extends Dialog {
 	protected GalleryItem group;
 
 	protected Button reload, showOrigFn, createThumbs, startLA, statisticButton, addPage, addTrans,
-						revert, deletePage , addToSampleSetBtn, removeFromSampleSetBtn, createSampleButton;
+						deletePage , addToSampleSetBtn, removeFromSampleSetBtn, createSampleButton;
 	protected Button sort;
 	//protected Button collectionImageBtn, documentImageBtn;
 	protected Button showCollectionImageBtn, showDocumentImageBtn;
@@ -418,11 +418,11 @@ public class DocumentManager extends Dialog {
 		addTrans.setImage(Images.ADD);
 		addTrans.setEnabled(false);
 		
-		Label revertLabel = new Label(editCombos, SWT.CENTER);
-		revertLabel.setText("Revert to previous version(s) of last job");
-		revert = new Button(editCombos, SWT.PUSH);
-		revert.setImage(Images.ADD);
-		revert.setEnabled(false);
+//		Label revertLabel = new Label(editCombos, SWT.CENTER);
+//		revertLabel.setText("Revert to previous version(s) of last job");
+//		revert = new Button(editCombos, SWT.PUSH);
+//		revert.setImage(Images.ADD);
+//		revert.setEnabled(false);
 		
 		/*
 		 * no listener and method implemented right now
@@ -608,21 +608,21 @@ public class DocumentManager extends Dialog {
 			}
 		});
 		
-		revert.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if (DialogUtil.showYesNoDialog(mw.getShell(), "Revert to previous version(s)", "Do you really want to revert to the version(s) before the last job was completed")!=SWT.YES) {
-					return;
-				}
-				Thread thread = new Thread(){
-				    public void run(){
-				    	mw.revertVersions();
-				    }
-				};
-			
-				thread.start();
-			}
-		});
+//		revert.addSelectionListener(new SelectionAdapter() {
+//			@Override
+//			public void widgetSelected(SelectionEvent e) {
+//				if (DialogUtil.showYesNoDialog(mw.getShell(), "Revert to previous version(s)", "Do you really want to revert to the version(s) before the last job was completed")!=SWT.YES) {
+//					return;
+//				}
+//				Thread thread = new Thread(){
+//				    public void run(){
+//				    	mw.revertVersions();
+//				    }
+//				};
+//			
+//				thread.start();
+//			}
+//		});
 		
 		
 		movePage.addSelectionListener(new SelectionAdapter() {
@@ -1726,7 +1726,6 @@ public class DocumentManager extends Dialog {
 		addPage.setEnabled(enable);
 		addTrans.setEnabled(enable);
 		//sort.setEnabled(enable);
-		revert.setEnabled(enable);
 		movePage.setEnabled(false);
 		deletePage.setEnabled(false);
 
@@ -1739,8 +1738,6 @@ public class DocumentManager extends Dialog {
 		addPage.setEnabled(false);
 		addTrans.setEnabled(false);
 		//sort.setEnabled(false);
-		revert.setEnabled(false);
-
 	}
 	
 	private void updateTable(DocumentDataSetTableWidget t, Map<TrpDocMetadata, List<TrpPage>> map) {
