@@ -82,7 +82,7 @@ public class TrpSliderComposite extends Composite {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				logger.debug("Slider event: {}, state = {}", e.detail, e.stateMask);
-				if(e.detail == SWT.NONE){
+				if(e.detail == SWT.NONE || e.detail == 1){
 					setValue(sldr.getSelection() / 100.0);
 				}
 			}
@@ -104,7 +104,7 @@ public class TrpSliderComposite extends Composite {
 
 	private void updateTxt() {
 		String txtValue = valueFormat.format(value);
-		logger.debug("Updating txt: {}", txtValue);
+		logger.debug("New value: {}", txtValue);
 		if(!txtValue.equals(txt.getText())) {
 			txt.setText(txtValue);
 			logger.debug("Updating text field.");
