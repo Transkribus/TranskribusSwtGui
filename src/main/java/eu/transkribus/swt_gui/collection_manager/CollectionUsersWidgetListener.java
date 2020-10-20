@@ -30,6 +30,7 @@ import eu.transkribus.core.model.beans.auth.TrpUser;
 import eu.transkribus.swt.util.ComboInputDialog;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionOverviewDialog;
+import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -62,6 +63,7 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 		cuw.removeUserFromColBtn.addSelectionListener(this);
 		cuw.role.addSelectionListener(this);
 		cuw.showUserCollections.addSelectionListener(this);
+		cuw.addUsersToOtherColBtn.addSelectionListener(this);
 	}
 	
 	public void detach() {
@@ -69,6 +71,7 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 		cuw.removeUserFromColBtn.removeSelectionListener(this);
 		cuw.role.removeSelectionListener(this);
 		cuw.showUserCollections.removeSelectionListener(this);
+		cuw.addUsersToOtherColBtn.removeSelectionListener(this);
 	}
 
 	@Override
@@ -115,6 +118,9 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 			} 
 			else if (s == cuw.showUserCollections){
 				showCollectionsOfUser(cuw.getFirstSelectedUser());
+			}
+			else if (s == cuw.addUsersToOtherColBtn) {
+				addSelectedUsersToAnotherCollection();
 			}
 
 
@@ -340,6 +346,65 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 			}
 			
 			cuw.updateUsersForSelectedCollection();
+		}
+	}
+	
+	void addSelectedUsersToAnotherCollection() {
+		TrpCollection collection = cuw.getCollection();
+		if (store.isLoggedIn() && collection!=null) {
+			TrpServerConn conn = store.getConnection();
+			
+			List<TrpUser> selected = cuw.getSelectedUsersInCollection();
+			if (selected.isEmpty())
+				return;
+			
+			//dialog for choosing a collection
+			ChooseCollectionDialog ccd = new ChooseCollectionDialog(cuw.getShell());
+			
+			@SuppressWarnings("unused")
+			int ret = ccd.open();
+			TrpCollection col = ccd.getSelectedCollection();
+			
+			if(col == null) {
+				logger.debug("No collection was selected.");
+				return;
+			}
+
+			List<String> error = new ArrayList<>();
+			for (TrpUser u : selected) {
+				logger.debug("adding user: "+u);
+				
+				/*
+				 * this way we could let the user select the user role as well
+				 * for now we take the same role as in the origin collection 
+				 */
+//				TrpRole r = getRoleFromUser(null);
+//				if (r==null)
+//					return;
+				
+				try {
+					conn.addOrModifyUserInCollection(col.getColId(), u.getUserId(), u.getRoleInCollection());
+					logger.info("added user: "+u);
+				} catch (TrpClientErrorException | TrpServerErrorException e){
+					logger.warn("Could not add user: "+u, e);
+					error.add(u.getUserName() + " - Reason: " + e.getMessageToUser());
+				} catch (Exception e) {
+					logger.warn("Could not add user: "+u, e);
+					error.add(u.getUserName()+" - Reason: "+e.getMessage());
+				}
+			}
+			
+			if (!error.isEmpty()) {
+				String msg = "Could not add the following users:\n";
+				for (String u : error) {
+					msg += u + "\n";
+				}
+				
+				DialogUtil.showErrorMessageBox(shell, "Error adding user(s)", msg);
+				//mw.onError("Error adding user", msg, null);
+			} else {
+				DialogUtil.showInfoMessageBox(shell, "Success", "Successfully adding user(s) ("+selected.size()+")");
+			}
 		}
 	}
 

@@ -72,6 +72,7 @@ public class CollectionUsersWidget extends Composite {
 	Composite tabUserComposite,tabUserInfoComposite;
 	
 	Button addUserToColBtn, removeUserFromColBtn, showUserCollections,loadUserInfo, downloadXLS/*, editUserFromColBtn*/;
+	Button addUsersToOtherColBtn;
 	Combo role;
 	
 	List<TrpUserInfo> userInfo;
@@ -167,6 +168,11 @@ public class CollectionUsersWidget extends Composite {
 				}
 			}
 		}
+		
+		addUsersToOtherColBtn = new Button(btns, SWT.PUSH);
+		addUsersToOtherColBtn.setText("Add to other collection");
+		addUsersToOtherColBtn.setToolTipText("Add selected users to another collection (roles are taken over)");
+		addUsersToOtherColBtn.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 		
 		showUserCollections = new Button(btns, SWT.PUSH);
 		showUserCollections.setText("Collections");
@@ -353,7 +359,7 @@ public class CollectionUsersWidget extends Composite {
 					
 		addUserToColBtn.setEnabled(canManage && hasFindUsersSelected);
 		removeUserFromColBtn.setEnabled(canManage && hasCollectionUsersSelected);
-		 
+		addUsersToOtherColBtn.setEnabled(canManage && hasCollectionUsersSelected);
 //		editUserFromColBtn.setEnabled(isOwner && hasCollectionUsersSelected);
 				
 		//at the moment only the owner can change the role via Rest API
