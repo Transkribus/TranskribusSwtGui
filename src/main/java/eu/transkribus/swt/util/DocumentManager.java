@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -76,6 +77,7 @@ import eu.transkribus.core.model.beans.TrpTotalTranscriptStatistics;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
+import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProviderExtended;
@@ -111,6 +113,8 @@ public class DocumentManager extends Dialog {
 	protected Button reload, showOrigFn, createThumbs, startLA, statisticButton, addPage, addTrans,
 						deletePage , addToSampleSetBtn, removeFromSampleSetBtn, createSampleButton;
 	protected Button sort;
+
+	Combo setAsLatest;
 	//protected Button collectionImageBtn, documentImageBtn;
 	protected Button showCollectionImageBtn, showDocumentImageBtn;
 
@@ -166,9 +170,17 @@ public class DocumentManager extends Dialog {
 		this.colId = colId;
 
 		this.mw = mw;
+		
+		//we need this to store older transcripts as latest
+		try {
+			Storage.getInstance().reloadDocWithAllTranscripts();
+		} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		docList = Storage.getInstance().getDocList();
-		
+
 		sampleDocMap = new TreeMap<>();
 
 		if (Storage.getInstance().getDoc() != null) {
@@ -444,7 +456,33 @@ public class DocumentManager extends Dialog {
 		deletePage.setText("Delete");
 		deletePage.setEnabled(false);
 		
+		setAsLatest = initComboWithLabel(editCombos, "Set transcripts with selected status/toolname as latest", SWT.DROP_DOWN | SWT.READ_ONLY);
+		setAsLatest.setToolTipText("Set all transcripts of this document with this status or toolname as the latest version!");
+		setAsLatest.setEnabled(false);
 		
+		int a = 0;
+	    for (String s : EnumUtils.stringsArray(EditStatus.class)){
+	    	if (s.contentEquals("Ground Truth") || s.contentEquals("Final") || s.contentEquals("Done")) {
+	    		setAsLatest.add(s,a++);
+	    	}
+	    }
+		for(TrpPage page : Storage.getInstance().getDoc().getPages()) {
+			//logger.debug("get transcript of page " + page.getPageId());
+			List<TrpTranscriptMetadata> transcripts = page.getTranscripts();
+			//logger.debug("nr of transcripts "+ transcripts.size());
+			for(TrpTranscriptMetadata transcript : transcripts){
+				//logger.debug("get transcript  " + transcript.getToolName());
+				if(transcript.getToolName() != null) {
+					String[] items = setAsLatest.getItems();
+					if(!Arrays.stream(items).anyMatch(transcript.getToolName()::equals)) {
+						setAsLatest.add(transcript.getToolName(),a++);
+					}
+				}
+			}
+		}
+	    
+		setAsLatest.select(0);
+				
 		Group imageGroup = new Group(docSashOptionImage, SWT.SHADOW_IN);
 		imageGroup.setText("Create basic set");
 		imageGroup.setLayout(new GridLayout(2, true));
@@ -568,9 +606,9 @@ public class DocumentManager extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				logger.debug(statusCombo.getText());
-				mw.changeVersionStatus(statusCombo.getText(), getPageList());
-				
-				totalReload(colId);
+				if (mw.changeVersionStatus(statusCombo.getText(), getPageList())) {
+					totalReload(colId);
+				}				
 
 //				tv.getTree().update();
 //				try {
@@ -586,13 +624,26 @@ public class DocumentManager extends Dialog {
 			}
 		});
 		
+		setAsLatest.addSelectionListener(new SelectionAdapter() {
+	        @Override
+	        public void widgetSelected(SelectionEvent event) {
+	        	logger.debug("set versions with status/toolname as latest: " + setAsLatest.getText());
+	        	
+	        	if (mw.setVersionsAsLatest(setAsLatest.getText(), getPageList())) {
+	        		totalReload(colId);
+	        	}
+	        }
+		});
+		
 		addPage.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				mw.addSeveralPages2Doc();
+				boolean success = mw.addSeveralPages2Doc();
 				try {
 //					Storage.getInstance().reloadCurrentDocument(colId);
-					totalReload(colId);
+					if (success) {
+						totalReload(colId);
+					}
 				} catch (IllegalArgumentException e1) {
 					logger.error(e1.getMessage(), e1);
 				}
@@ -694,6 +745,8 @@ public class DocumentManager extends Dialog {
 					}
 					deletePages(selection);
 					try {
+
+						mw.getUi().getServerWidget().refreshDocListFromStorage();
 						totalReload(colId);
 						//mw.getUi().getThumbnailWidget().reload();
 					} catch (IllegalArgumentException e1) {
@@ -1065,6 +1118,9 @@ public class DocumentManager extends Dialog {
 			DialogUtil.showErrorMessageBox(getShell(), "Error", e.getMessage());
 			logger.error("Error in ProgressMonitorDialog", e);
 		}
+		
+		mw.reloadCurrentDocument();
+		mw.getUi().getServerWidget().getDocTableWidget().reloadDocs(false, true);
 
 	}
 
@@ -1608,7 +1664,14 @@ public class DocumentManager extends Dialog {
 			canManage = (store.getRoleOfUserInCurrentCollection().canManage() || store.isAdminLoggedIn()) ? true : false;
 		}
 		
-		reloadRemoteDoc();
+		//reloadRemoteDoc();
+		//we need this to store older transcripts as latest
+		try {
+			Storage.getInstance().reloadDocWithAllTranscripts();
+		} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		docList = store.getDocList();
 		tv.setInput(docList);
@@ -1725,9 +1788,11 @@ public class DocumentManager extends Dialog {
 		statusCombo.setEnabled(enable);
 		addPage.setEnabled(enable);
 		addTrans.setEnabled(enable);
+		setAsLatest.setEnabled(enable);
 		//sort.setEnabled(enable);
 		movePage.setEnabled(false);
 		deletePage.setEnabled(false);
+		
 
 	}
 	
@@ -1737,6 +1802,7 @@ public class DocumentManager extends Dialog {
 		deletePage.setEnabled(enable);
 		addPage.setEnabled(false);
 		addTrans.setEnabled(false);
+		setAsLatest.setEnabled(enable);
 		//sort.setEnabled(false);
 	}
 	
