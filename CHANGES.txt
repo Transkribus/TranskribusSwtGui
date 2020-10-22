@@ -719,6 +719,7 @@ CHANGES AND BUGFIXES
 1.13.0:
 	-> User can set the size of the 'reading order circles' in the viewing settings
 	-> User management: take selected users over to another collection, roles are kept as they are and can be adapted in this other collection
+	-> Document manager: store older transcript versions as latest by choosing the status or toolname. Use-case example: store 'Ground Truth' versions as latest
 	
 	
 	
