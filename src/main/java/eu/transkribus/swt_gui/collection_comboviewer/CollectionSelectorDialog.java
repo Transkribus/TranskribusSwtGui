@@ -134,7 +134,7 @@ public class CollectionSelectorDialog extends Dialog {
 					TrpMainWidget.getInstance().openStrayDocsDialog();
 				}
 				else if (e.getSource() == openCreditManagerBtn) {
-					TrpMainWidget.getInstance().openCreditManager();
+					TrpMainWidget.getInstance().openCreditManager(c);
 				}
 			}
 		};

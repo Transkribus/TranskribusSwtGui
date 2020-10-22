@@ -66,12 +66,12 @@ public class CreditManagerListener implements IStorageListener {
 		SWTUtil.setTabFolderBoldOnItemSelection(view.tabFolder);
 		SWTUtil.onSelectionEvent(view.addToCollectionBtn, (e) -> {
 			List<TrpCreditPackage> packageList = view.userCreditsTable.getSelected();
-			assignPackagesToCollection(store.getCollId(), packageList);
+			assignPackagesToCollection(view.getCollection().getColId(), packageList);
 		});
 		
 		SWTUtil.onSelectionEvent(view.removeFromCollectionBtn, (e) -> {
 			List<TrpCreditPackage> packageList = view.collectionCreditsTable.getSelected();
-			removePackagesFromCollection(store.getCollId(), packageList);
+			removePackagesFromCollection(view.getCollection().getColId(), packageList);
 		});
 		
 		//register as storage listener for handling collection changes (DocListLoadEvent). Deregister on dialog close.
@@ -164,7 +164,7 @@ public class CreditManagerListener implements IStorageListener {
 				continue;
 			}
 			try {
-				store.getConnection().getCreditCalls().addCreditPackageToCollection(store.getCollId(), p.getPackageId());
+				store.getConnection().getCreditCalls().addCreditPackageToCollection(view.getCollection().getColId(), p.getPackageId());
 				addCount++;
 			} catch (IllegalStateException ise) {
 				//Client currently maps "304 - Not modified" to an IllegalStateException. The package was already assigned to this collection.
@@ -206,7 +206,7 @@ public class CreditManagerListener implements IStorageListener {
 		final Set<String> fails = new HashSet<>();
 		for(TrpCreditPackage p : packageList) {
 			try {
-				store.getConnection().getCreditCalls().removeCreditPackageFromCollection(store.getCollId(), p.getPackageId());
+				store.getConnection().getCreditCalls().removeCreditPackageFromCollection(view.getCollection().getColId(), p.getPackageId());
 				addCount++;
 			} catch (SessionExpiredException e1) {
 				//TODO abort and show login dialog

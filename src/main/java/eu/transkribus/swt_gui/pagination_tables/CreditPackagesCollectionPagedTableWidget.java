@@ -10,27 +10,35 @@ import org.eclipse.nebula.widgets.pagination.table.PageableTable;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpCreditPackage;
 import eu.transkribus.core.model.beans.rest.TrpCreditPackageList;
 import eu.transkribus.swt.pagination_table.IPageLoadMethod;
 import eu.transkribus.swt.pagination_table.RemotePageLoaderSingleRequest;
-import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.pagination_tables.CreditPackagesUserPagedTableWidget.OverallBalanceComposite;
 
 public class CreditPackagesCollectionPagedTableWidget extends CreditPackagesUserPagedTableWidget {
 	private static final Logger logger = LoggerFactory.getLogger(CreditPackagesCollectionPagedTableWidget.class);
 	
+	TrpCollection collection;
+	
 	public CreditPackagesCollectionPagedTableWidget(Composite parent, int style) {
 		super(parent, style);
+	}
+	
+	public void setCollection(TrpCollection collection) {
+		this.collection = collection;
+	}
+
+	public TrpCollection getCollection() {
+		return collection;
 	}
 	
 	@Override
@@ -41,9 +49,9 @@ public class CreditPackagesCollectionPagedTableWidget extends CreditPackagesUser
 			public TrpCreditPackageList loadPage(int fromIndex, int toIndex, String sortPropertyName,
 					String sortDirection) {
 				Storage store = Storage.getInstance();
-				if (store.isLoggedIn()) {
+				if (store.isLoggedIn() && collection != null) {
 					try {
-						return store.getConnection().getCreditCalls().getCreditPackagesByCollection(store.getCollId(), fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
+						return store.getConnection().getCreditCalls().getCreditPackagesByCollection(collection.getColId(), fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
 					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 						TrpMainWidget.getInstance().onError("Error loading HTRs", e.getMessage(), e);
 					}

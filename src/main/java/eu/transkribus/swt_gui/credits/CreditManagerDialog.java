@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 
+import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.pagination_tables.CreditPackagesCollectionPagedTableWidget;
@@ -25,6 +26,9 @@ import eu.transkribus.swt_gui.pagination_tables.CreditTransactionsPagedTableWidg
 import eu.transkribus.swt_gui.pagination_tables.JobTableWidgetPagination;
 
 public class CreditManagerDialog extends Dialog {
+	
+	TrpCollection collection;
+	
 	protected Composite dialogArea;
 	
 	protected CTabFolder tabFolder;
@@ -34,6 +38,7 @@ public class CreditManagerDialog extends Dialog {
 	private Composite collectionCreditWidget, jobTransactionWidget;
 	
 	protected CreditPackagesUserPagedTableWidget userCreditsTable;
+	protected Group collectionCreditGroup;
 	protected CreditPackagesCollectionPagedTableWidget collectionCreditsTable;
 	protected JobTableWidgetPagination jobsTable;
 	protected CreditTransactionsPagedTableWidget transactionsTable;
@@ -42,8 +47,21 @@ public class CreditManagerDialog extends Dialog {
 	
 	protected Button addToCollectionBtn, removeFromCollectionBtn;
 
-	public CreditManagerDialog(Shell parent) {
+	public CreditManagerDialog(Shell parent, TrpCollection collection) {
 		super(parent);
+		this.collection = collection;
+	}
+	
+	/**
+	 * Dialog is now modal. Update on collection change to be tested yet.
+	 */
+	private void setCollection(TrpCollection collection) {
+		this.collection = collection;
+		updateCreditsTabUI(true);
+	}
+
+	public TrpCollection getCollection() {
+		return collection;
 	}
 
 	public void setVisible() {
@@ -111,10 +129,10 @@ public class CreditManagerDialog extends Dialog {
 		Label space2 = new Label(buttonComp, SWT.NONE);
 		space2.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true));
 		
-		Group collectionCreditGroup = new Group(sf, SWT.BORDER);
+		collectionCreditGroup = new Group(sf, SWT.BORDER);
 		collectionCreditGroup.setLayout(new GridLayout(1, true));
 		collectionCreditGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
-		collectionCreditGroup.setText("Credit Packages in Collection");
+		//group's title text is updated when data is loaded
 		collectionCreditsTable = new CreditPackagesCollectionPagedTableWidget(collectionCreditGroup, SWT.NONE);
 		collectionCreditsTable.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
@@ -131,6 +149,14 @@ public class CreditManagerDialog extends Dialog {
 		sf.setWeights(new int[] { 47, buttonWeight, 47 });
 
 		return sf;
+	}
+
+	private void updateCollectionCreditGroupText(TrpCollection collection) {
+		String text = "Credit Packages in Collection";
+		if(collection != null) {
+			text += " '" + collection.getColName() + "'";
+		}
+		collectionCreditGroup.setText(text);
 	}
 
 	private Composite createJobTransactionWidget(Composite parent, int style) {
@@ -172,6 +198,8 @@ public class CreditManagerDialog extends Dialog {
 	}
 	
 	protected void updateCreditsTabUI(boolean resetTablesToFirstPage) {
+		updateCollectionCreditGroupText(this.getCollection());
+		collectionCreditsTable.setCollection(this.getCollection());
 		userCreditsTable.refreshPage(resetTablesToFirstPage);
 		collectionCreditsTable.refreshPage(resetTablesToFirstPage);
 	}
@@ -195,6 +223,6 @@ public class CreditManagerDialog extends Dialog {
 
 	@Override
 	protected void setShellStyle(int newShellStyle) {
-		super.setShellStyle(SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
+		super.setShellStyle(SWT.CLOSE | SWT.MAX | SWT.APPLICATION_MODAL | SWT.BORDER | SWT.TITLE | SWT.RESIZE);
 	}
 }

@@ -6832,11 +6832,11 @@ public class TrpMainWidget {
 		return rids;
 	}
 	
-	public void openCreditManager() {
+	public void openCreditManager(TrpCollection collection) {
 		if (creditManagerDialog != null) {
 			creditManagerDialog.setVisible();
 		} else {
-			creditManagerDialog = new CreditManagerDialog(mw.getShell());
+			creditManagerDialog = new CreditManagerDialog(mw.getShell(), collection);
 			if (creditManagerDialog.open() == IDialogConstants.OK_ID) {
 				//we don't need feedback here. do nothing
 			}
