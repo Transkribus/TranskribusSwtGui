@@ -187,10 +187,10 @@ public class JobTableWidgetListener extends SelectionAdapter implements IStorage
 		TrpMainWidget mw = TrpMainWidget.getInstance();
 		
 		TrpJobStatus jobStatus = jw.getFirstSelected();
-		logger.debug("selected job: "+ jobStatus.getJobId());
 		
 		if (jobStatus!=null && jobStatus.getDocId().equals(mw.getStorage().getDocId()) && jobStatus.getState().equals(TrpJobStatus.FINISHED) && module_names.contains(jobStatus.getModuleName()) ) {
 			
+			logger.debug("selected job: "+ jobStatus.getJobId());
 			logger.debug("selected job maps to loaded doc - undo is possible");
 			
 			Integer docId = jobStatus.getDocId();
