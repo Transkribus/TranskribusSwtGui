@@ -6438,7 +6438,7 @@ public class TrpMainWidget {
 					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							try{
 
-								monitor.beginTask("Store versions with status or toolname "+EditStatus.fromString(text)+" as latest.", pageList.size());
+								monitor.beginTask("Store versions with status or toolname "+text+" as latest.", pageList.size());
 								int c=0;
 								
 								for (TrpPage page : pageList) {
@@ -6480,7 +6480,7 @@ public class TrpMainWidget {
 											
 									}
 									
-									storage.getConnection().updateTranscript(colId, docId, pageNr, transcript.getStatus(), transcript.unmarshallTranscript(), transcript.getParentTsId(), "");
+									storage.getConnection().updateTranscript(colId, docId, pageNr, transcript.getStatus(), transcript.unmarshallTranscript(), transcript.getParentTsId(), transcript.getToolName());
 									
 									monitor.subTask("Page " + ++c + "/" + pageList.size() );
 									monitor.worked(c);
