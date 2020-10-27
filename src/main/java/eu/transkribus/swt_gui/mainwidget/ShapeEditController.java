@@ -167,6 +167,11 @@ public class ShapeEditController extends AMainWidgetController {
 				DialogUtil.showErrorMessageBox(getShell(), "Error", "No document loaded!");
 				return;
 			}
+			
+			if (!mw.saveTranscriptDialogOrAutosave()) {
+				return;
+			}
+			
 			RemoveTextLinesConfDialog d = new RemoveTextLinesConfDialog(getShell());
 			if (d.open() != IDialogConstants.OK_ID) {
 				return;
@@ -289,6 +294,11 @@ public class ShapeEditController extends AMainWidgetController {
 				DialogUtil.showErrorMessageBox(getShell(), "Error", "No document loaded!");
 				return;
 			}
+			
+			if (!mw.saveTranscriptDialogOrAutosave()) {
+				return;
+			}
+			
 			MergeTextLinesConfDialog d = new MergeTextLinesConfDialog(getShell());
 			if (d.open() != IDialogConstants.OK_ID) {
 				return;
@@ -413,6 +423,11 @@ public class ShapeEditController extends AMainWidgetController {
 				DialogUtil.showErrorMessageBox(getShell(), "Error", "No document loaded!");
 				return;
 			}
+			
+			if (!mw.saveTranscriptDialogOrAutosave()) {
+				return;
+			}
+			
 			RemoveTextRegionsConfDialog d = new RemoveTextRegionsConfDialog(getShell());
 			if (d.open() != IDialogConstants.OK_ID) {
 				return;
